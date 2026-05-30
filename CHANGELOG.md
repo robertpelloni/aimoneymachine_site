@@ -1,112 +1,108 @@
 # Changelog
 
+## [1.0.0-alpha.22] - 2026-05-30
+### Added
+- **Curation Module: Real Feeds (BETA)**: Integrated `gofeed` to fetch and process real RSS/Atom feeds for content curation.
+- **Rate Limiting (STABLE)**: Implemented `RateLimiter` in `orchestrator` to manage API consumption, integrated into `WaterfallLLM`.
+- **Executive Protocol (BETA)**: Enhanced `sync.sh` to reconcile all local feature branches with main automatically.
+- **Interactive Menu (BETA)**: Added `-interactive` flag to Orchestrator for manual control and module selection.
+- **UI Enhancements**: Added labels and descriptions to the terminal dashboard for improved observability.
+- **Go Standardization**: Standardized all modules and CI to Go 1.24 for compatibility.
+
 ## [1.0.0-alpha.21] - 2026-05-30
 ### Added
-- Task state persistence for Scheduler (Saves to `tasks.json`).
-- Initial Content Curation hustle module.
-- Auto-saving task history after execution.
+- **Curation Module (EXPERIMENTAL)**: Scaffolded a new module for automated content curation.
+- **Task Persistence (BETA)**: Implemented `tasks.json` state persistence for the curation module.
+- **Validation**: Added E2E validation for curation and task history.
 
 ## [1.0.0-alpha.20] - 2026-05-30
 ### Added
-- Task Scheduler in `orchestrator/scheduler.go` for periodic execution.
-- Daemon mode (`-daemon`) in Orchestrator CLI.
-- Heartbeat task for automated status reporting.
+- **Autonomous Scheduling (BETA)**: Implemented `orchestrator/scheduler.go` for periodic hustle execution.
+- **Daemon Mode (BETA)**: Added `-daemon` flag to orchestrator CLI for background operation.
 
 ## [1.0.0-alpha.19] - 2026-05-30
 ### Added
-- Real PDF generation in Research module using `gofpdf`.
-- Intelligent error classification and retry logic in `WaterfallLLM`.
+- **Professional Output (BETA)**: Integrated `gofpdf` for high-quality intelligence report generation.
 
 ## [1.0.0-alpha.18] - 2026-05-30
 ### Added
-- Intelligent Merge Engine in `sync.sh` with multi-branch reconciliation.
-- Hardened Git rollback implementation.
+- **Intelligent Merge Engine (BETA)**: `sync.sh` now automates branch reconciliation across all local feature branches.
+- **Hardened Rollback (BETA)**: Implementation of full Git recovery logic (abort, reset, clean).
 
 ## [1.0.0-alpha.17] - 2026-05-30
 ### Added
-- Real HTTP client for Anthropic messages API.
-- Real HTTP client for Tavily search API.
+- **Anthropic Integration (BETA)**: Functional HTTP client for Claude 3.5 Sonnet.
+- **Tavily Integration (BETA)**: Functional HTTP client for real-time web research.
 
 ## [1.0.0-alpha.16] - 2026-05-30
 ### Added
-- LLM Waterfall implementation for provider failover.
-- Enhanced AnthropicProvider scaffolding.
+- **LLM Failover (BETA)**: Implemented `WaterfallLLM` for automatic sequential failover across multiple providers.
 
 ## [1.0.0-alpha.15] - 2026-05-30
 ### Added
-- Weighted voting system for the Multi-Agent Council.
-- Hybrid Memory Ranking sorting.
+- **Multi-Agent Governance (BETA)**: Implemented role-based weights and automated consensus scoring for the council.
+- **Smart Memory (BETA)**: Ranked search combining relevance and temporal heat.
 
 ## [1.0.0-alpha.14] - 2026-05-30
 ### Added
-- Terminal-optimized Live Dashboard.
-- Council-integrated healing.
+- **Terminal Dashboard (BETA)**: Live visualization of machine health, finances, and events.
+- **Council-Led Healing (BETA)**: Integrated agent debates into the self-healing loop.
 
 ## [1.0.0-alpha.13] - 2026-05-30
 ### Added
-- Multi-Agent Council for strategy verification.
+- **Multi-Agent Council (BETA)**: Consensus engine for strategic validation (Bull, Bear, Critic).
 
 ## [1.0.0-alpha.12] - 2026-05-30
 ### Added
-- SQLite persistence layer for tiered memory storage.
-- Real file export logic for research reports.
-- AnthropicProvider skeleton.
+- **SQLite Persistence (BETA)**: Robust memory storage backend.
+- **Dual-Storage (BETA)**: JSON + SQLite synchronization.
 
 ## [1.0.0-alpha.11] - 2026-05-30
 ### Added
-- Integrated Revenue, Expenses, and Profit into `STATUS.json` reporting.
-- Pluggable `LLMProvider` interface.
-- Parameterized execution via `-params` flag.
+- **Financial Status (BETA)**: Integrated Revenue/Expenses/Profit into `STATUS.json`.
+- **LLM Orchestration (BETA)**: Pluggable provider interface.
 
 ## [1.0.0-alpha.10] - 2026-05-30
 ### Added
-- Financial Ledger implementation.
-- CLI flags (`-hustle`, `-sync`) for the Hustle Orchestrator.
-- Social Media module provider interface.
+- **Ledger System (BETA)**: Transactional tracking for all hustles.
+- **Social Scaffolding (EXPERIMENTAL)**: LinkedIn and Twitter provider interfaces.
 
 ## [1.0.0-alpha.9] - 2026-05-30
 ### Added
-- Functional Healer loop with retry logic.
-- Memory Search with keyword filtering.
-- Initial Social Media hustle module scaffolding.
+- **State-Aware Healer (BETA)**: Enhanced loop with memory logging and retry limits.
 
 ## [1.0.0-alpha.8] - 2026-05-30
 ### Added
-- JSON persistence for tiered memory.
-- Standalone entry points for Orchestrator and Research modules.
-- Automatic integration between research results and orchestrator memory.
+- **Memory Persistence (BETA)**: L1/L2/L3 tiers now save to `memory.json`.
+- **Runnable CLI**: Dedicated entry points in `bin/`.
 
 ## [1.0.0-alpha.7] - 2026-05-30
 ### Added
-- Utility-based heat scoring for memories with temporal decay.
-- Enhanced Research Hustle pipeline with multi-provider support.
+- **Biological Memory (BETA)**: Heat scoring and exponential temporal decay.
+- **Intelligence Synthesis (BETA)**: Research engine supporting multiple providers.
 
 ## [1.0.0-alpha.6] - 2026-05-30
 ### Added
-- Real Git rollback implementation.
-- Failure trap in `sync.sh`.
+- **Sync Failure Trap (BETA)**: Automated rollback on git merge failures.
 
 ## [1.0.0-alpha.5] - 2026-05-30
 ### Added
-- GitHub Actions CI pipeline.
-- End-to-End (E2E) tests for the research hustle pipeline.
+- **CI Pipeline (STABLE)**: GitHub Actions automation.
+- **E2E Tests (STABLE)**: Pipeline validation for research hustles.
 
-## [1.0.0-alpha.4] - 2026-05-29
+## [1.0.0-alpha.4] - 2026-05-30
 ### Added
-- Enhanced `sync.sh` with branch reconciliation logic.
-- Real git status and submodule monitoring.
+- **Executive Sync (BETA)**: Branch reconciliation protocol in `sync.sh`.
 
-## [1.0.0-alpha.3] - 2026-05-29
+## [1.0.0-alpha.3] - 2026-05-30
 ### Added
-- Automated rollback handling skeleton.
-- Real-time status reporting to `STATUS.json`.
+- **Health Reporting (BETA)**: `STATUS.json` real-time updates.
 
-## [1.0.0-alpha.2] - 2026-05-29
+## [1.0.0-alpha.2] - 2026-05-30
 ### Added
-- Repository synchronization orchestration scripts.
-- Sync monitoring and health check logic.
+- **Autonomous Scripts (STABLE)**: `sync.sh` and `build.sh`.
 
-## [1.0.0-alpha.1] - 2026-05-29
+## [1.0.0-alpha.1] - 2026-05-30
 ### Added
-- Repository initialization with knowledge base.
-- Basic project structure scaffolding.
+- **Core Architecture (EXPERIMENTAL)**: Go-based tiered memory and self-healing loop.
+- **Rebranding**: Complete pivot from Hypercode to AI Hustle Machine.

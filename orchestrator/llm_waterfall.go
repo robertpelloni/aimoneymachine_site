@@ -1,15 +1,24 @@
 package orchestrator
 
 import (
+	"context"
 	"fmt"
 	"strings"
 )
 
 type WaterfallLLM struct {
 	Providers []LLMProvider
+	Limiter   *RateLimiter
 }
 
 func (w *WaterfallLLM) Generate(prompt string) (string, error) {
+	if w.Limiter != nil {
+		err := w.Limiter.Wait(context.Background())
+		if err != nil {
+			return "", fmt.Errorf("rate limiter error: %v", err)
+		}
+	}
+
 	var lastErr error
 	for i, p := range w.Providers {
 		res, err := p.Generate(prompt)
