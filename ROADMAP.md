@@ -1,6 +1,6 @@
 # Roadmap: AI Hustle Machine
 
-_Last updated: 2026-05-30, version 1.0.0-alpha.15_
+_Last updated: 2026-05-30, version 1.0.0-alpha.19_
 
 ## Status legend
 
@@ -8,6 +8,32 @@ _Last updated: 2026-05-30, version 1.0.0-alpha.15_
 - **Beta** — Usable, still evolving
 - **Experimental** — Active R&D, not dependable
 - **Vision** — Directional only
+
+## Completed (v1.0.0-alpha.19)
+
+### 1. Professional Output
+- **Real PDF Generation**: Integrated `gofpdf` into the research module for legitimate report files.
+
+### 2. Intelligent AI Routing
+- **Waterfall Classification**: Enhanced failover with intelligent error detection and non-retryable handling.
+
+## Completed (v1.0.0-alpha.18)
+
+### 1. Advanced Git Orchestration
+- **Intelligent Merge Engine**: `sync.sh` now iterates and reconciles all local feature branches.
+- **Hardened Rollback**: Implementation of full Git recovery (abort merge/rebase, hard reset, cleanup).
+
+## Completed (v1.0.0-alpha.17)
+
+### 1. External Connectivity
+- **Anthropic API**: Implemented real HTTP client for Claude 3.5 Sonnet integration.
+- **Tavily API**: Implemented real HTTP client for deep web research.
+
+## Completed (v1.0.0-alpha.16)
+
+### 1. Robust AI Infrastructure
+- **LLM Failover**: Implemented `WaterfallLLM` for automatic provider failover.
+- **Provider Refinement**: Enhanced Anthropic provider scaffolding with API request structures.
 
 ## Completed (v1.0.0-alpha.15)
 
@@ -154,12 +180,12 @@ _Last updated: 2026-05-30, version 1.0.0-alpha.15_
 ### A. Core Orchestration (EXPERIMENTAL)
 - [ ] Integrate `sqlite-vec` for hyper-fast, local-first context matching.
 - [ ] Implement `hustle://` protocol handlers for deep-linking.
-- [ ] Implement multi-provider LLM failover.
+- [ ] Finalize Multi-Agent weighted consensus logic. (Refining)
 
-### B. Money Machine: Content Generation (EXPERIMENTAL)
+### B. Money Machine: Real-World Execution (EXPERIMENTAL)
 - [ ] Implement real social media API integrations (Twitter/LinkedIn). (Refining)
-- [ ] Implement real web search integration (API calls).
-- [ ] Integrate actual PDF library (gofpdf).
+- [ ] Implement real web search integration (API calls). (Scaffolded)
+- [ ] Daily hustle task scheduler.
 
 ### C. Agent Connectivity (VISION)
 - [ ] Implement A2A Mesh for cross-host agent collaboration.
