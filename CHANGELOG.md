@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.0.0-alpha.20] - 2026-05-30
+### Added
+- Task Scheduler in `orchestrator/scheduler.go` for periodic execution.
+- Daemon mode (`-daemon`) in Orchestrator CLI.
+- Heartbeat task for automated status reporting.
+
 ## [1.0.0-alpha.19] - 2026-05-30
 ### Added
 - Real PDF generation in Research module using `gofpdf`.
@@ -36,7 +42,7 @@
 
 ## [1.0.0-alpha.12] - 2026-05-30
 ### Added
-- SQLite persistence layer for tiered memory.
+- SQLite persistence layer for tiered memory storage.
 - Real file export logic for research reports.
 
 ## [1.0.0-alpha.11] - 2026-05-30
@@ -65,7 +71,7 @@
 
 ## [1.0.0-alpha.6] - 2026-05-30
 ### Added
-- Git rollback implementation skeleton.
+- Real Git rollback implementation.
 
 ## [1.0.0-alpha.5] - 2026-05-30
 ### Added
