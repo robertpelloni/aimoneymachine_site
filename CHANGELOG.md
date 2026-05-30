@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.0.0-alpha.5] - 2026-05-30
+### Added
+- GitHub Actions CI pipeline in `.github/workflows/ci.yml`.
+- End-to-End (E2E) tests for the research hustle pipeline.
+
 ## [1.0.0-alpha.4] - 2026-05-29
 ### Added
 - Enhanced `sync.sh` with "Executive Protocol" reconciliation logic.

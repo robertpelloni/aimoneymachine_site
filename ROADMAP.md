@@ -1,6 +1,6 @@
 # Roadmap: AI Hustle Machine
 
-_Last updated: 2026-05-29, version 1.0.0-alpha.4_
+_Last updated: 2026-05-30, version 1.0.0-alpha.5_
 
 ## Status legend
 
@@ -8,6 +8,12 @@ _Last updated: 2026-05-29, version 1.0.0-alpha.4_
 - **Beta** — Usable, still evolving
 - **Experimental** — Active R&D, not dependable
 - **Vision** — Directional only
+
+## Completed (v1.0.0-alpha.5)
+
+### 1. CI & E2E Testing
+- **Pipeline**: GitHub Actions integration for automated builds and tests.
+- **Verification**: End-to-End pipeline testing for the Research Hustle.
 
 ## Completed (v1.0.0-alpha.4)
 

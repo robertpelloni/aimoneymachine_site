@@ -1,0 +1,28 @@
+name: AI Hustle Machine CI
+
+on:
+  push:
+    branches: [ main, 'jules-*' ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.24'
+
+    - name: Build and Sync Check
+      run: |
+        chmod +x build.sh sync.sh
+        ./build.sh
+
+    - name: Run Tests
+      run: go test -v ./orchestrator/... ./hustle/research/...
