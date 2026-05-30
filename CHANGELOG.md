@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.0.0-alpha.17] - 2026-05-30
+### Added
+- Real HTTP client for Anthropic messages API in `llm.go`.
+- Real HTTP client for Tavily search API in `search.go`.
+- Mock API server tests in `api_test.go`.
+
 ## [1.0.0-alpha.16] - 2026-05-30
 ### Added
 - LLM Waterfall implementation for automatic provider failover.

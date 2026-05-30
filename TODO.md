@@ -2,11 +2,10 @@
 
 ## Immediate Tasks
 - [ ] Integrate `sqlite-vec` for hyper-fast, local-first context matching.
-- [ ] Implement real social media API integrations (Twitter/LinkedIn stubs).
-- [ ] Implement real web search integration (API calls to Tavily).
+- [ ] Implement real social media API integrations (Twitter/LinkedIn).
 - [ ] Integrate actual PDF library (gofpdf).
-- [ ] Multi-provider LLM failover logic (WaterfallLLM). (Completed)
-- [ ] Complete Anthropic API client logic in `orchestrator/llm.go`.
+- [ ] Add CLI flag for setting LLM provider preference.
+- [ ] Implement rate-limiting logic for API clients.
 
 ## Future Tasks
 - [ ] Implement A2A Mesh for cross-host collaboration.
