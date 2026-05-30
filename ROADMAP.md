@@ -1,6 +1,6 @@
 # Roadmap: AI Hustle Machine
 
-_Last updated: 2026-05-30, version 1.0.0-alpha.14_
+_Last updated: 2026-05-30, version 1.0.0-alpha.15_
 
 ## Status legend
 
@@ -8,6 +8,18 @@ _Last updated: 2026-05-30, version 1.0.0-alpha.14_
 - **Beta** — Usable, still evolving
 - **Experimental** — Active R&D, not dependable
 - **Vision** — Directional only
+
+## Completed (v1.0.0-alpha.15)
+
+### 1. Council Sophistication
+- **Weighted Voting**: Implemented role-based weights (Bull: 0.3, Bear: 0.3, Critic: 0.4).
+- **Consensus Scoring**: Added automated weighted score calculation to debates.
+
+### 2. Research Infrastructure
+- **Tavily Integration**: Scaffolded functional API client for Tavily search.
+
+### 3. Smart Memory
+- **Hybrid Ranking**: New `RankedSearch` sorts entries by a combination of keyword match and temporal heat.
 
 ## Completed (v1.0.0-alpha.14)
 
@@ -142,7 +154,7 @@ _Last updated: 2026-05-30, version 1.0.0-alpha.14_
 ### A. Core Orchestration (EXPERIMENTAL)
 - [ ] Integrate `sqlite-vec` for hyper-fast, local-first context matching.
 - [ ] Implement `hustle://` protocol handlers for deep-linking.
-- [ ] Implement weighted voting in the Multi-Agent Council.
+- [ ] Implement multi-provider LLM failover.
 
 ### B. Money Machine: Content Generation (EXPERIMENTAL)
 - [ ] Implement real social media API integrations (Twitter/LinkedIn). (Refining)

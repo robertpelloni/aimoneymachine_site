@@ -1,52 +1,56 @@
 # Changelog
 
+## [1.0.0-alpha.15] - 2026-05-30
+### Added
+- Weighted voting system for the Multi-Agent Council.
+- Automated weighted score calculation for hustle debates.
+- Tavily API client skeleton for research.
+- Hybrid Memory Ranking sorting by keyword and temporal decay.
+- Unit tests for weighted voting and ranked search.
+
 ## [1.0.0-alpha.14] - 2026-05-30
 ### Added
-- Terminal-optimized Live Dashboard for real-time status monitoring.
-- Council-integrated healing: Healer now consults the Multi-Agent Council for strategy.
-- `-dashboard` flag in Orchestrator CLI.
+- Terminal-optimized Live Dashboard.
+- Council-integrated healing.
 
 ## [1.0.0-alpha.13] - 2026-05-30
 ### Added
-- Multi-Agent Council for strategy verification and debates.
-- Roles-based LLM orchestration (Bull, Bear, Critic).
-- Integration of Council consensus into the Research module.
+- Multi-Agent Council for strategy verification.
 
 ## [1.0.0-alpha.12] - 2026-05-30
 ### Added
-- SQLite persistence layer for tiered memory storage.
+- SQLite persistence layer for tiered memory.
 - Real file export logic for research reports.
-- AnthropicProvider skeleton for future LLM integration.
+- AnthropicProvider skeleton.
 
 ## [1.0.0-alpha.11] - 2026-05-30
 ### Added
 - Integrated Revenue, Expenses, and Profit into `STATUS.json` reporting.
-- Pluggable `LLMProvider` interface with `MockLLM` implementation.
-- Orchestrator-wide LLM access for all hustle modules.
-- Parameterized execution via `-params` flag in Orchestrator CLI.
+- Pluggable `LLMProvider` interface.
+- Parameterized execution via `-params` flag.
 
 ## [1.0.0-alpha.10] - 2026-05-30
 ### Added
-- Financial Ledger implementation for revenue and expense tracking.
+- Financial Ledger implementation.
 - CLI flags (`-hustle`, `-sync`) for the Hustle Orchestrator.
-- Provider interface for Social Media module with Twitter/LinkedIn mocks.
+- Social Media module provider interface.
 
 ## [1.0.0-alpha.9] - 2026-05-30
 ### Added
-- Functional Healer loop with retry logic and memory logging.
+- Functional Healer loop with retry logic.
 - Memory Search with keyword filtering.
-- Initial Social Media hustle module scaffolding.
+- Social Media module scaffolding.
 
 ## [1.0.0-alpha.8] - 2026-05-30
 ### Added
 - JSON persistence for tiered memory.
-- Standalone entry points for Orchestrator and Research modules.
-- Automatic integration between research results and orchestrator memory.
+- Standalone entry points for Orchestrator and Research.
+- Research-orchestrator memory integration.
 
 ## [1.0.0-alpha.7] - 2026-05-30
 ### Added
-- Utility-based heat scoring for memories with temporal decay.
-- Enhanced Research Hustle pipeline with multi-provider support.
+- Utility-based heat scoring for memories.
+- Enhanced Research Hustle pipeline.
 
 ## [1.0.0-alpha.6] - 2026-05-30
 ### Added
@@ -56,7 +60,8 @@
 ## [1.0.0-alpha.5] - 2026-05-30
 ### Added
 - GitHub Actions CI pipeline.
-- End-to-End (E2E) tests for the research hustle pipeline.
+- End-to-End (E2E) tests.
+- Go workspace (`go.work`) configuration.
 
 ## [1.0.0-alpha.4] - 2026-05-29
 ### Added

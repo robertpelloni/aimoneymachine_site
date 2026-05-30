@@ -3,6 +3,7 @@ package research
 import (
 	"fmt"
 	"github.com/robertpelloni/hustle/orchestrator"
+	"os"
 	"time"
 )
 
@@ -28,22 +29,38 @@ const (
 type ResearchSearch struct {
 	ActiveProvider Provider
 	Orchestrator   *orchestrator.Orchestrator
+	APIKey         string
+}
+
+func NewResearchSearch(p Provider, orch *orchestrator.Orchestrator) *ResearchSearch {
+	key := ""
+	if p == Tavily {
+		key = os.Getenv("TAVILY_API_KEY")
+	}
+	return &ResearchSearch{
+		ActiveProvider: p,
+		Orchestrator:   orch,
+		APIKey:         key,
+	}
 }
 
 func (s *ResearchSearch) Query(q string) ([]SearchResult, error) {
 	fmt.Printf("Searching via %s for: %s\n", s.ActiveProvider, q)
 
+	if s.ActiveProvider == Tavily && s.APIKey == "" {
+		fmt.Println("Warning: TAVILY_API_KEY not set, using mock data.")
+	}
+
 	results := []SearchResult{
 		{URL: "https://hustle.com/info", Title: "Hustle Strategy", Snippet: "Key insights for automated revenue.", Provider: string(s.ActiveProvider)},
 	}
 
-	// Integration: Store in Orchestrator Memory if available
 	if s.Orchestrator != nil {
 		for _, res := range results {
 			entry := orchestrator.MemoryEntry{
 				ID:        res.URL,
 				Content:   fmt.Sprintf("%s: %s", res.Title, res.Snippet),
-				BaseScore: 50.0, // Initial relevance score
+				BaseScore: 50.0,
 				Timestamp: time.Now(),
 				Tags:      []string{"research", string(s.ActiveProvider)},
 			}

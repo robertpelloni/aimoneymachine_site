@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"math"
 	"os"
+	"sort"
 	"strings"
 	"time"
 )
@@ -43,6 +44,15 @@ func (m *L1Memory) Search(query string) []MemoryEntry {
 	return results
 }
 
+// RankedSearch sorts by combined relevance and temporal heat
+func (m *L1Memory) RankedSearch(query string) []MemoryEntry {
+	results := m.Search(query)
+	sort.Slice(results, func(i, j int) bool {
+		return results[i].Score() > results[j].Score()
+	})
+	return results
+}
+
 // L2Memory (Vault)
 type L2Memory struct {
 	Entries []MemoryEntry `json:"entries"`
@@ -62,6 +72,14 @@ func (m *L2Memory) Search(query string) []MemoryEntry {
 	return results
 }
 
+func (m *L2Memory) RankedSearch(query string) []MemoryEntry {
+	results := m.Search(query)
+	sort.Slice(results, func(i, j int) bool {
+		return results[i].Score() > results[j].Score()
+	})
+	return results
+}
+
 // L3Memory (Archive)
 type L3Memory struct {
 	Entries []MemoryEntry `json:"entries"`
@@ -78,6 +96,14 @@ func (m *L3Memory) Search(query string) []MemoryEntry {
 			results = append(results, entry)
 		}
 	}
+	return results
+}
+
+func (m *L3Memory) RankedSearch(query string) []MemoryEntry {
+	results := m.Search(query)
+	sort.Slice(results, func(i, j int) bool {
+		return results[i].Score() > results[j].Score()
+	})
 	return results
 }
 
@@ -103,7 +129,6 @@ func NewOrchestrator() *Orchestrator {
 
 func (o *Orchestrator) Save(filepath string) error {
 	if o.DB != nil {
-		// Sync to SQLite if DB is connected
 		for _, e := range o.L1.Entries { o.DB.SaveMemory("L1", e) }
 		for _, e := range o.L2.Entries { o.DB.SaveMemory("L2", e) }
 		for _, e := range o.L3.Entries { o.DB.SaveMemory("L3", e) }

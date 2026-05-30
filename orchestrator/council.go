@@ -14,7 +14,8 @@ const (
 )
 
 type Council struct {
-	Agents map[AgentRole]LLMProvider
+	Agents  map[AgentRole]LLMProvider
+	Weights map[AgentRole]float64
 }
 
 func NewCouncil(orch *Orchestrator) *Council {
@@ -24,12 +25,18 @@ func NewCouncil(orch *Orchestrator) *Council {
 			Bear:   &MockLLM{Response: "The risks are too high and the market is saturated."},
 			Critic: &MockLLM{Response: "A balanced approach is needed. Focus on the niche segments identified."},
 		},
+		Weights: map[AgentRole]float64{
+			Bull:   0.3,
+			Bear:   0.3,
+			Critic: 0.4,
+		},
 	}
 }
 
 type DebateResult struct {
-	Consensus string
-	Points    []string
+	Consensus     string
+	Points        []string
+	WeightedScore float64
 }
 
 func (c *Council) Debate(topic string) (DebateResult, error) {
@@ -39,16 +46,22 @@ func (c *Council) Debate(topic string) (DebateResult, error) {
 	bearOpinion, _ := c.Agents[Bear].Generate("Argue AGAINST: " + topic)
 	criticSummary, _ := c.Agents[Critic].Generate(fmt.Sprintf("Synthesize these opinions on %s:\nBull: %s\nBear: %s", topic, bullOpinion, bearOpinion))
 
+	// Mock score calculation based on opinions
+	score := 0.5 // Default neutral
+	if strings.Contains(strings.ToLower(bullOpinion), "incredible") { score += 0.2 }
+	if strings.Contains(strings.ToLower(bearOpinion), "saturated") { score -= 0.1 }
+
 	fmt.Printf("Bull says: %s\n", bullOpinion)
 	fmt.Printf("Bear says: %s\n", bearOpinion)
 	fmt.Printf("Critic concludes: %s\n", criticSummary)
 
 	return DebateResult{
-		Consensus: criticSummary,
-		Points:    []string{bullOpinion, bearOpinion},
+		Consensus:     criticSummary,
+		Points:        []string{bullOpinion, bearOpinion},
+		WeightedScore: score,
 	}, nil
 }
 
 func (r DebateResult) String() string {
-	return fmt.Sprintf("Consensus: %s\nKey points: %s", r.Consensus, strings.Join(r.Points, " | "))
+	return fmt.Sprintf("Consensus: %s\nWeighted Score: %.2f\nKey points: %s", r.Consensus, r.WeightedScore, strings.Join(r.Points, " | "))
 }
