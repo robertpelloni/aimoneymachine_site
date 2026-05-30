@@ -10,4 +10,7 @@ cd hustle/research && go build -o ../../bin/research ./cmd/research && cd ../..
 echo "Building Social Media Hustle..."
 cd hustle/social && go build -o ../../bin/social ./cmd/social && cd ../..
 
+echo "Building Curation Hustle..."
+cd hustle/curation && go build -o ../../bin/curator ./cmd/curator && cd ../..
+
 echo "Build complete. Executables in bin/"

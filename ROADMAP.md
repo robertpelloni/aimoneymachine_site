@@ -1,6 +1,6 @@
 # Roadmap: AI Hustle Machine
 
-_Last updated: 2026-05-30, version 1.0.0-alpha.19_
+_Last updated: 2026-05-30, version 1.0.0-alpha.21_
 
 ## Status legend
 
@@ -8,6 +8,20 @@ _Last updated: 2026-05-30, version 1.0.0-alpha.19_
 - **Beta** — Usable, still evolving
 - **Experimental** — Active R&D, not dependable
 - **Vision** — Directional only
+
+## Completed (v1.0.0-alpha.21)
+
+### 1. Robust Scheduling
+- **Task Persistence**: Implemented `SaveState`/`LoadState` in `orchestrator/scheduler.go` to persist task history in `tasks.json`.
+
+### 2. Curation module
+- **Scaffolding**: Initial module for automated content curation and newsletter generation.
+
+## Completed (v1.0.0-alpha.20)
+
+### 1. Autonomous Scheduling
+- **Task Scheduler**: Implemented `orchestrator/scheduler.go` for periodic hustle execution.
+- **Daemon Mode**: Added `-daemon` flag to orchestrator CLI for background operation.
 
 ## Completed (v1.0.0-alpha.19)
 
@@ -180,12 +194,11 @@ _Last updated: 2026-05-30, version 1.0.0-alpha.19_
 ### A. Core Orchestration (EXPERIMENTAL)
 - [ ] Integrate `sqlite-vec` for hyper-fast, local-first context matching.
 - [ ] Implement `hustle://` protocol handlers for deep-linking.
-- [ ] Finalize Multi-Agent weighted consensus logic. (Refining)
 
 ### B. Money Machine: Real-World Execution (EXPERIMENTAL)
 - [ ] Implement real social media API integrations (Twitter/LinkedIn). (Refining)
-- [ ] Implement real web search integration (API calls). (Scaffolded)
-- [ ] Daily hustle task scheduler.
+- [ ] Implement real web search integration (API calls). (Functional)
+- [ ] Daily hustle task scheduler. (Functional)
 
 ### C. Agent Connectivity (VISION)
 - [ ] Implement A2A Mesh for cross-host agent collaboration.

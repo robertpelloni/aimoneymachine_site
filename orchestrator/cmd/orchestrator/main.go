@@ -6,6 +6,7 @@ import (
 	"github.com/robertpelloni/hustle/orchestrator"
 	"os"
 	"strings"
+	"time"
 )
 
 func main() {
@@ -13,6 +14,7 @@ func main() {
 	syncMode := flag.Bool("sync", false, "Run repository synchronization protocol")
 	params := flag.String("params", "{}", "JSON parameters for the hustle module")
 	dashboard := flag.Bool("dashboard", false, "Start the live terminal dashboard")
+	daemon := flag.Bool("daemon", false, "Run the Orchestrator as a background task scheduler")
 	flag.Parse()
 
 	fmt.Println("=== AI Hustle Machine Orchestrator ===")
@@ -28,6 +30,18 @@ func main() {
 
 	if *dashboard {
 		orchestrator.ShowDashboard(orch)
+		return
+	}
+
+	if *daemon {
+		scheduler := orchestrator.NewScheduler(orch)
+		// Register default heartbeat task
+		scheduler.Register("Heartbeat", 5*time.Minute, func(o *orchestrator.Orchestrator) error {
+			return orchestrator.WriteStatusReport(version, "Active", "Scheduler Heartbeat", o.Ledger)
+		})
+
+		fmt.Println("Orchestrator running in Daemon mode.")
+		scheduler.Start()
 		return
 	}
 
