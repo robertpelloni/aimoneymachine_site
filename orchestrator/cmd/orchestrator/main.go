@@ -12,6 +12,7 @@ func main() {
 	hustleTask := flag.String("hustle", "", "Run a specific hustle module (research, social)")
 	syncMode := flag.Bool("sync", false, "Run repository synchronization protocol")
 	params := flag.String("params", "{}", "JSON parameters for the hustle module")
+	dashboard := flag.Bool("dashboard", false, "Start the live terminal dashboard")
 	flag.Parse()
 
 	fmt.Println("=== AI Hustle Machine Orchestrator ===")
@@ -25,6 +26,11 @@ func main() {
 
 	orch := orchestrator.NewOrchestrator()
 
+	if *dashboard {
+		orchestrator.ShowDashboard(orch)
+		return
+	}
+
 	if *syncMode {
 		fmt.Println("Triggering repository sync protocol...")
 		// In a real app, this would execute sync.sh or internal git logic
@@ -32,7 +38,6 @@ func main() {
 
 	if *hustleTask != "" {
 		fmt.Printf("Launching hustle module: %s with params: %s\n", *hustleTask, *params)
-		// Module selection logic would go here
 	}
 
 	// Real-time status reporting with financial metrics

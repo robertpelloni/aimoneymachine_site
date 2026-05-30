@@ -58,6 +58,15 @@ func (h *Healer) Loop(issue string) {
 				})
 				return
 			}
+
+			// Consult Council if initial fixes fail
+			if h.RetryCount == h.RetryLimit-1 {
+				fmt.Println("Fixes failing. Consulting Multi-Agent Council for strategy...")
+				council := NewCouncil(h.Orchestrator)
+				debate, _ := council.Debate("How to fix persistent issue: " + issue)
+				fmt.Printf("Council consensus: %s\n", debate.Consensus)
+			}
+
 			fmt.Println("Verification failed, retrying...")
 		}
 	}

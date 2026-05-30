@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.0.0-alpha.14] - 2026-05-30
+### Added
+- Terminal-optimized Live Dashboard for real-time status monitoring.
+- Council-integrated healing: Healer now consults the Multi-Agent Council for strategy.
+- `-dashboard` flag in Orchestrator CLI.
+
 ## [1.0.0-alpha.13] - 2026-05-30
 ### Added
 - Multi-Agent Council for strategy verification and debates.

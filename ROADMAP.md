@@ -1,6 +1,6 @@
 # Roadmap: AI Hustle Machine
 
-_Last updated: 2026-05-30, version 1.0.0-alpha.13_
+_Last updated: 2026-05-30, version 1.0.0-alpha.14_
 
 ## Status legend
 
@@ -8,6 +8,15 @@ _Last updated: 2026-05-30, version 1.0.0-alpha.13_
 - **Beta** — Usable, still evolving
 - **Experimental** — Active R&D, not dependable
 - **Vision** — Directional only
+
+## Completed (v1.0.0-alpha.14)
+
+### 1. Observability
+- **Terminal Dashboard**: Live, terminal-optimized status board.
+- **Improved Monitoring**: Integrated financial metrics and recent events into the dashboard.
+
+### 2. Advanced Self-Healing
+- **Council-Led Healing**: The Healer now consults the Multi-Agent Council for fixing strategies when initial attempts fail.
 
 ## Completed (v1.0.0-alpha.13)
 
