@@ -1,18 +1,22 @@
 # Changelog
 
+## [1.0.0-alpha.13] - 2026-05-30
+### Added
+- Multi-Agent Council for strategy verification and debates.
+- Roles-based LLM orchestration (Bull, Bear, Critic).
+- Integration of Council consensus into the Research module.
+
 ## [1.0.0-alpha.12] - 2026-05-30
 ### Added
 - SQLite persistence layer for tiered memory storage.
 - Real file export logic for research reports.
 - AnthropicProvider skeleton for future LLM integration.
-- Unit tests for SQLite storage.
 
 ## [1.0.0-alpha.11] - 2026-05-30
 ### Added
 - Integrated Revenue, Expenses, and Profit into `STATUS.json` reporting.
 - Pluggable `LLMProvider` interface with `MockLLM` implementation.
 - Orchestrator-wide LLM access for all hustle modules.
-- LLM-driven synthesis in Research and Social Media modules.
 - Parameterized execution via `-params` flag in Orchestrator CLI.
 
 ## [1.0.0-alpha.10] - 2026-05-30
@@ -20,7 +24,6 @@
 - Financial Ledger implementation for revenue and expense tracking.
 - CLI flags (`-hustle`, `-sync`) for the Hustle Orchestrator.
 - Provider interface for Social Media module with Twitter/LinkedIn mocks.
-- Automated cost integration for hustle tasks.
 
 ## [1.0.0-alpha.9] - 2026-05-30
 ### Added

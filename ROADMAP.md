@@ -1,6 +1,6 @@
 # Roadmap: AI Hustle Machine
 
-_Last updated: 2026-05-30, version 1.0.0-alpha.12_
+_Last updated: 2026-05-30, version 1.0.0-alpha.13_
 
 ## Status legend
 
@@ -8,6 +8,12 @@ _Last updated: 2026-05-30, version 1.0.0-alpha.12_
 - **Beta** — Usable, still evolving
 - **Experimental** — Active R&D, not dependable
 - **Vision** — Directional only
+
+## Completed (v1.0.0-alpha.13)
+
+### 1. Multi-Agent Council
+- **Consensus Engine**: Implemented `orchestrator/council.go` for agent-based debates (Bull, Bear, Critic).
+- **Hustle Integration**: Research module now utilizes the council for strategy verification.
 
 ## Completed (v1.0.0-alpha.12)
 
@@ -122,17 +128,17 @@ _Last updated: 2026-05-30, version 1.0.0-alpha.12_
 - **Biological Tiered Memory**: L1 (Scratchpad), L2 (Vault), L3 (Archive) skeletons in Go.
 - **Autonomous Healing**: Multi-turn Healer loop skeleton.
 
-## Active Sprint: Phase 2 - Intelligent Scaling
+## Active Sprint: Phase 3 - Autonomous Council
 
 ### A. Core Orchestration (EXPERIMENTAL)
 - [ ] Integrate `sqlite-vec` for hyper-fast, local-first context matching.
 - [ ] Implement `hustle://` protocol handlers for deep-linking.
+- [ ] Implement weighted voting in the Multi-Agent Council.
 
-### B. Money Machine: Real-World Execution (EXPERIMENTAL)
+### B. Money Machine: Content Generation (EXPERIMENTAL)
 - [ ] Implement real social media API integrations (Twitter/LinkedIn). (Refining)
 - [ ] Implement real web search integration (API calls).
 - [ ] Integrate actual PDF library (gofpdf).
-- [ ] Complete Anthropic API client logic.
 
 ### C. Agent Connectivity (VISION)
 - [ ] Implement A2A Mesh for cross-host agent collaboration.
