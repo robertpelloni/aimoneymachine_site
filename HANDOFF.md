@@ -1,25 +1,25 @@
-# Session Handoff - v1.0.0-alpha.28
+# Session Handoff - v1.0.0-alpha.29
 
 ## Overview
-Elevated the A2A mesh capabilities by implementing remote message forwarding and peer discovery. Also expanded the "Money Machine" portfolio with a new Trading Hustle module.
+Took the first step towards "Collective Intelligence" by implementing the `MemorySwarm` logic. The system can now synchronize its tiered memory context across the A2A mesh using the `hustle://swarm` protocol.
 
 ## Key Changes
-- **Remote Forwarding**: `A2ABroker` now distinguishes between local subscribers and remote peers. Messages targeting remote IDs are automatically forwarded via HTTP to their registered orchestrator URLs.
-- **Discovery API**: Added `/register` (peer handshake) and `/message` (incoming remote traffic) endpoints to `orchestrator/api.go`.
-- **Trading Module**: Scaffolded `hustle/trading` with basic price monitoring and strategy execution logic. Integrated into the protocol and CLI.
-- **Mesh Auditing**: All forwarded and received messages continue to be audited in the tiered memory system.
-- **Documentation**: Updated ROADMAP, TODO, CHANGELOG, and VERSION for alpha.28.
+- **Memory Swarm**: Added `orchestrator/memory_swarm.go` to manage federated memory synchronization. It supports broadcasting sync requests and handling responses from peers.
+- **`hustle://swarm`**: Exposed swarm controls via the unified protocol. You can now trigger a manual sync using `hustle://swarm?action=sync`.
+- **Mesh Scheduling**: Integrated periodic swarm synchronization into the Orchestrator's Task Scheduler.
+- **Module Expansion**: Scaffolded the `hustle/trading` module in the previous version and ensured it is fully integrated into the CLI and protocol.
+- **Standardized Versioning**: All core documents (ROADMAP, TODO, CHANGELOG, VERSION) updated to alpha.29.
 
 ## Current State
-- **Orchestrator**: Stable networked foundation with remote peer-to-peer forwarding.
-- **Trading**: Experimental, functional with mock price data.
+- **Orchestrator**: Stable networked foundation with federated memory synchronization.
+- **Trading**: Experimental, integrated into protocol and CLI.
 - **Curation**: Stable, fully integrated with real feeds and protocol.
 - **Research**: Stable, functional with protocol-driven execution.
 - **Social**: Beta, functional via protocol with Twitter/LinkedIn scaffolding.
 
 ## Next Steps for Successor
-- Implement inter-agent protocol messaging (A2A) using the `hustle://` scheme for cross-host collaboration.
-- Replace the in-memory broker with a distributed solution (e.g., NATS or a P2P implementation).
-- Implement a "Memory Swarm" where L2/L3 memories are shared across agents in the mesh.
+- Replace the in-memory `A2ABroker` with a distributed solution (e.g., NATS or a P2P libp2p implementation) to enable a true global mesh.
+- Enhance the `MemorySwarm` to use Merkle trees or Bloom filters for efficient delta-based memory synchronization.
+- Implement real social media API integrations (OAuth flows) to replace current scaffolding.
 
-*Party on! The machine is connecting the nodes.*
+*Party on! The swarm is learning.*

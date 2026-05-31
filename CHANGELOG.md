@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.0.0-alpha.29] - 2026-05-30
+### Added
+- **P2P Memory Swarm (EXPERIMENTAL)**: Implemented `MemorySwarm` for federated synchronization of L2/L3 memories across the mesh.
+- **`hustle://swarm` Protocol**: Added protocol handler for triggering and responding to memory sync requests.
+- **Scheduled Synchronization**: Integrated memory swarming into the Orchestrator's automated task scheduler.
+
 ## [1.0.0-alpha.28] - 2026-05-30
 ### Added
 - **Remote A2A Forwarding (BETA)**: Implemented cross-host message forwarding in `A2ABroker`.

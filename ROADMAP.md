@@ -1,6 +1,6 @@
 # Roadmap: AI Hustle Machine
 
-_Last updated: 2026-05-30, version 1.0.0-alpha.28_
+_Last updated: 2026-05-30, version 1.0.0-alpha.29_
 
 ## Status legend
 
@@ -8,6 +8,12 @@ _Last updated: 2026-05-30, version 1.0.0-alpha.28_
 - **Beta** — Usable, still evolving
 - **Experimental** — Active R&D, not dependable
 - **Vision** — Directional only
+
+## Completed (v1.0.0-alpha.29)
+
+### 1. Collective Intelligence (EXPERIMENTAL)
+- **Memory Swarm**: Federated synchronization logic for sharing long-term context across nodes.
+- **Swarm Protocol**: Implementation of the `hustle://swarm` protocol for mesh-wide synchronization.
 
 ## Completed (v1.0.0-alpha.28)
 
@@ -89,8 +95,8 @@ _Last updated: 2026-05-30, version 1.0.0-alpha.28_
 ## Active Sprint: Phase 5 - Federated Intelligence
 
 ### A. Core Orchestration (EXPERIMENTAL)
-- [ ] Implement inter-agent protocol messaging (A2A).
-- [ ] P2P Memory Swarm (Vision).
+- [ ] P2P Memory Swarm (Refining).
+- [ ] Distributed Broker (NATS/P2P Integration).
 
 ### B. Money Machine: Real-World Execution (EXPERIMENTAL)
 - [ ] Implement real social media API integrations (Twitter/LinkedIn). (Refining)

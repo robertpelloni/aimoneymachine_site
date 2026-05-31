@@ -11,12 +11,13 @@ import (
 	"github.com/robertpelloni/hustle/orchestrator"
 	"net/url"
 	"os"
+	"os/exec"
 	"strings"
 	"time"
 )
 
 func main() {
-	hustleTask := flag.String("hustle", "", "Run a specific hustle module (research, social, curation, chain, trading)")
+	hustleTask := flag.String("hustle", "", "Run a specific hustle module (research, social, curation, chain, trading, swarm)")
 	hustleURI := flag.String("uri", "", "Run a hustle module via hustle:// URI")
 	syncMode := flag.Bool("sync", false, "Run repository synchronization protocol")
 	params := flag.String("params", "{}", "JSON parameters for the hustle module")
@@ -38,6 +39,7 @@ func main() {
 	orch := orchestrator.NewOrchestrator()
 	protocol := orchestrator.NewHustleProtocol()
 	broker := orchestrator.NewA2ABroker(orch)
+	swarm := orchestrator.NewMemorySwarm(orch, broker)
 
 	// Register Handlers
 	protocol.Register("research", func(p url.Values) error {
@@ -79,6 +81,16 @@ func main() {
 		}
 		return trader.ExecuteStrategy()
 	})
+	protocol.Register("swarm", func(p url.Values) error {
+		action := p.Get("action")
+		if action == "sync" {
+			swarm.Sync()
+		} else if action == "sync_request" {
+			// In a real networked scenario, the source ID would be passed
+			swarm.HandleSyncRequest("remote-peer")
+		}
+		return nil
+	})
 	protocol.Register("chain", func(p url.Values) error {
 		return runCurationChain(orch)
 	})
@@ -114,6 +126,15 @@ func main() {
 			return protocol.HandleURI("hustle://trading?symbol=BTC")
 		})
 
+		scheduler.Register("SwarmSync", 4*time.Hour, func(o *orchestrator.Orchestrator) error {
+			return protocol.HandleURI("hustle://swarm?action=sync")
+		})
+
+		// Continuous Autonomous Execution: Sync Protocol
+		scheduler.Register("Sync", 6*time.Hour, func(o *orchestrator.Orchestrator) error {
+			return runSyncProtocol()
+		})
+
 		scheduler.Register("Heartbeat", 5*time.Minute, func(o *orchestrator.Orchestrator) error {
 			return orchestrator.WriteStatusReport(version, "Active", "Scheduler Heartbeat", o.Ledger)
 		})
@@ -125,7 +146,9 @@ func main() {
 
 	if *syncMode {
 		fmt.Println("Triggering repository sync protocol...")
-		// Internal call to sync logic would go here
+		if err := runSyncProtocol(); err != nil {
+			fmt.Printf("Sync error: %v\n", err)
+		}
 	}
 
 	if *hustleURI != "" {
@@ -155,6 +178,13 @@ func main() {
 		len(orch.L1.Entries), len(orch.L2.Entries), len(orch.L3.Entries), orch.Ledger.Profit())
 }
 
+func runSyncProtocol() error {
+	cmd := exec.Command("./sync.sh")
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	return cmd.Run()
+}
+
 func runCurationChain(orch *orchestrator.Orchestrator) error {
 	fmt.Println("--- STARTING CURATION CHAIN ---")
 
@@ -179,6 +209,7 @@ func runCurationChain(orch *orchestrator.Orchestrator) error {
 	// 3. Post to Social
 	fmt.Println("Forwarding curated blurb to Social module...")
 	provider := social.NewTwitterProvider()
+	// We use the curated content as a basis for the social post
 	social.SchedulePost(orch, provider, "Twitter", "the following curated insight: "+lastCurated)
 
 	fmt.Println("--- CURATION CHAIN COMPLETE ---")
@@ -194,8 +225,9 @@ func runInteractiveMenu(orch *orchestrator.Orchestrator, protocol *orchestrator.
 		fmt.Println("3. Launch Curation Hustle")
 		fmt.Println("4. Launch Trading Hustle")
 		fmt.Println("5. Launch FULL CHAIN (Curate -> Post)")
-		fmt.Println("6. View Dashboard")
-		fmt.Println("7. Run Repository Sync")
+		fmt.Println("6. Trigger Swarm Sync")
+		fmt.Println("7. View Dashboard")
+		fmt.Println("8. Run Repository Sync")
 		fmt.Println("q. Quit")
 		fmt.Print("Select an option: ")
 
@@ -214,11 +246,15 @@ func runInteractiveMenu(orch *orchestrator.Orchestrator, protocol *orchestrator.
 		case "5":
 			protocol.HandleURI("hustle://chain")
 		case "6":
+			protocol.HandleURI("hustle://swarm?action=sync")
+		case "7":
 			orchestrator.ShowDashboard(orch)
 			fmt.Println("\nPress Enter to return to menu...")
 			reader.ReadString('\n')
-		case "7":
-			fmt.Println("Running Sync Protocol...")
+		case "8":
+			if err := runSyncProtocol(); err != nil {
+				fmt.Printf("Sync error: %v\n", err)
+			}
 		case "q":
 			fmt.Println("Exiting...")
 			return
