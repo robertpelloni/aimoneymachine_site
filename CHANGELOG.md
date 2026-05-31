@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.0-alpha.26] - 2026-05-30
+### Added
+- **`hustle://` Protocol Handler (BETA)**: Introduced a URI-based routing system for dispatching hustle tasks.
+- **Protocol-Driven CLI**: Added `-uri` flag to Orchestrator CLI for direct protocol execution.
+- **Handler Registration**: Implemented a flexible registry for module handlers to prevent import cycles.
+- **Integrated Routing**: Daemon and Interactive modes now utilize the protocol handler for consistent task execution.
+
 ## [1.0.0-alpha.25] - 2026-05-30
 ### Added
 - **Curation Chain (BETA)**: Implemented automated pipeline connecting content curation to social media posting.

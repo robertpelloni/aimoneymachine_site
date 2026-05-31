@@ -1,6 +1,6 @@
 # Roadmap: AI Hustle Machine
 
-_Last updated: 2026-05-30, version 1.0.0-alpha.25_
+_Last updated: 2026-05-30, version 1.0.0-alpha.26_
 
 ## Status legend
 
@@ -8,6 +8,12 @@ _Last updated: 2026-05-30, version 1.0.0-alpha.25_
 - **Beta** — Usable, still evolving
 - **Experimental** — Active R&D, not dependable
 - **Vision** — Directional only
+
+## Completed (v1.0.0-alpha.26)
+
+### 1. Protocol Standardization (BETA)
+- **Hustle Protocol**: Implemented `hustle://` URI handler for modular task dispatching.
+- **Unified Routing**: CLI, Scheduler, and Interactive modes now share a single protocol-based entry point.
 
 ## Completed (v1.0.0-alpha.25)
 
@@ -134,7 +140,7 @@ _Last updated: 2026-05-30, version 1.0.0-alpha.25_
 ## Active Sprint: Phase 5 - Federated Intelligence
 
 ### A. Core Orchestration (EXPERIMENTAL)
-- [ ] Implement `hustle://` protocol handlers for deep-linking.
+- [ ] Implement inter-agent protocol messaging (A2A).
 
 ### B. Money Machine: Real-World Execution (EXPERIMENTAL)
 - [ ] Implement real social media API integrations (Twitter/LinkedIn). (Refining)

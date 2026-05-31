@@ -8,6 +8,7 @@ import (
 	"github.com/robertpelloni/hustle/hustle/research"
 	"github.com/robertpelloni/hustle/hustle/social"
 	"github.com/robertpelloni/hustle/orchestrator"
+	"net/url"
 	"os"
 	"strings"
 	"time"
@@ -15,6 +16,7 @@ import (
 
 func main() {
 	hustleTask := flag.String("hustle", "", "Run a specific hustle module (research, social, curation, chain)")
+	hustleURI := flag.String("uri", "", "Run a hustle module via hustle:// URI")
 	syncMode := flag.Bool("sync", false, "Run repository synchronization protocol")
 	params := flag.String("params", "{}", "JSON parameters for the hustle module")
 	dashboard := flag.Bool("dashboard", false, "Start the live terminal dashboard")
@@ -32,9 +34,45 @@ func main() {
 	fmt.Printf("=== AI Hustle Machine Orchestrator v%s ===\n", version)
 
 	orch := orchestrator.NewOrchestrator()
+	protocol := orchestrator.NewHustleProtocol()
+
+	// Register Handlers
+	protocol.Register("research", func(p url.Values) error {
+		query := p.Get("query")
+		if query == "" { query = "AI Trends" }
+		searcher := &research.ResearchSearch{Orchestrator: orch}
+		_, err := searcher.Query(query)
+		return err
+	})
+	protocol.Register("curation", func(p url.Values) error {
+		topic := p.Get("topic")
+		if topic == "" { topic = "AI" }
+		c := &curation.CurationModule{
+			Orchestrator: orch,
+			Fetcher:      curation.NewRSSFetcher(),
+			Feeds:        []string{"https://news.ycombinator.com/rss"},
+		}
+		return c.Curate(topic)
+	})
+	protocol.Register("social", func(p url.Values) error {
+		platform := p.Get("platform")
+		if platform == "" { platform = "Twitter" }
+		topic := p.Get("topic")
+		if topic == "" { topic = "AI" }
+
+		var provider social.Provider = social.NewTwitterProvider()
+		if strings.ToLower(platform) == "linkedin" {
+			provider = social.NewLinkedInProvider()
+		}
+		social.SchedulePost(orch, provider, platform, topic)
+		return nil
+	})
+	protocol.Register("chain", func(p url.Values) error {
+		return runCurationChain(orch)
+	})
 
 	if *interactive {
-		runInteractiveMenu(orch, version)
+		runInteractiveMenu(orch, protocol, version)
 		return
 	}
 
@@ -46,15 +84,13 @@ func main() {
 	if *daemon {
 		scheduler := orchestrator.NewScheduler(orch)
 
-		// Register Hustle Tasks
+		// Register Hustle Tasks using protocol
 		scheduler.Register("Research", 1*time.Hour, func(o *orchestrator.Orchestrator) error {
-			searcher := &research.ResearchSearch{Orchestrator: o}
-			_, err := searcher.Query("AI Agent Trends")
-			return err
+			return protocol.HandleURI("hustle://research?query=AI+Agent+Trends")
 		})
 
 		scheduler.Register("CurationChain", 2*time.Hour, func(o *orchestrator.Orchestrator) error {
-			return runCurationChain(o)
+			return protocol.HandleURI("hustle://chain")
 		})
 
 		scheduler.Register("Heartbeat", 5*time.Minute, func(o *orchestrator.Orchestrator) error {
@@ -71,9 +107,18 @@ func main() {
 		// Internal call to sync logic would go here
 	}
 
-	if *hustleTask != "" {
+	if *hustleURI != "" {
+		fmt.Printf("Executing hustle URI: %s\n", *hustleURI)
+		if err := protocol.HandleURI(*hustleURI); err != nil {
+			fmt.Printf("Protocol error: %v\n", err)
+		}
+	} else if *hustleTask != "" {
 		fmt.Printf("Launching hustle module: %s with params: %s\n", *hustleTask, *params)
-		launchHustle(orch, *hustleTask)
+		// Map old style task to URI for consistency
+		uri := fmt.Sprintf("hustle://%s", *hustleTask)
+		if err := protocol.HandleURI(uri); err != nil {
+			fmt.Printf("Protocol error: %v\n", err)
+		}
 	}
 
 	// Real-time status reporting with financial metrics
@@ -81,28 +126,6 @@ func main() {
 
 	fmt.Printf("Orchestrator initialized with L1: %d, L2: %d, L3: %d entries. Profit: $%.2f\n",
 		len(orch.L1.Entries), len(orch.L2.Entries), len(orch.L3.Entries), orch.Ledger.Profit())
-}
-
-func launchHustle(orch *orchestrator.Orchestrator, task string) {
-	switch strings.ToLower(task) {
-	case "research":
-		searcher := &research.ResearchSearch{Orchestrator: orch}
-		searcher.Query("AI Trends")
-	case "curation":
-		c := &curation.CurationModule{
-			Orchestrator: orch,
-			Fetcher:      curation.NewRSSFetcher(),
-			Feeds:        []string{"https://news.ycombinator.com/rss"},
-		}
-		c.Curate("AI")
-	case "social":
-		provider := social.NewTwitterProvider()
-		social.SchedulePost(orch, provider, "Twitter", "AI")
-	case "chain":
-		runCurationChain(orch)
-	default:
-		fmt.Printf("Unknown hustle: %s\n", task)
-	}
 }
 
 func runCurationChain(orch *orchestrator.Orchestrator) error {
@@ -129,14 +152,13 @@ func runCurationChain(orch *orchestrator.Orchestrator) error {
 	// 3. Post to Social
 	fmt.Println("Forwarding curated blurb to Social module...")
 	provider := social.NewTwitterProvider()
-	// We use the curated content as a basis for the social post
 	social.SchedulePost(orch, provider, "Twitter", "the following curated insight: "+lastCurated)
 
 	fmt.Println("--- CURATION CHAIN COMPLETE ---")
 	return nil
 }
 
-func runInteractiveMenu(orch *orchestrator.Orchestrator, version string) {
+func runInteractiveMenu(orch *orchestrator.Orchestrator, protocol *orchestrator.HustleProtocol, version string) {
 	reader := bufio.NewReader(os.Stdin)
 	for {
 		fmt.Println("\n--- INTERACTIVE COMMAND MENU ---")
@@ -154,20 +176,19 @@ func runInteractiveMenu(orch *orchestrator.Orchestrator, version string) {
 
 		switch input {
 		case "1":
-			launchHustle(orch, "research")
+			protocol.HandleURI("hustle://research")
 		case "2":
-			launchHustle(orch, "social")
+			protocol.HandleURI("hustle://social")
 		case "3":
-			launchHustle(orch, "curation")
+			protocol.HandleURI("hustle://curation")
 		case "4":
-			launchHustle(orch, "chain")
+			protocol.HandleURI("hustle://chain")
 		case "5":
 			orchestrator.ShowDashboard(orch)
 			fmt.Println("\nPress Enter to return to menu...")
 			reader.ReadString('\n')
 		case "6":
 			fmt.Println("Running Sync Protocol...")
-			// Logic to invoke sync
 		case "q":
 			fmt.Println("Exiting...")
 			return

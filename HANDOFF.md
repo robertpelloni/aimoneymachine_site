@@ -1,24 +1,24 @@
-# Session Handoff - v1.0.0-alpha.25
+# Session Handoff - v1.0.0-alpha.26
 
 ## Overview
-Reached a major milestone in multi-module orchestration by implementing the "Curation Chain"—a workflow that automatically selects content and forwards it to the social media posting pipeline. Also implemented functional vector similarity search in the `orchestrator` as a bridge to native extension support.
+Standardized task dispatching across the entire ecosystem by implementing the `hustle://` protocol handler. This allows the Orchestrator CLI, Task Scheduler, and Interactive Menu to use a unified routing mechanism for module execution.
 
 ## Key Changes
-- **Curation Chain**: A new "Chain" hustle type allows for sequential module execution (Curate -> Summarize -> Post).
-- **Vector Search Bridge**: `SQLiteStore` now performs Go-level cosine similarity calculations on memory embeddings, verified with unit tests.
-- **Interactive UI**: Added Chain execution to the command menu and scheduled it in daemon mode.
-- **Build Verification**: Confirmed repository integrity and successful compilation across all modules.
-- **Documentation**: All core documents (ROADMAP, TODO, CHANGELOG, VERSION) updated to alpha.25.
+- **`hustle://` Protocol**: Added `orchestrator/protocol.go` which parses URIs and routes them to registered module handlers.
+- **Handler Registry**: Refactored module initialization to use a registration pattern in `main.go`, successfully avoiding Go import cycles while maintaining modularity.
+- **CLI Enhancements**: Added `-uri` flag to the Orchestrator CLI for direct protocol interaction.
+- **System-Wide Integration**: Updated Daemon and Interactive modes to utilize the protocol handler for all task executions.
+- **Documentation**: Updated ROADMAP, TODO, CHANGELOG, and VERSION for alpha.26.
 
 ## Current State
-- **Orchestrator**: Stable, with active task chaining and functional semantic search.
-- **Curation**: Stable, fully integrated with real feeds.
-- **Research**: Stable, functional with PDF export.
-- **Social**: Beta, wired into the curation pipeline.
+- **Orchestrator**: Stable foundation, now with protocol-driven task dispatching.
+- **Curation**: Stable, fully integrated with real feeds and protocol handler.
+- **Research**: Stable, functional with protocol-driven execution.
+- **Social**: Beta, functional via protocol with Twitter/LinkedIn scaffolding.
 
 ## Next Steps for Successor
-- Replace Go-level similarity logic with actual `sqlite-vec` extension loading for high-performance SQL-level queries.
-- Implement the `hustle://` protocol handler in the Orchestrator for inter-agent communication.
-- Begin work on the "A2A Mesh" (Agent-to-Agent) for cross-host collaboration.
+- Implement inter-agent protocol messaging (Agent-to-Agent) using the `hustle://` scheme.
+- Begin work on the "A2A Mesh" for cross-host collaboration.
+- Finalize the social module with production-ready OAuth/API integrations.
 
-*Party on! The machine is getting smarter.*
+*Party on! The machine is speaking its own language now.*
