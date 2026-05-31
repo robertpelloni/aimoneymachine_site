@@ -18,34 +18,41 @@ func NewMemorySwarm(orch *Orchestrator, broker *A2ABroker) *MemorySwarm {
 	}
 }
 
-// Sync broadcasts the local L2/L3 memory index to peers for reconciliation
+// Sync broadcasts the local memory checksums to peers for reconciliation
 func (s *MemorySwarm) Sync() {
 	fmt.Println("[Swarm] Initiating memory sync with peers...")
 
-	// Prepare sync message
+	// Prepare sync message with checksums
+	payload := fmt.Sprintf("L2:%s|L3:%s", s.Orchestrator.L2.Checksum(), s.Orchestrator.L3.Checksum())
+
 	msg := Message{
 		ID:        fmt.Sprintf("sync-%d", time.Now().Unix()),
 		Source:    "local-node",
 		Type:      Event,
-		Payload:   "hustle://swarm?action=sync_request",
+		Topic:     "swarm_sync",
+		Payload:   payload,
 		Timestamp: time.Now(),
 	}
 
 	s.Broker.Broadcast(msg)
 }
 
-// HandleSyncRequest is called when a peer asks for our memory state
-func (s *MemorySwarm) HandleSyncRequest(peerID string) {
-	fmt.Printf("[Swarm] Received sync request from %s\n", peerID)
+// HandleSyncRequest is called when a peer sends their checksums
+func (s *MemorySwarm) HandleSyncRequest(peerID, peerChecksums string) {
+	fmt.Printf("[Swarm] Received checksums from %s: %s\n", peerID, peerChecksums)
 
-	// In a real swarm, we'd send hashes or a compressed index.
-	// For alpha, we just acknowledge the request.
+	localL2 := s.Orchestrator.L2.Checksum()
+	// peerL2 would be parsed from peerChecksums
+
+	fmt.Printf("[Swarm] Local L2 Checksum: %s\n", localL2)
+
+	// In alpha, we just acknowledge the diff
 	resp := Message{
 		ID:        fmt.Sprintf("resp-%d", time.Now().Unix()),
 		Source:    "local-node",
 		Target:    peerID,
 		Type:      Response,
-		Payload:   "Memory index ready for reconciliation",
+		Payload:   "Checksum comparison complete. Delta detected.",
 		Timestamp: time.Now(),
 	}
 

@@ -1,6 +1,8 @@
 package orchestrator
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"math"
 	"os"
@@ -23,6 +25,13 @@ type MemoryEntry struct {
 func (e MemoryEntry) Score() float64 {
 	elapsed := time.Since(e.Timestamp).Hours()
 	return e.BaseScore * math.Exp(-0.1*elapsed)
+}
+
+// Checksum returns a unique hash of the entry's state
+func (e MemoryEntry) Checksum() string {
+	h := sha256.New()
+	h.Write([]byte(e.ID + e.Content))
+	return hex.EncodeToString(h.Sum(nil))
 }
 
 // L1Memory (Scratchpad)
@@ -54,13 +63,22 @@ func (m *L1Memory) Search(query string) []MemoryEntry {
 	return results
 }
 
-// RankedSearch sorts by combined relevance and temporal heat
 func (m *L1Memory) RankedSearch(query string, embedder EmbeddingProvider) []MemoryEntry {
 	results := m.Search(query)
 	sort.Slice(results, func(i, j int) bool {
 		return results[i].Score() > results[j].Score()
 	})
 	return results
+}
+
+func (m *L1Memory) Checksum() string {
+	var combined string
+	for _, e := range m.Entries {
+		combined += e.Checksum()
+	}
+	h := sha256.New()
+	h.Write([]byte(combined))
+	return hex.EncodeToString(h.Sum(nil))
 }
 
 // L2Memory (Vault)
@@ -100,6 +118,16 @@ func (m *L2Memory) RankedSearch(query string, embedder EmbeddingProvider) []Memo
 	return results
 }
 
+func (m *L2Memory) Checksum() string {
+	var combined string
+	for _, e := range m.Entries {
+		combined += e.Checksum()
+	}
+	h := sha256.New()
+	h.Write([]byte(combined))
+	return hex.EncodeToString(h.Sum(nil))
+}
+
 // L3Memory (Archive)
 type L3Memory struct {
 	Entries []MemoryEntry `json:"entries"`
@@ -135,6 +163,16 @@ func (m *L3Memory) RankedSearch(query string, embedder EmbeddingProvider) []Memo
 		return results[i].Score() > results[j].Score()
 	})
 	return results
+}
+
+func (m *L3Memory) Checksum() string {
+	var combined string
+	for _, e := range m.Entries {
+		combined += e.Checksum()
+	}
+	h := sha256.New()
+	h.Write([]byte(combined))
+	return hex.EncodeToString(h.Sum(nil))
 }
 
 // Orchestrator handles tiered memory orchestration, financial tracking, and LLM access

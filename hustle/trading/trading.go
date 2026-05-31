@@ -23,6 +23,7 @@ type TradingModule struct {
 	Symbol       string
 	Fetcher      PriceFetcher
 	History      []float64
+	RSIHistory   []float64
 }
 
 func (t *TradingModule) ExecuteStrategy() error {
@@ -41,15 +42,21 @@ func (t *TradingModule) ExecuteStrategy() error {
 
 	// Technical Indicator: RSI
 	rsi := t.calculateRSI(14)
+	t.RSIHistory = append(t.RSIHistory, rsi)
 
 	fmt.Printf("[Trading] Indicators -> SMA(5): $%.2f | RSI(14): %.2f\n", sma, rsi)
 
+	divergence := t.detectDivergence()
+	if divergence != "" {
+		fmt.Printf("[Trading] DIVERGENCE DETECTED: %s\n", divergence)
+	}
+
 	decision := "HOLD"
 	if len(t.History) >= 14 {
-		// Complex Decision Engine
-		if rsi < 30 && price < sma {
+		// Complex Decision Engine with Confluence
+		if (rsi < 30 && price < sma) || divergence == "BULLISH" {
 			decision = "BUY"
-		} else if rsi > 70 && price > sma {
+		} else if (rsi > 70 && price > sma) || divergence == "BEARISH" {
 			decision = "SELL"
 		}
 	} else {
@@ -61,7 +68,7 @@ func (t *TradingModule) ExecuteStrategy() error {
 	// Persist to memory
 	t.Orchestrator.L1.Add(orchestrator.MemoryEntry{
 		ID:        fmt.Sprintf("trade-%s-%d", t.Symbol, time.Now().Unix()),
-		Content:   fmt.Sprintf("Trade Decision for %s: %s at $%.2f (SMA: $%.2f, RSI: %.2f)", t.Symbol, decision, price, sma, rsi),
+		Content:   fmt.Sprintf("Trade Decision for %s: %s at $%.2f (SMA: $%.2f, RSI: %.2f, Div: %s)", t.Symbol, decision, price, sma, rsi, divergence),
 		Timestamp: time.Now(),
 		Tags:      []string{"trading", t.Symbol, decision},
 	})
@@ -71,7 +78,7 @@ func (t *TradingModule) ExecuteStrategy() error {
 			Amount: 0.10, // Simulating execution fee
 			Type:   orchestrator.Expense,
 			Hustle: "Trading",
-			Note:   fmt.Sprintf("%s %s (RSI: %.2f)", decision, t.Symbol, rsi),
+			Note:   fmt.Sprintf("%s %s (RSI: %.2f, Div: %s)", decision, t.Symbol, rsi, divergence),
 		})
 
 		// Broadcast trade event to mesh
@@ -84,6 +91,34 @@ func (t *TradingModule) ExecuteStrategy() error {
 	}
 
 	return nil
+}
+
+func (t *TradingModule) detectDivergence() string {
+	if len(t.History) < 5 || len(t.RSIHistory) < 5 {
+		return ""
+	}
+
+	// Simplistic Divergence Check:
+	// Bullish: Price lower low, RSI higher low
+	// Bearish: Price higher high, RSI lower high
+
+	lastIdx := len(t.History) - 1
+	prevIdx := lastIdx - 2
+
+	priceFalling := t.History[lastIdx] < t.History[prevIdx]
+	rsiRising := t.RSIHistory[lastIdx] > t.RSIHistory[prevIdx]
+
+	priceRising := t.History[lastIdx] > t.History[prevIdx]
+	rsiFalling := t.RSIHistory[lastIdx] < t.RSIHistory[prevIdx]
+
+	if priceFalling && rsiRising && t.RSIHistory[lastIdx] < 40 {
+		return "BULLISH"
+	}
+	if priceRising && rsiFalling && t.RSIHistory[lastIdx] > 60 {
+		return "BEARISH"
+	}
+
+	return ""
 }
 
 func (t *TradingModule) calculateSMA(period int) float64 {

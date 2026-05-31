@@ -87,8 +87,8 @@ func main() {
 		if action == "sync" {
 			swarm.Sync()
 		} else if action == "sync_request" {
-			// In a real networked scenario, the source ID would be passed
-			swarm.HandleSyncRequest("remote-peer")
+			checksums := p.Get("checksums")
+			swarm.HandleSyncRequest("remote-peer", checksums)
 		}
 		return nil
 	})

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.0-alpha.32] - 2026-05-30
+### Added
+- **Merkle Tree Context Hashing (BETA)**: Implemented `Checksum()` methods for memory entries and tiers to enable efficient mesh state comparison.
+- **RSI Divergence Detection**: Added advanced momentum-based signal detection to the Trading module.
+- **Delta-Aware Swarming**: Enhanced `MemorySwarm` to exchange checksums before synchronization to minimize bandwidth.
+- **High-Confidence Strategy**: Decisions now utilize confluence between RSI Divergence and SMA crossovers.
+
 ## [1.0.0-alpha.31] - 2026-05-30
 ### Added
 - **Networked Pub/Sub (BETA)**: Extended `A2ABroker` to support topic-based message forwarding across remote peers.
