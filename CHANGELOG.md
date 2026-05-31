@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.0.0-alpha.33] - 2026-05-30
+### Added
+- **Delta-Sync Memory Swarming (BETA)**: Implemented context-aware entry requests in `MemorySwarm`.
+- **Targeted Entry Retrieval**: Added `Get(id)` methods to all memory tiers (L1/L2/L3) for specific context sharing.
+- **Mesh Data Transfer**: Enhanced `hustle://swarm` protocol with `request_entry` and `provide_entry` actions for peer-to-peer data ingestion.
+
 ## [1.0.0-alpha.32] - 2026-05-30
 ### Added
 - **Merkle Tree Context Hashing (BETA)**: Implemented `Checksum()` methods for memory entries and tiers to enable efficient mesh state comparison.

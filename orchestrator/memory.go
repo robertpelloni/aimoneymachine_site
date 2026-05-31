@@ -43,6 +43,13 @@ func (m *L1Memory) Add(entry MemoryEntry) {
 	m.Entries = append(m.Entries, entry)
 }
 
+func (m *L1Memory) Get(id string) (MemoryEntry, bool) {
+	for _, e := range m.Entries {
+		if e.ID == id { return e, true }
+	}
+	return MemoryEntry{}, false
+}
+
 func (m *L1Memory) Search(query string) []MemoryEntry {
 	var results []MemoryEntry
 	query = strings.ToLower(query)
@@ -90,6 +97,13 @@ func (m *L2Memory) Add(entry MemoryEntry) {
 	m.Entries = append(m.Entries, entry)
 }
 
+func (m *L2Memory) Get(id string) (MemoryEntry, bool) {
+	for _, e := range m.Entries {
+		if e.ID == id { return e, true }
+	}
+	return MemoryEntry{}, false
+}
+
 func (m *L2Memory) Search(query string) []MemoryEntry {
 	var results []MemoryEntry
 	query = strings.ToLower(query)
@@ -135,6 +149,13 @@ type L3Memory struct {
 
 func (m *L3Memory) Add(entry MemoryEntry) {
 	m.Entries = append(m.Entries, entry)
+}
+
+func (m *L3Memory) Get(id string) (MemoryEntry, bool) {
+	for _, e := range m.Entries {
+		if e.ID == id { return e, true }
+	}
+	return MemoryEntry{}, false
 }
 
 func (m *L3Memory) Search(query string) []MemoryEntry {

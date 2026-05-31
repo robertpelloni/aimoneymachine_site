@@ -1,25 +1,25 @@
-# Session Handoff - v1.0.0-alpha.32
+# Session Handoff - v1.0.0-alpha.33
 
 ## Overview
-Hardened the mesh synchronization logic and refined the Trading Hustle's decision intelligence. The system now uses Merkle-style hashing for context verification and detects momentum divergences for more accurate market participation.
+Implemented the "Delta-Sync" data transfer logic for the A2A mesh. The system can now identify context gaps via checksum comparison and request/provide specific memory entries by ID.
 
 ## Key Changes
-- **Merkle Tree Context**: Added `Checksum()` methods to `MemoryEntry` and all memory tiers (L1/L2/L3). This allows orchestrators in the mesh to quickly compare their context states using SHA-256 hashes without transferring full memory sets.
-- **RSI Divergence**: The Trading module now implements divergence detection logic. It identifies "Bullish" (price lower low, RSI higher low) and "Bearish" (price higher high, RSI lower high) patterns, providing a high-confidence signal for strategy execution.
-- **Delta-Aware Swarming**: Refined `MemorySwarm` to exchange these checksums via the `swarm_sync` topic, laying the groundwork for automated delta-based reconciliation.
-- **Strategy Confluence**: The Trading decision engine now prioritizes divergence signals, allowing for more precise entries and exits.
-- **Documentation**: Updated ROADMAP, TODO, CHANGELOG, and VERSION for alpha.32.
+- **Delta-Sync Protocol**: Enhanced `MemorySwarm` to support targeted entry requests. When an orchestrator detects a context mismatch (via Merkle hashes), it can now ask its peers for the missing data by ID.
+- **Memory Retrieval**: Added `Get(id)` methods to L1, L2, and L3 memory tiers, enabling efficient random access to stored context for mesh sharing.
+- **Ingestion Handlers**: Updated the `swarm` protocol handler and the main Orchestrator loop to process incoming `provide_entry` messages and save them into the L2 vault.
+- **Protocol Expansion**: Added `request_entry` and `provide_entry` actions to the `hustle://swarm` scheme.
+- **Documentation**: Updated ROADMAP, TODO, CHANGELOG, and VERSION for alpha.33.
 
 ## Current State
-- **Orchestrator**: Stable networked foundation with state-aware hashing and global Pub/Sub.
+- **Orchestrator**: Stable networked foundation with targeted delta-sync capabilities.
 - **Trading**: Beta, functional with SMA/RSI/Divergence logic and modular sourcing.
 - **Curation**: Stable, fully integrated with real feeds and protocol.
 - **Research**: Stable, functional with protocol-driven execution.
 - **Social**: Beta, functional via protocol with Twitter/LinkedIn scaffolding.
 
 ## Next Steps for Successor
-- Implement the actual delta-synchronization logic in `MemorySwarm` (requesting specific entries based on checksum mismatches).
+- Implement automated delta-sync: Instead of manual requests, the system should automatically identify and fetch missing entries after a checksum mismatch is detected.
 - Replace the in-memory broker with a production-grade distributed solution (e.g., NATS server).
 - Move from API scaffolding to real OAuth flows for the Social module.
 
-*Party on! The machine is verifying its own reality.*
+*Party on! The mesh is sharing its mind.*

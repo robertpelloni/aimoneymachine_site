@@ -1,6 +1,6 @@
 # Roadmap: AI Hustle Machine
 
-_Last updated: 2026-05-30, version 1.0.0-alpha.32_
+_Last updated: 2026-05-30, version 1.0.0-alpha.33_
 
 ## Status legend
 
@@ -8,6 +8,12 @@ _Last updated: 2026-05-30, version 1.0.0-alpha.32_
 - **Beta** — Usable, still evolving
 - **Experimental** — Active R&D, not dependable
 - **Vision** — Directional only
+
+## Completed (v1.0.0-alpha.33)
+
+### 1. Mesh Data Transfer (BETA)
+- **Delta-Sync**: Implemented specific entry requests based on checksum mismatches.
+- **Memory Retrieval**: Added `Get(id)` methods to all memory tiers for targeted context sharing.
 
 ## Completed (v1.0.0-alpha.32)
 
@@ -30,14 +36,15 @@ _Last updated: 2026-05-30, version 1.0.0-alpha.32_
 - **Pub/Sub Messaging**: Implemented NATS-style topics in `A2ABroker` for decoupled event-driven collaboration.
 - **Dynamic Handlers**: Support for registering module-specific handlers to asynchronous events.
 
-### 2. Strategy Refinement (EXPERIMENTAL) - 2026-05-30
+### 2. Strategy Refinement (EXPERIMENTAL)
 - **Technical Indicators**: Trading module now supports Simple Moving Average (SMA) and historical price tracking.
+- **Price Governance**: Pluggable `PriceFetcher` interface for modular price data delivery.
 
 ## Active Sprint: Phase 5 - Federated Intelligence
 
 ### A. Core Orchestration (BETA)
 - [ ] Distributed Broker (Persistent NATS/libp2p Integration).
-- [ ] Automated delta-sync based on Merkle hashes.
+- [ ] Automated delta-sync based on Merkle hashes (Refinement).
 
 ### B. Money Machine: Real-World Execution (BETA)
 - [ ] Implement real social media API integrations (Twitter/LinkedIn). (Refining)

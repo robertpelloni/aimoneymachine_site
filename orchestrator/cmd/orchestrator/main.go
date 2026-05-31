@@ -84,11 +84,25 @@ func main() {
 	})
 	protocol.Register("swarm", func(p url.Values) error {
 		action := p.Get("action")
-		if action == "sync" {
+		switch action {
+		case "sync":
 			swarm.Sync()
-		} else if action == "sync_request" {
+		case "sync_request":
 			checksums := p.Get("checksums")
 			swarm.HandleSyncRequest("remote-peer", checksums)
+		case "request_entry":
+			id := p.Get("id")
+			swarm.ProvideEntry("remote-peer", id)
+		case "provide_entry":
+			id := p.Get("id")
+			content := p.Get("content")
+			orch.L2.Add(orchestrator.MemoryEntry{
+				ID:        id,
+				Content:   content,
+				Timestamp: time.Now(),
+				Tags:      []string{"swarm", "received"},
+			})
+			fmt.Printf("[Swarm] Successfully ingested entry %s\n", id)
 		}
 		return nil
 	})
