@@ -41,11 +41,26 @@ func main() {
 	broker := orchestrator.NewA2ABroker(orch)
 	swarm := orchestrator.NewMemorySwarm(orch, broker)
 
+	// Initialize Trading for event handling
+	traderModule := &trading.TradingModule{
+		Orchestrator: orch,
+		Fetcher:      &trading.MockPriceFetcher{},
+	}
+
+	// Mesh Event Listener: Alpha Discovery
+	alphaCh := broker.SubscribeTopic("alpha_discovery")
+	go func() {
+		for msg := range alphaCh {
+			fmt.Printf("[Mesh] Received Alpha Discovery: %s\n", msg.Payload)
+			traderModule.AddToWatchlist(msg.Payload)
+		}
+	}()
+
 	// Register Handlers
 	protocol.Register("research", func(p url.Values) error {
 		query := p.Get("query")
 		if query == "" { query = "AI Trends" }
-		searcher := &research.ResearchSearch{Orchestrator: orch}
+		searcher := research.NewResearchSearch(research.Tavily, orch, broker)
 		_, err := searcher.Query(query)
 		return err
 	})
@@ -75,12 +90,8 @@ func main() {
 	protocol.Register("trading", func(p url.Values) error {
 		symbol := p.Get("symbol")
 		if symbol == "" { symbol = "BTC" }
-		trader := &trading.TradingModule{
-			Orchestrator: orch,
-			Symbol:       symbol,
-			Fetcher:      &trading.MockPriceFetcher{},
-		}
-		return trader.ExecuteStrategy()
+		traderModule.Symbol = symbol
+		return traderModule.ExecuteStrategy()
 	})
 	protocol.Register("swarm", func(p url.Values) error {
 		action := p.Get("action")
@@ -116,7 +127,7 @@ func main() {
 	}
 
 	if *interactive {
-		runInteractiveMenu(orch, protocol, version)
+		runInteractiveMenu(orch, protocol, broker, version)
 		return
 	}
 
@@ -231,7 +242,7 @@ func runCurationChain(orch *orchestrator.Orchestrator) error {
 	return nil
 }
 
-func runInteractiveMenu(orch *orchestrator.Orchestrator, protocol *orchestrator.HustleProtocol, version string) {
+func runInteractiveMenu(orch *orchestrator.Orchestrator, protocol *orchestrator.HustleProtocol, broker *orchestrator.A2ABroker, version string) {
 	reader := bufio.NewReader(os.Stdin)
 	for {
 		fmt.Println("\n--- INTERACTIVE COMMAND MENU ---")
@@ -241,8 +252,9 @@ func runInteractiveMenu(orch *orchestrator.Orchestrator, protocol *orchestrator.
 		fmt.Println("4. Launch Trading Hustle")
 		fmt.Println("5. Launch FULL CHAIN (Curate -> Post)")
 		fmt.Println("6. Trigger Swarm Sync")
-		fmt.Println("7. View Dashboard")
-		fmt.Println("8. Run Repository Sync")
+		fmt.Println("7. Broadcast Custom Mesh Event")
+		fmt.Println("8. View Dashboard")
+		fmt.Println("9. Run Repository Sync")
 		fmt.Println("q. Quit")
 		fmt.Print("Select an option: ")
 
@@ -263,10 +275,22 @@ func runInteractiveMenu(orch *orchestrator.Orchestrator, protocol *orchestrator.
 		case "6":
 			protocol.HandleURI("hustle://swarm?action=sync")
 		case "7":
+			fmt.Print("Enter event payload: ")
+			payload, _ := reader.ReadString('\n')
+			payload = strings.TrimSpace(payload)
+			broker.Publish(orchestrator.Message{
+				ID:        fmt.Sprintf("manual-%d", time.Now().Unix()),
+				Source:    "interactive-user",
+				Type:      orchestrator.Event,
+				Topic:     "manual_event",
+				Payload:   payload,
+				Timestamp: time.Now(),
+			})
+		case "8":
 			orchestrator.ShowDashboard(orch)
 			fmt.Println("\nPress Enter to return to menu...")
 			reader.ReadString('\n')
-		case "8":
+		case "9":
 			if err := runSyncProtocol(); err != nil {
 				fmt.Printf("Sync error: %v\n", err)
 			}

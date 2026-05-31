@@ -24,6 +24,7 @@ type TradingModule struct {
 	Fetcher      PriceFetcher
 	History      []float64
 	RSIHistory   []float64
+	Watchlist    []string
 }
 
 func (t *TradingModule) ExecuteStrategy() error {
@@ -93,14 +94,15 @@ func (t *TradingModule) ExecuteStrategy() error {
 	return nil
 }
 
+func (t *TradingModule) AddToWatchlist(symbol string) {
+	fmt.Printf("[Trading] Adding %s to watchlist\n", symbol)
+	t.Watchlist = append(t.Watchlist, symbol)
+}
+
 func (t *TradingModule) detectDivergence() string {
 	if len(t.History) < 5 || len(t.RSIHistory) < 5 {
 		return ""
 	}
-
-	// Simplistic Divergence Check:
-	// Bullish: Price lower low, RSI higher low
-	// Bearish: Price higher high, RSI lower high
 
 	lastIdx := len(t.History) - 1
 	prevIdx := lastIdx - 2

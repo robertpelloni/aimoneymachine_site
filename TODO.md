@@ -6,7 +6,7 @@
 - [ ] Implement real feed fetcher for curation module. (Done in v1.0.0-alpha.22)
 - [ ] Connect Curation output to Social posting pipeline. (Done in v1.0.0-alpha.25)
 - [ ] Implement `hustle://` protocol handlers for deep-linking. (Done in v1.0.0-alpha.26)
-- [ ] Implement A2A Mesh for cross-host collaboration. (Delta-Sync implemented in v1.0.0-alpha.33)
+- [ ] Implement A2A Mesh for cross-host collaboration. (Handoff implemented in v1.0.0-alpha.34)
 
 ## Future Tasks
 - [ ] Browser extension for AI chat attachment.

@@ -1,6 +1,6 @@
 # Roadmap: AI Hustle Machine
 
-_Last updated: 2026-05-30, version 1.0.0-alpha.33_
+_Last updated: 2026-05-30, version 1.0.0-alpha.34_
 
 ## Status legend
 
@@ -8,6 +8,12 @@ _Last updated: 2026-05-30, version 1.0.0-alpha.33_
 - **Beta** — Usable, still evolving
 - **Experimental** — Active R&D, not dependable
 - **Vision** — Directional only
+
+## Completed (v1.0.0-alpha.34)
+
+### 1. Cross-Module Handoff (BETA)
+- **Alpha Pipeline**: Implemented automated Research-to-Trading handoff via the A2A mesh.
+- **Dynamic Watchlist**: Trading module now consumes discovery events from the mesh to update its execution targets.
 
 ## Completed (v1.0.0-alpha.33)
 
@@ -36,9 +42,8 @@ _Last updated: 2026-05-30, version 1.0.0-alpha.33_
 - **Pub/Sub Messaging**: Implemented NATS-style topics in `A2ABroker` for decoupled event-driven collaboration.
 - **Dynamic Handlers**: Support for registering module-specific handlers to asynchronous events.
 
-### 2. Strategy Refinement (EXPERIMENTAL)
+### 2. Strategy Refinement (EXPERIMENTAL) - 2026-05-30
 - **Technical Indicators**: Trading module now supports Simple Moving Average (SMA) and historical price tracking.
-- **Price Governance**: Pluggable `PriceFetcher` interface for modular price data delivery.
 
 ## Active Sprint: Phase 5 - Federated Intelligence
 

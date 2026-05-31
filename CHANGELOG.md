@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.0.0-alpha.34] - 2026-05-30
+### Added
+- **Alpha Handoff (BETA)**: Implemented automated Research-to-Trading data flow via A2A mesh events.
+- **Mesh Event Broadcaster**: Added manual event broadcasting to the interactive CLI menu.
+- **Watchlist Integration**: Trading module now supports dynamic watchlist updates from mesh discovery events.
+
 ## [1.0.0-alpha.33] - 2026-05-30
 ### Added
 - **Delta-Sync Memory Swarming (BETA)**: Implemented context-aware entry requests in `MemorySwarm`.

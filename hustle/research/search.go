@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/robertpelloni/hustle/orchestrator"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -29,10 +30,11 @@ const (
 type ResearchSearch struct {
 	ActiveProvider Provider
 	Orchestrator   *orchestrator.Orchestrator
+	Broker         *orchestrator.A2ABroker
 	APIKey         string
 }
 
-func NewResearchSearch(p Provider, orch *orchestrator.Orchestrator) *ResearchSearch {
+func NewResearchSearch(p Provider, orch *orchestrator.Orchestrator, broker *orchestrator.A2ABroker) *ResearchSearch {
 	key := ""
 	if p == Tavily {
 		key = os.Getenv("TAVILY_API_KEY")
@@ -40,6 +42,7 @@ func NewResearchSearch(p Provider, orch *orchestrator.Orchestrator) *ResearchSea
 	return &ResearchSearch{
 		ActiveProvider: p,
 		Orchestrator:   orch,
+		Broker:         broker,
 		APIKey:         key,
 	}
 }
@@ -52,7 +55,7 @@ func (s *ResearchSearch) Query(q string) ([]SearchResult, error) {
 	}
 
 	results := []SearchResult{
-		{URL: "https://hustle.com/info", Title: "Hustle Strategy", Snippet: "Key insights for automated revenue.", Provider: string(s.ActiveProvider)},
+		{URL: "https://hustle.com/info", Title: "Hustle Strategy", Snippet: "Key insights for automated revenue with $BTC trends.", Provider: string(s.ActiveProvider)},
 	}
 
 	if s.Orchestrator != nil {
@@ -65,29 +68,25 @@ func (s *ResearchSearch) Query(q string) ([]SearchResult, error) {
 				Tags:      []string{"research", string(s.ActiveProvider)},
 			}
 			s.Orchestrator.L1.Add(entry)
-		}
-	}
 
-	return results, nil
-}
+			// Alpha Discovery Handoff
+			if strings.Contains(strings.ToUpper(res.Snippet), "$") {
+				// Extract symbol (naive for alpha)
+				symbol := "BTC" // Simulated extraction
+				fmt.Printf("[Research] Potential Alpha discovered: %s\n", symbol)
 
-type MockSearch struct {
-	Orchestrator *orchestrator.Orchestrator
-}
-
-func (s *MockSearch) Query(q string) ([]SearchResult, error) {
-	results := []SearchResult{
-		{URL: "https://example.com/mock", Title: "Mock Result", Snippet: "Mock data.", Provider: "Mock"},
-	}
-
-	if s.Orchestrator != nil {
-		for _, res := range results {
-			entry := orchestrator.MemoryEntry{
-				ID:        res.URL,
-				Content:   res.Snippet,
-				Timestamp: time.Now(),
+				if s.Broker != nil {
+					msg := orchestrator.Message{
+						ID:        fmt.Sprintf("alpha-%d", time.Now().Unix()),
+						Source:    "research-module",
+						Type:      orchestrator.Event,
+						Topic:     "alpha_discovery",
+						Payload:   symbol,
+						Timestamp: time.Now(),
+					}
+					s.Broker.Publish(msg)
+				}
 			}
-			s.Orchestrator.L1.Add(entry)
 		}
 	}
 
