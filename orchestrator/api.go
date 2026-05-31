@@ -68,10 +68,18 @@ func (a *API) handleMessage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Printf("[API] Received incoming A2A message for target: %s\n", msg.Target)
-
-	if err := a.Broker.Route(msg); err != nil {
-		http.Error(w, fmt.Sprintf("Routing error: %v", err), http.StatusInternalServerError)
+	if msg.Topic != "" {
+		fmt.Printf("[API] Received incoming A2A Topic message: %s\n", msg.Topic)
+		// Process topic message locally
+		a.Broker.Publish(msg)
+	} else if msg.Target != "" {
+		fmt.Printf("[API] Received incoming A2A direct message for target: %s\n", msg.Target)
+		if err := a.Broker.Route(msg); err != nil {
+			http.Error(w, fmt.Sprintf("Routing error: %v", err), http.StatusInternalServerError)
+			return
+		}
+	} else {
+		http.Error(w, "Message must have Target or Topic", http.StatusBadRequest)
 		return
 	}
 
@@ -102,7 +110,7 @@ func (a *API) handleRegister(w http.ResponseWriter, r *http.Request) {
 func (a *API) handleStatus(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"status":   "Active",
-		"version":  "v1.0.0-alpha.28",
+		"version":  "v1.0.0-alpha.31",
 		"profit":   a.Orchestrator.Ledger.Profit(),
 		"memories": len(a.Orchestrator.L1.Entries),
 		"peers":    len(a.Broker.Peers),

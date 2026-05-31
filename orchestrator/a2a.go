@@ -23,7 +23,7 @@ const (
 type Message struct {
 	ID        string      `json:"id"`
 	Source    string      `json:"source"`
-	Target    string      `json:"target"`
+	Target    string      `json:"target,omitempty"`
 	Type      MessageType `json:"type"`
 	Payload   string      `json:"payload"`
 	Topic     string      `json:"topic,omitempty"`
@@ -109,7 +109,7 @@ func (b *A2ABroker) Route(msg Message) error {
 	return fmt.Errorf("target %s not found in local mesh or known peers", msg.Target)
 }
 
-// Publish sends a message to all subscribers of a topic
+// Publish sends a message to all subscribers of a topic (local and remote)
 func (b *A2ABroker) Publish(msg Message) {
 	b.mu.RLock()
 	defer b.mu.RUnlock()
@@ -121,6 +121,7 @@ func (b *A2ABroker) Publish(msg Message) {
 
 	fmt.Printf("[A2A] Publishing to topic %s: %s\n", msg.Topic, msg.Payload)
 
+	// Local Delivery
 	if subs, ok := b.Topics[msg.Topic]; ok {
 		for _, ch := range subs {
 			select {
@@ -131,7 +132,10 @@ func (b *A2ABroker) Publish(msg Message) {
 		}
 	}
 
-	// In a real distributed mesh, we would also forward topic messages to peers
+	// Remote Forwarding
+	for _, url := range b.Peers {
+		go b.forwardToRemote(url, msg)
+	}
 }
 
 // Broadcast sends a message to all local subscribers and known peers

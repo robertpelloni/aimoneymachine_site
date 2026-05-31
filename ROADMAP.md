@@ -1,6 +1,6 @@
 # Roadmap: AI Hustle Machine
 
-_Last updated: 2026-05-30, version 1.0.0-alpha.30_
+_Last updated: 2026-05-30, version 1.0.0-alpha.31_
 
 ## Status legend
 
@@ -8,6 +8,15 @@ _Last updated: 2026-05-30, version 1.0.0-alpha.30_
 - **Beta** — Usable, still evolving
 - **Experimental** — Active R&D, not dependable
 - **Vision** — Directional only
+
+## Completed (v1.0.0-alpha.31)
+
+### 1. Mesh Convergence (BETA)
+- **Networked Pub/Sub**: `A2ABroker` now automatically forwards topic-based events to all remote peers in the mesh.
+- **Unified Event Handling**: The API layer can now ingest remote events and dispatch them to local subscribers.
+
+### 2. Decision Sophistication (BETA)
+- **Multi-Indicator Strategy**: Trading module implements Relative Strength Index (RSI) alongside SMA for trend confirmation.
 
 ## Completed (v1.0.0-alpha.30)
 
@@ -58,12 +67,13 @@ _Last updated: 2026-05-30, version 1.0.0-alpha.30_
 
 ## Active Sprint: Phase 5 - Federated Intelligence
 
-### A. Core Orchestration (EXPERIMENTAL)
-- [ ] Distributed Broker (NATS/P2P Integration).
+### A. Core Orchestration (BETA)
+- [ ] Distributed Broker (Persistent NATS/libp2p Integration).
 - [ ] Merkle-tree based Memory Swarm reconciliation.
 
-### B. Money Machine: Real-World Execution (EXPERIMENTAL)
+### B. Money Machine: Real-World Execution (BETA)
 - [ ] Implement real social media API integrations (Twitter/LinkedIn). (Refining)
+- [ ] Exchange API integration for Trading (Binance/Coinbase).
 
 ---
 *Outstanding! Magnificent! Insanely Great! The collective grows.*

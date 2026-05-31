@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.0-alpha.31] - 2026-05-30
+### Added
+- **Networked Pub/Sub (BETA)**: Extended `A2ABroker` to support topic-based message forwarding across remote peers.
+- **RSI Indicator**: Implemented Relative Strength Index (RSI) calculation in the Trading module.
+- **Sophisticated Trading Strategy**: Decision engine now uses RSI and SMA crossovers for BUY/SELL signals.
+- **Mesh Convergence**: HTTP `/message` endpoint now supports incoming topic traffic for federated event handling.
+
 ## [1.0.0-alpha.30] - 2026-05-30
 ### Added
 - **Asynchronous Mesh (BETA)**: Implemented NATS-style Topic Pub/Sub in `A2ABroker`.
