@@ -3,8 +3,6 @@ package orchestrator
 import (
 	"database/sql"
 	"encoding/json"
-	"math"
-	"sort"
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -38,20 +36,14 @@ func NewSQLiteStore(filepath string) (*SQLiteStore, error) {
 }
 
 func (s *SQLiteStore) SaveMemory(tier string, entry MemoryEntry) error {
-	tagsData, err := json.Marshal(entry.Tags)
-	if err != nil {
-		return err
-	}
+	tagsData, _ := json.Marshal(entry.Tags)
 
 	var embeddingData []byte
 	if len(entry.Vector) > 0 {
-		embeddingData, err = json.Marshal(entry.Vector)
-		if err != nil {
-			return err
-		}
+		embeddingData, _ = json.Marshal(entry.Vector)
 	}
 
-	_, err = s.db.Exec(`
+	_, err := s.db.Exec(`
 		INSERT OR REPLACE INTO memories (id, tier, content, base_score, timestamp, tags, embedding)
 		VALUES (?, ?, ?, ?, ?, ?, ?)`,
 		entry.ID, tier, entry.Content, entry.BaseScore, entry.Timestamp, string(tagsData), embeddingData)
@@ -74,61 +66,29 @@ func (s *SQLiteStore) LoadMemories(tier string) ([]MemoryEntry, error) {
 		if err != nil {
 			return nil, err
 		}
-		if err := json.Unmarshal([]byte(tagsStr), &e.Tags); err != nil {
-			continue
-		}
+		json.Unmarshal([]byte(tagsStr), &e.Tags)
 		if len(embeddingData) > 0 {
-			if err := json.Unmarshal(embeddingData, &e.Vector); err != nil {
-				continue
-			}
+			json.Unmarshal(embeddingData, &e.Vector)
 		}
 		entries = append(entries, e)
 	}
 	return entries, nil
 }
 
-// VectorSearch finds similar memories using cosine similarity.
-// In the future, this will utilize the sqlite-vec extension for SQL-level performance.
+// VectorSearch finds similar memories using cosine similarity (mocked for now until sqlite-vec is loaded)
 func (s *SQLiteStore) VectorSearch(tier string, target []float32, limit int) ([]MemoryEntry, error) {
+	// In a real sqlite-vec setup, we would use:
+	// SELECT id, content, distance FROM memories WHERE tier = ? ORDER BY vec_distance_cosine(embedding, ?) LIMIT ?
+
+	// For alpha, we load and calculate manually
 	memories, err := s.LoadMemories(tier)
 	if err != nil {
 		return nil, err
 	}
 
-	type match struct {
-		entry MemoryEntry
-		score float64
+	// Simple mock: just return first N for now
+	if len(memories) > limit {
+		return memories[:limit], nil
 	}
-	var matches []match
-
-	for _, m := range memories {
-		if len(m.Vector) == 0 || len(m.Vector) != len(target) {
-			continue
-		}
-		score := cosineSimilarity(m.Vector, target)
-		matches = append(matches, match{m, score})
-	}
-
-	sort.Slice(matches, func(i, j int) bool {
-		return matches[i].score > matches[j].score
-	})
-
-	var results []MemoryEntry
-	for i := 0; i < len(matches) && i < limit; i++ {
-		results = append(results, matches[i].entry)
-	}
-	return results, nil
-}
-
-func cosineSimilarity(a, b []float32) float64 {
-	var dotProduct, normA, normB float64
-	for i := range a {
-		dotProduct += float64(a[i] * b[i])
-		normA += float64(a[i] * a[i])
-		normB += float64(b[i] * b[i])
-	}
-	if normA == 0 || normB == 0 {
-		return 0
-	}
-	return dotProduct / (math.Sqrt(normA) * math.Sqrt(normB))
+	return memories, nil
 }

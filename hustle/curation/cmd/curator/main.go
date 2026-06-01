@@ -10,15 +10,7 @@ func main() {
 	fmt.Println("=== Content Curation Hustle Module ===")
 	orch := orchestrator.NewOrchestrator()
 
-	curator := &curation.CurationModule{
-		Orchestrator: orch,
-		Fetcher:      curation.NewRSSFetcher(),
-		Feeds: []string{
-			"https://news.ycombinator.com/rss",
-			"https://techcrunch.com/feed/",
-		},
-	}
-
+	curator := &curation.CurationModule{Orchestrator: orch}
 	err := curator.Curate("Artificial Intelligence")
 	if err != nil {
 		fmt.Printf("Error: %v\n", err)

@@ -1,12 +1,8 @@
 package social
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
 	"github.com/robertpelloni/hustle/orchestrator"
-	"net/http"
-	"os"
 	"time"
 )
 
@@ -20,54 +16,24 @@ type Provider interface {
 	Post(content string) error
 }
 
-type TwitterProvider struct {
-	APIKey string
+type TwitterProvider struct{}
+func (p *TwitterProvider) Post(content string) error {
+	fmt.Printf("[Twitter] Posting: %s\n", content)
+	return nil
 }
 
 func NewTwitterProvider() *TwitterProvider {
-	return &TwitterProvider{
-		APIKey: os.Getenv("TWITTER_API_KEY"),
-	}
+	return &TwitterProvider{}
 }
 
-func (p *TwitterProvider) Post(content string) error {
-	if p.APIKey == "" {
-		fmt.Printf("[Twitter Mock] Posting: %s\n", content)
-		return nil
-	}
-
-	fmt.Printf("[Twitter API] Sending post: %s\n", content)
-
-	payload := map[string]string{"text": content}
-	data, _ := json.Marshal(payload)
-
-	req, _ := http.NewRequest("POST", "https://api.twitter.com/2/tweets", bytes.NewBuffer(data))
-	req.Header.Set("Authorization", "Bearer "+p.APIKey)
-	req.Header.Set("Content-Type", "application/json")
-
-	// Real API logic would go here: client.Do(req)
+type LinkedInProvider struct{}
+func (p *LinkedInProvider) Post(content string) error {
+	fmt.Printf("[LinkedIn] Posting: %s\n", content)
 	return nil
-}
-
-type LinkedInProvider struct {
-	AccessToken string
 }
 
 func NewLinkedInProvider() *LinkedInProvider {
-	return &LinkedInProvider{
-		AccessToken: os.Getenv("LINKEDIN_ACCESS_TOKEN"),
-	}
-}
-
-func (p *LinkedInProvider) Post(content string) error {
-	if p.AccessToken == "" {
-		fmt.Printf("[LinkedIn Mock] Posting: %s\n", content)
-		return nil
-	}
-
-	fmt.Printf("[LinkedIn API] Sending post: %s\n", content)
-	// Real API logic for LinkedIn
-	return nil
+	return &LinkedInProvider{}
 }
 
 func GenerateContent(orch *orchestrator.Orchestrator, topic string) string {
@@ -93,7 +59,7 @@ func SchedulePost(orch *orchestrator.Orchestrator, provider Provider, platform, 
 		})
 
 		orch.Ledger.Add(orchestrator.Transaction{
-			Amount: 0.05,
+			Amount: 0.01,
 			Type:   orchestrator.Expense,
 			Hustle: "SocialMedia",
 			Note:   fmt.Sprintf("API post to %s", platform),

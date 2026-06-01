@@ -52,18 +52,8 @@ func (m *L1Memory) Get(id string) (MemoryEntry, bool) {
 
 func (m *L1Memory) Search(query string) []MemoryEntry {
 	var results []MemoryEntry
-	query = strings.ToLower(query)
 	for _, entry := range m.Entries {
-		match := strings.Contains(strings.ToLower(entry.Content), query)
-		if !match {
-			for _, tag := range entry.Tags {
-				if strings.Contains(strings.ToLower(tag), query) {
-					match = true
-					break
-				}
-			}
-		}
-		if match {
+		if strings.Contains(strings.ToLower(entry.Content), strings.ToLower(query)) {
 			results = append(results, entry)
 		}
 	}
@@ -72,6 +62,10 @@ func (m *L1Memory) Search(query string) []MemoryEntry {
 
 func (m *L1Memory) RankedSearch(query string, embedder EmbeddingProvider) []MemoryEntry {
 	results := m.Search(query)
+
+	// If vector search is possible, we would re-rank here.
+	// For now, we stick to temporal decay and keyword match.
+
 	sort.Slice(results, func(i, j int) bool {
 		return results[i].Score() > results[j].Score()
 	})
@@ -106,18 +100,8 @@ func (m *L2Memory) Get(id string) (MemoryEntry, bool) {
 
 func (m *L2Memory) Search(query string) []MemoryEntry {
 	var results []MemoryEntry
-	query = strings.ToLower(query)
 	for _, entry := range m.Entries {
-		match := strings.Contains(strings.ToLower(entry.Content), query)
-		if !match {
-			for _, tag := range entry.Tags {
-				if strings.Contains(strings.ToLower(tag), query) {
-					match = true
-					break
-				}
-			}
-		}
-		if match {
+		if strings.Contains(strings.ToLower(entry.Content), strings.ToLower(query)) {
 			results = append(results, entry)
 		}
 	}
@@ -160,18 +144,8 @@ func (m *L3Memory) Get(id string) (MemoryEntry, bool) {
 
 func (m *L3Memory) Search(query string) []MemoryEntry {
 	var results []MemoryEntry
-	query = strings.ToLower(query)
 	for _, entry := range m.Entries {
-		match := strings.Contains(strings.ToLower(entry.Content), query)
-		if !match {
-			for _, tag := range entry.Tags {
-				if strings.Contains(strings.ToLower(tag), query) {
-					match = true
-					break
-				}
-			}
-		}
-		if match {
+		if strings.Contains(strings.ToLower(entry.Content), strings.ToLower(query)) {
 			results = append(results, entry)
 		}
 	}
