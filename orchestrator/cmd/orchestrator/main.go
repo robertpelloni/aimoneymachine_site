@@ -104,11 +104,20 @@ func main() {
 	protocol.Register("curation", func(p url.Values) error {
 		topic := p.Get("topic")
 		if topic == "" { topic = "AI" }
+
 		c := &curation.CurationModule{
 			Orchestrator: orch,
+			Broker:       broker,
 			Fetcher:      curation.NewRSSFetcher(),
 			Feeds:        []string{"https://news.ycombinator.com/rss"},
 		}
+
+		// Support dynamic feed addition via URI
+		extraFeed := p.Get("feed")
+		if extraFeed != "" {
+			c.AddFeed(extraFeed)
+		}
+
 		return c.Curate(topic)
 	})
 	protocol.Register("social", func(p url.Values) error {
@@ -187,7 +196,7 @@ func main() {
 		return nil
 	})
 	protocol.Register("chain", func(p url.Values) error {
-		return runCurationChain(orch)
+		return runCurationChain(orch, broker)
 	})
 	protocol.Register("healer", func(p url.Values) error {
 		issue := p.Get("issue")
@@ -295,12 +304,13 @@ func runSyncProtocol() error {
 	return cmd.Run()
 }
 
-func runCurationChain(orch *orchestrator.Orchestrator) error {
+func runCurationChain(orch *orchestrator.Orchestrator, broker *orchestrator.A2ABroker) error {
 	fmt.Println("--- STARTING CURATION CHAIN ---")
 
 	// 1. Curate
 	c := &curation.CurationModule{
 		Orchestrator: orch,
+		Broker:       broker,
 		Fetcher:      curation.NewRSSFetcher(),
 		Feeds:        []string{"https://news.ycombinator.com/rss"},
 	}
@@ -339,8 +349,10 @@ func runInteractiveMenu(orch *orchestrator.Orchestrator, protocol *orchestrator.
 		fmt.Println("6. Trigger Swarm Sync")
 		fmt.Println("7. Broadcast Custom Mesh Event")
 		fmt.Println("8. Trading: SELL ALL & Clear History")
-		fmt.Println("9. View Dashboard")
-		fmt.Println("10. Run Repository Sync")
+		fmt.Println("9. Data: Reset L1 Memory")
+		fmt.Println("10. Data: Backup Ledger")
+		fmt.Println("11. View Dashboard")
+		fmt.Println("12. Run Repository Sync")
 		fmt.Println("q. Quit")
 		fmt.Print("Select an option: ")
 
@@ -386,10 +398,21 @@ func runInteractiveMenu(orch *orchestrator.Orchestrator, protocol *orchestrator.
 			})
 			fmt.Println("History cleared. SELL_ALL broadcasted to mesh.")
 		case "9":
+			fmt.Println("Resetting L1 (Audit) memory...")
+			orch.L1.Entries = []orchestrator.MemoryEntry{}
+			fmt.Println("L1 memory cleared.")
+		case "10":
+			backupFile := fmt.Sprintf("ledger_backup_%d.json", time.Now().Unix())
+			if err := orch.Ledger.Save(backupFile); err != nil {
+				fmt.Printf("Backup failed: %v\n", err)
+			} else {
+				fmt.Printf("Ledger backed up to %s\n", backupFile)
+			}
+		case "11":
 			orchestrator.ShowDashboard(orch)
 			fmt.Println("\nPress Enter to return to menu...")
 			reader.ReadString('\n')
-		case "10":
+		case "12":
 			if err := runSyncProtocol(); err != nil {
 				fmt.Printf("Sync error: %v\n", err)
 			}

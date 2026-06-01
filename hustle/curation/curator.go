@@ -10,8 +10,13 @@ import (
 
 type CurationModule struct {
 	Orchestrator *orchestrator.Orchestrator
+	Broker       *orchestrator.A2ABroker
 	Fetcher      FeedFetcher
 	Feeds        []string
+}
+
+func (c *CurationModule) AddFeed(url string) {
+	c.Feeds = append(c.Feeds, url)
 }
 
 func (c *CurationModule) Curate(topic string) error {
@@ -68,6 +73,20 @@ func (c *CurationModule) Curate(topic string) error {
 		Timestamp: time.Now(),
 		Tags:      []string{"curation", topic},
 	})
+
+	// Broadcast to mesh
+	if c.Broker != nil {
+		msg := orchestrator.Message{
+			ID:        fmt.Sprintf("curation-%d", time.Now().Unix()),
+			Source:    "curation-module",
+			Type:      orchestrator.Event,
+			Topic:     "content_curation",
+			Payload:   summary,
+			Timestamp: time.Now(),
+		}
+		c.Broker.Publish(msg)
+		fmt.Println("[Curation] Broadcasted curated blurb to mesh topic: content_curation")
+	}
 
 	return nil
 }
