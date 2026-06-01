@@ -20,6 +20,7 @@ func (m *MockPriceFetcher) GetPrice(symbol string) (float64, error) {
 
 type TradingModule struct {
 	Orchestrator *orchestrator.Orchestrator
+	Broker       *orchestrator.A2ABroker
 	Symbol       string
 	Fetcher      PriceFetcher
 	History      []float64
@@ -83,11 +84,24 @@ func (t *TradingModule) ExecuteStrategy() error {
 		})
 
 		// Broadcast trade event to mesh
+		if t.Broker != nil {
+			msg := orchestrator.Message{
+				ID:        fmt.Sprintf("trade-evt-%d", time.Now().Unix()),
+				Source:    "trading-module",
+				Type:      orchestrator.Event,
+				Topic:     "trade_execution",
+				Payload:   fmt.Sprintf("Symbol: %s, Action: %s, Price: %.2f", t.Symbol, decision, price),
+				Timestamp: time.Now(),
+			}
+			t.Broker.Publish(msg)
+			fmt.Printf("[Trading] Broadcasted %s decision to mesh topic: trade_execution\n", decision)
+		}
+
 		t.Orchestrator.L1.Add(orchestrator.MemoryEntry{
-			ID: fmt.Sprintf("event-%d", time.Now().Unix()),
-			Content: fmt.Sprintf("ALERt: Strategy executed %s for %s", decision, t.Symbol),
+			ID:        fmt.Sprintf("event-%d", time.Now().Unix()),
+			Content:   fmt.Sprintf("ALERT: Strategy executed %s for %s", decision, t.Symbol),
 			Timestamp: time.Now(),
-			Tags: []string{"a2a", "event", "trading"},
+			Tags:      []string{"a2a", "event", "trading"},
 		})
 	}
 

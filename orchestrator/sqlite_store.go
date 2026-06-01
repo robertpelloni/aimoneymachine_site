@@ -11,10 +11,15 @@ type SQLiteStore struct {
 }
 
 func NewSQLiteStore(filepath string) (*SQLiteStore, error) {
-	db, err := sql.Open("sqlite3", filepath)
+	// Enable loading extensions if available in the environment
+	db, err := sql.Open("sqlite3", filepath+"?_load_extension=1")
 	if err != nil {
 		return nil, err
 	}
+
+	// Attempt to load sqlite-vec if it exists in standard paths
+	// This is defensive; if it fails, we fall back to Go-level cosine similarity
+	_, _ = db.Exec("SELECT load_extension('vec0')")
 
 	// Standard table for metadata
 	query := `

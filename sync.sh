@@ -16,8 +16,16 @@ if git remote | grep -q "^upstream$"; then
 fi
 echo "Using remote: $REMOTE"
 
+# Detect main branch name (main or master)
+MAIN_BRANCH="main"
+if git branch -r | grep -q "$REMOTE/master"; then
+    MAIN_BRANCH="master"
+fi
+echo "Main branch detected: $MAIN_BRANCH"
+
 echo "Fetching all remotes and tags..."
 git fetch --all --tags
+
 
 echo "Updating submodules recursively to their latest tracking commits..."
 git submodule update --init --recursive
@@ -54,9 +62,9 @@ for BRANCH in $ALL_LOCAL_BRANCHES; do
     fi
 
     # Reverse Merge: Merging main into feature branch
-    echo "Reverse Merge: Merging $REMOTE/main into $BRANCH..."
-    if git merge "$REMOTE/main" --no-edit; then
-        echo "Successfully caught up $BRANCH with $REMOTE/main."
+    echo "Reverse Merge: Merging $REMOTE/$MAIN_BRANCH into $BRANCH..."
+    if git merge "$REMOTE/$MAIN_BRANCH" --no-edit; then
+        echo "Successfully caught up $BRANCH with $REMOTE/$MAIN_BRANCH."
     else
         echo "CONFLICT detected on $BRANCH. Aborting merge."
         git merge --abort
@@ -83,6 +91,20 @@ echo "Step 3: Workspace Cleanup, Documentation, & Push"
 # Governance: Source version
 VERSION=$(cat VERSION.md)
 echo "Current Version: $VERSION"
+
+# Batch Script Validation: Ensure execution scripts use the correct MAIN_BRANCH
+for script in build.sh start.sh; do
+    if [ -f "$script" ]; then
+        echo "Validating $script..."
+        # Targeted replacement using word boundaries where possible to avoid collateral damage
+        sed -i "s/\bmain\b/$MAIN_BRANCH/g" "$script"
+    fi
+done
+
+# Synchronize version across changelog and status
+if [ -f "CHANGELOG.md" ]; then
+    sed -i "s/v1.0.0-alpha.[0-9]*/$VERSION/g" CHANGELOG.md
+fi
 
 # Stage all changes
 git add .
