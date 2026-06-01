@@ -112,6 +112,14 @@ func main() {
 		symbol := p.Get("symbol")
 		if symbol == "" { symbol = "BTC" }
 		traderModule.Symbol = symbol
+
+		fetcherType := p.Get("fetcher")
+		if fetcherType == "coingecko" {
+			traderModule.Fetcher = &trading.CoinGeckoFetcher{}
+		} else {
+			traderModule.Fetcher = &trading.MockPriceFetcher{}
+		}
+
 		return traderModule.ExecuteStrategy()
 	})
 	protocol.Register("swarm", func(p url.Values) error {

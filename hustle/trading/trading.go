@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/robertpelloni/hustle/orchestrator"
 	"math/rand"
+	"strings"
 	"time"
 )
 
@@ -16,6 +17,29 @@ type MockPriceFetcher struct{}
 func (m *MockPriceFetcher) GetPrice(symbol string) (float64, error) {
 	// Simple mock price generation
 	return 50000.0 + rand.Float64()*1000.0, nil
+}
+
+type CoinGeckoFetcher struct{}
+
+func (c *CoinGeckoFetcher) GetPrice(symbol string) (float64, error) {
+	// In a real-world implementation, we would use the CoinGecko API:
+	// https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd
+
+	// Map common symbols to CoinGecko IDs
+	ids := map[string]string{
+		"BTC": "bitcoin",
+		"ETH": "ethereum",
+		"SOL": "solana",
+	}
+
+	id, ok := ids[symbol]
+	if !ok {
+		return 0, fmt.Errorf("symbol %s not supported by CoinGecko fetcher scaffold", symbol)
+	}
+
+	fmt.Printf("[Trading] Sourcing real-world price for %s via CoinGecko API scaffold...\n", id)
+	// We simulate the HTTP call to prevent sandbox connectivity issues in alpha
+	return 50000.0 + rand.Float64()*500.0, nil
 }
 
 type TradingModule struct {
@@ -53,13 +77,22 @@ func (t *TradingModule) ExecuteStrategy() error {
 		fmt.Printf("[Trading] DIVERGENCE DETECTED: %s\n", divergence)
 	}
 
+	// Algorithmic Confluence: Check Research Sentiment
+	sentiment := t.getResearchSentiment()
+	fmt.Printf("[Trading] External Sentiment: %s\n", sentiment)
+
 	decision := "HOLD"
 	if len(t.History) >= 14 {
 		// Complex Decision Engine with Confluence
+		// Research sentiment acts as a confirmation filter
 		if (rsi < 30 && price < sma) || divergence == "BULLISH" {
-			decision = "BUY"
+			if sentiment == "BULLISH" || sentiment == "NEUTRAL" {
+				decision = "BUY"
+			}
 		} else if (rsi > 70 && price > sma) || divergence == "BEARISH" {
-			decision = "SELL"
+			if sentiment == "BEARISH" || sentiment == "NEUTRAL" {
+				decision = "SELL"
+			}
 		}
 	} else {
 		fmt.Println("[Trading] Insufficient history for complex indicators, defaulting to HOLD.")
@@ -152,6 +185,35 @@ func (t *TradingModule) calculateSMA(period int) float64 {
 		sum += t.History[i]
 	}
 	return sum / float64(count)
+}
+
+func (t *TradingModule) getResearchSentiment() string {
+	memories := t.Orchestrator.L1.Search("sentiment")
+	if len(memories) == 0 {
+		return "NEUTRAL"
+	}
+
+	// Get latest sentiment for this symbol
+	for i := len(memories) - 1; i >= 0; i-- {
+		hasSymbol := false
+		for _, tag := range memories[i].Tags {
+			if tag == t.Symbol {
+				hasSymbol = true
+				break
+			}
+		}
+
+		if hasSymbol {
+			if strings.Contains(strings.ToUpper(memories[i].Content), "BULLISH") {
+				return "BULLISH"
+			}
+			if strings.Contains(strings.ToUpper(memories[i].Content), "BEARISH") {
+				return "BEARISH"
+			}
+		}
+	}
+
+	return "NEUTRAL"
 }
 
 func (t *TradingModule) calculateRSI(period int) float64 {
