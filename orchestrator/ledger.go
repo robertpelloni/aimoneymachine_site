@@ -1,7 +1,9 @@
 package orchestrator
 
 import (
+	"encoding/json"
 	"fmt"
+	"os"
 	"time"
 )
 
@@ -57,4 +59,20 @@ func (l *Ledger) TotalExpenses() float64 {
 
 func (l *Ledger) Profit() float64 {
 	return l.TotalRevenue() - l.TotalExpenses()
+}
+
+func (l *Ledger) Save(filepath string) error {
+	data, err := json.MarshalIndent(l, "", "  ")
+	if err != nil {
+		return err
+	}
+	return os.WriteFile(filepath, data, 0644)
+}
+
+func (l *Ledger) Load(filepath string) error {
+	data, err := os.ReadFile(filepath)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(data, l)
 }

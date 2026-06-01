@@ -182,7 +182,7 @@ type Orchestrator struct {
 }
 
 func NewOrchestrator() *Orchestrator {
-	return &Orchestrator{
+	o := &Orchestrator{
 		L1:       L1Memory{Entries: make([]MemoryEntry, 0)},
 		L2:       L2Memory{Entries: make([]MemoryEntry, 0)},
 		L3:       L3Memory{Entries: make([]MemoryEntry, 0)},
@@ -190,6 +190,11 @@ func NewOrchestrator() *Orchestrator {
 		LLM:      &MockLLM{},
 		Embedder: &MockEmbedder{},
 	}
+
+	// Attempt to load existing ledger
+	o.Ledger.Load("ledger.json")
+
+	return o
 }
 
 func (o *Orchestrator) Save(filepath string) error {
@@ -198,6 +203,9 @@ func (o *Orchestrator) Save(filepath string) error {
 		for _, e := range o.L2.Entries { o.DB.SaveMemory("L2", e) }
 		for _, e := range o.L3.Entries { o.DB.SaveMemory("L3", e) }
 	}
+
+	// Also persist ledger separately for modularity
+	o.Ledger.Save("ledger.json")
 
 	data, err := json.MarshalIndent(o, "", "  ")
 	if err != nil {

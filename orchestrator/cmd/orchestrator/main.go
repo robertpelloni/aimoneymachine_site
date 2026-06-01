@@ -183,6 +183,14 @@ func main() {
 		h.Loop(issue)
 		return nil
 	})
+	protocol.Register("ledger", func(p url.Values) error {
+		fmt.Println("--- FINANCIAL LEDGER SUMMARY ---")
+		fmt.Printf("Total Revenue:  $%.2f\n", orch.Ledger.TotalRevenue())
+		fmt.Printf("Total Expenses: $%.2f\n", orch.Ledger.TotalExpenses())
+		fmt.Printf("Total Profit:   $%.2f\n", orch.Ledger.Profit())
+		fmt.Printf("Transaction Count: %d\n", len(orch.Ledger.Transactions))
+		return nil
+	})
 
 	if *apiPort != "" {
 		api := orchestrator.NewAPI(orch, protocol, broker)
