@@ -21,19 +21,43 @@ func NewHealer(o *Orchestrator) *Healer {
 
 func (h *Healer) Diagnose(issue string) string {
 	fmt.Printf("Diagnosing issue: %s\n", issue)
+
+	prompt := fmt.Sprintf("Act as a system architect. Diagnose the following system issue: %s. Provide a concise explanation of the root cause.", issue)
+	diagnosis, err := h.Orchestrator.LLM.Generate(prompt)
+	if err != nil {
+		diagnosis = "Unable to generate AI diagnosis; defaulting to 'Incomplete system state'."
+	}
+
 	// Log diagnosis to memory
 	h.Orchestrator.L1.Add(MemoryEntry{
 		ID:        fmt.Sprintf("diag-%d", time.Now().Unix()),
-		Content:   fmt.Sprintf("Issue: %s, Diagnosis: Incomplete system state", issue),
+		Content:   fmt.Sprintf("Issue: %s, Diagnosis: %s", issue, diagnosis),
 		Timestamp: time.Now(),
 		Tags:      []string{"healer", "diagnosis"},
 	})
-	return "Diagnosis complete"
+	return diagnosis
 }
 
 func (h *Healer) Fix(diagnosis string) bool {
 	h.RetryCount++
-	fmt.Printf("Applying fix attempt %d/%d based on: %s\n", h.RetryCount, h.RetryLimit, diagnosis)
+	fmt.Printf("Applying fix attempt %d/%d based on diagnosis.\n", h.RetryCount, h.RetryLimit)
+
+	prompt := fmt.Sprintf("Based on this diagnosis: %s, generate a step-by-step fix strategy for the system.", diagnosis)
+	fixStrategy, err := h.Orchestrator.LLM.Generate(prompt)
+	if err != nil {
+		fixStrategy = "Apply generic system reset."
+	}
+
+	fmt.Printf("[Healer] Strategy: %s\n", fixStrategy)
+
+	// Log fix attempt to memory
+	h.Orchestrator.L1.Add(MemoryEntry{
+		ID:        fmt.Sprintf("fix-att-%d", time.Now().Unix()),
+		Content:   fmt.Sprintf("Attempt %d: %s", h.RetryCount, fixStrategy),
+		Timestamp: time.Now(),
+		Tags:      []string{"healer", "fix_attempt"},
+	})
+
 	return true
 }
 

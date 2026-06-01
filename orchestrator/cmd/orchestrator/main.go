@@ -146,6 +146,13 @@ func main() {
 	protocol.Register("chain", func(p url.Values) error {
 		return runCurationChain(orch)
 	})
+	protocol.Register("healer", func(p url.Values) error {
+		issue := p.Get("issue")
+		if issue == "" { issue = "Unknown system instability" }
+		h := orchestrator.NewHealer(orch)
+		h.Loop(issue)
+		return nil
+	})
 
 	if *apiPort != "" {
 		api := orchestrator.NewAPI(orch, protocol, broker)
