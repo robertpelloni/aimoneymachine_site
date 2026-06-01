@@ -6,7 +6,9 @@
 - [ ] Implement real feed fetcher for curation module. (Done in v1.0.0-alpha.22)
 - [ ] Connect Curation output to Social posting pipeline. (Done in v1.0.0-alpha.25)
 - [ ] Implement `hustle://` protocol handlers for deep-linking. (Done in v1.0.0-alpha.26)
-- [ ] Implement A2A Mesh for cross-host collaboration. (Handoff implemented in v1.0.0-alpha.34)
+- [x] Implement A2A Mesh for cross-host collaboration. (Handoff implemented in v1.0.0-alpha.34)
+- [ ] Implement robust OAuth2 flow for Social modules.
+- [ ] Add native `sqlite-vec` extension loading (removing Go-level bridge).
 
 ## Future Tasks
 - [ ] Browser extension for AI chat attachment.

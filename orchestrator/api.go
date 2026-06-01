@@ -110,7 +110,7 @@ func (a *API) handleRegister(w http.ResponseWriter, r *http.Request) {
 func (a *API) handleStatus(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"status":   "Active",
-		"version":  "v1.0.0-alpha.31",
+		"version":  "v1.0.0-alpha.34", // Updated via sync protocol
 		"profit":   a.Orchestrator.Ledger.Profit(),
 		"memories": len(a.Orchestrator.L1.Entries),
 		"peers":    len(a.Broker.Peers),

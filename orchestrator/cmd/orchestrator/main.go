@@ -56,6 +56,26 @@ func main() {
 		}
 	}()
 
+	// Mesh Event Listener: Swarm Sync
+	syncCh := broker.SubscribeTopic("swarm_sync")
+	go func() {
+		for msg := range syncCh {
+			fmt.Printf("[Mesh] Swarm Sync Notification from %s\n", msg.Source)
+			swarm.HandleSyncRequest(msg.Source)
+		}
+	}()
+
+	// Agent Direct Message Listener (Handles incoming hustle:// URIs from mesh)
+	agentCh := broker.Subscribe("local-node")
+	go func() {
+		for msg := range agentCh {
+			if strings.HasPrefix(msg.Payload, "hustle://") {
+				fmt.Printf("[A2A] Executing Mesh Protocol URI from %s: %s\n", msg.Source, msg.Payload)
+				protocol.HandleURI(msg.Payload)
+			}
+		}
+	}()
+
 	// Register Handlers
 	protocol.Register("research", func(p url.Values) error {
 		query := p.Get("query")
@@ -95,15 +115,20 @@ func main() {
 	})
 	protocol.Register("swarm", func(p url.Values) error {
 		action := p.Get("action")
+		peerID := p.Get("peer_id")
+		if peerID == "" { peerID = "unknown-peer" }
+
 		switch action {
 		case "sync":
 			swarm.Sync()
 		case "sync_request":
-			checksums := p.Get("checksums")
-			swarm.HandleSyncRequest("remote-peer", checksums)
+			swarm.HandleSyncRequest(peerID)
+		case "provide_index":
+			data := p.Get("data")
+			swarm.ReconcileIndex(peerID, data)
 		case "request_entry":
 			id := p.Get("id")
-			swarm.ProvideEntry("remote-peer", id)
+			swarm.ProvideEntry(peerID, id)
 		case "provide_entry":
 			id := p.Get("id")
 			content := p.Get("content")
@@ -111,9 +136,9 @@ func main() {
 				ID:        id,
 				Content:   content,
 				Timestamp: time.Now(),
-				Tags:      []string{"swarm", "received"},
+				Tags:      []string{"swarm", "received", "from:" + peerID},
 			})
-			fmt.Printf("[Swarm] Successfully ingested entry %s\n", id)
+			fmt.Printf("[Swarm] Successfully ingested entry %s from %s\n", id, peerID)
 		}
 		return nil
 	})

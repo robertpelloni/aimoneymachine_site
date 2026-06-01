@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.0-alpha.35] - 2026-05-30
+### Added
+- **Automated Delta-Sync (STABLE)**: Completed the federated memory reconciliation loop.
+- **Protocol Handshaking**: Enhanced `hustle://swarm` with peer identification for bidirectional data exchange.
+- **Remote URI Execution**: Added direct message listeners that execute incoming `hustle://` commands from the mesh.
+- **Mesh-Aware API**: Updated Orchestrator API and protocol handlers to support routed sync responses.
+
 ## [1.0.0-alpha.34] - 2026-05-30
 ### Added
 - **Alpha Handoff (BETA)**: Implemented automated Research-to-Trading data flow via A2A mesh events.

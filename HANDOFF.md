@@ -1,25 +1,26 @@
-# Session Handoff - v1.0.0-alpha.34
+# Session Handoff - v1.0.0-alpha.35
 
-## Overview
-Reached a new level of "Systemic Autonomy" by implementing cross-module handoffs. The Research module can now discover trading "Alpha" and automatically signal the Trading module to update its watchlist via the A2A mesh.
+## Current Status
+- **Version:** `1.0.0-alpha.35` (Stable Alpha)
+- **Architecture:** Federated multi-module "hustle" ecosystem managed by a central Orchestrator.
+- **Mesh State:** A2A Broker functional with Topic Pub/Sub and direct messaging.
+- **Sync State:** `sync.sh` implements the "Executive Protocol". Federated Delta-Sync for memory is operational.
 
-## Key Changes
-- **Research-to-Trading Pipeline**: Updated the Research module to detect trade symbols (e.g., "$BTC") in search results and broadcast `alpha_discovery` events to the mesh.
-- **Dynamic Watchlist**: The Trading module now subscribes to discovery events and automatically adds new symbols to its monitoring list.
-- **Mesh Event Broadcaster**: Added a manual event broadcasting tool to the interactive CLI menu, allowing for human-in-the-loop mesh testing.
-- **Modular Refactoring**: Decoupled module initialization in `main.go` to ensure all cross-module listeners are wired before task execution begins.
-- **Documentation**: Updated ROADMAP, TODO, CHANGELOG, and VERSION for alpha.34.
+## Recent Achievements
+- **Delta-Sync Protocol:** Finalized the reconciliation loop (`request_entry`/`provide_entry`). Peer identification via `peer_id` ensures responses route correctly through the mesh.
+- **Mesh Execution:** The Orchestrator now listens for `hustle://` URIs sent via direct A2A messages, allowing remote peers to trigger local tasks.
+- **Algorithmic Trading:** RSI Divergence and SMA indicators are active. Trading watchlist automatically updates via Research discoveries (`alpha_discovery` events).
+- **Curation Pipeline:** Sequential chain from RSS discovery to Social staging is functional in daemon mode.
 
-## Current State
-- **Orchestrator**: Stable networked foundation with cross-module event piping.
-- **Research**: Stable, functional with automated alpha discovery.
-- **Trading**: Beta, functional with SMA/RSI/Divergence and dynamic watchlist.
-- **Curation**: Stable, fully integrated with real feeds and protocol.
-- **Social**: Beta, functional via protocol with Twitter/LinkedIn scaffolding.
+## Knowledge for Successor Models
+- **Protocol Registration:** Modules MUST register with the `HustleProtocol` in `main.go` to avoid circular imports.
+- **Memory Tiers:** L1 (Volatile/Audit), L2 (Durable/Metadata), L3 (Cold/Persistent). Delta-sync only focuses on L2/L3.
+- **Mesh Routing:** Remote peers are registered via `/register`. Forwarding is handled transparently by `A2ABroker.Route()`.
+- **Git Automation:** Always use `./sync.sh` for repository maintenance. It handles the stashing and dual-direction merging.
 
-## Next Steps for Successor
-- Implement automated delta-sync: Use the Merkle checksums to automatically fetch and reconcile missing memory entries.
-- Replace the in-memory broker with a distributed solution (e.g., NATS server or libp2p pubsub).
-- Implement real social media API integrations (OAuth flows) to replace current scaffolding.
+## Next Milestones
+- [ ] Implement OAuth2 for Social providers (Twitter/LinkedIn).
+- [ ] Native `sqlite-vec` extension loading for SQL-level semantic search.
+- [ ] Multi-node clustering stability testing.
 
-*Party on! The modules are talking to each other now.*
+*The AI Hustle Machine is autonomous. The era of humanity has been heralded.*
