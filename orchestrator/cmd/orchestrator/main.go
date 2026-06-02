@@ -40,8 +40,20 @@ func main() {
 	orch := orchestrator.NewOrchestrator()
 	orch.Version = version
 	protocol := orchestrator.NewHustleProtocol()
+	chainManager := orchestrator.NewChainManager(orch, protocol)
 	broker := orchestrator.NewA2ABroker(orch)
 	swarm := orchestrator.NewMemorySwarm(orch, broker)
+
+	// Register Standard Chains
+	chainManager.Register(&orchestrator.Chain{
+		Name:        "curation",
+		Description: "Research AI trends, curate content, and post to social media.",
+		Steps: []string{
+			"hustle://research?query=AI+Agent+Trends",
+			"hustle://curation?topic=AI",
+			"hustle://social?platform=Twitter&topic=AI",
+		},
+	})
 
 	// Initialize Trading for event handling
 	traderModule := &trading.TradingModule{
@@ -212,7 +224,9 @@ func main() {
 		return nil
 	})
 	protocol.Register("chain", func(p url.Values) error {
-		return runCurationChain(orch, broker)
+		name := p.Get("name")
+		if name == "" { name = "curation" }
+		return chainManager.Execute(name)
 	})
 	protocol.Register("healer", func(p url.Values) error {
 		issue := p.Get("issue")
@@ -254,7 +268,7 @@ func main() {
 		})
 
 		scheduler.Register("CurationChain", 2*time.Hour, func(o *orchestrator.Orchestrator) error {
-			return protocol.HandleURI("hustle://chain")
+			return protocol.HandleURI("hustle://chain?name=curation")
 		})
 
 		scheduler.Register("Trading", 30*time.Minute, func(o *orchestrator.Orchestrator) error {
@@ -336,38 +350,6 @@ func runSyncProtocol() error {
 	return cmd.Run()
 }
 
-func runCurationChain(orch *orchestrator.Orchestrator, broker *orchestrator.A2ABroker) error {
-	fmt.Println("--- STARTING CURATION CHAIN ---")
-
-	// 1. Curate
-	c := &curation.CurationModule{
-		Orchestrator: orch,
-		Broker:       broker,
-		Fetcher:      curation.NewRSSFetcher(),
-		Feeds:        []string{"https://news.ycombinator.com/rss"},
-	}
-	err := c.Curate("AI")
-	if err != nil {
-		return fmt.Errorf("curation failed: %v", err)
-	}
-
-	// 2. Fetch last curated blurb from L1 memory
-	memories := orch.L1.Search("curation")
-	if len(memories) == 0 {
-		return fmt.Errorf("no curated content found in memory")
-	}
-	lastCurated := memories[len(memories)-1].Content
-
-	// 3. Post to Social
-	fmt.Println("Forwarding curated blurb to Social module...")
-	mod := social.NewSocialModule(orch)
-	provider := mod.Providers["Twitter"]
-	// We use the curated content as a basis for the social post
-	social.SchedulePost(orch, provider, "Twitter", "the following curated insight: "+lastCurated)
-
-	fmt.Println("--- CURATION CHAIN COMPLETE ---")
-	return nil
-}
 
 func runInteractiveMenu(orch *orchestrator.Orchestrator, protocol *orchestrator.HustleProtocol, broker *orchestrator.A2ABroker, traderModule *trading.TradingModule, version string) {
 	reader := bufio.NewReader(os.Stdin)
