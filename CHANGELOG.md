@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.0-alpha.38] - 2026-06-02
+### Added
+- **Self-Evolving Execution (BETA)**: Implemented profit-aware scheduler re-evaluation. The system now dynamically accelerates tasks associated with high-performing "hustles".
+- **Mesh Status Monitoring**: Introduced `hustle://swarm?action=status` protocol handler for real-time mesh health and peer tracking.
+- **Portability & Safety Refinement**: Hardened `sync.sh` with GNU/BSD portable `sed` and safer stashing/merging strategies.
+- **Mesh Payload Integrity**: Applied URL escaping to all federated memory exchange parameters.
+
 ## [1.0.0-alpha.37] - 2026-06-02
 ### Added
 - **Global Stash Logic**: Refactored `sync.sh` to use a robust global stash/pop strategy for the Executive Protocol.

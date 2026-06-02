@@ -198,6 +198,16 @@ func main() {
 				Tags:      []string{"swarm", "received", "from:" + peerID},
 			})
 			fmt.Printf("[Swarm] Successfully ingested entry %s from %s\n", id, peerID)
+		case "status":
+			fmt.Println("--- MESH SWARM STATUS ---")
+			fmt.Printf("Connected Peers: %d\n", len(broker.Peers))
+			for id, url := range broker.Peers {
+				fmt.Printf("  - %s: %s\n", id, url)
+			}
+			fmt.Printf("Subscribed Topics: %d\n", len(broker.Topics))
+			for topic := range broker.Topics {
+				fmt.Printf("  - %s\n", topic)
+			}
 		}
 		return nil
 	})
@@ -267,6 +277,10 @@ func main() {
 		scheduler.Register("ProfitAnalysis", 12*time.Hour, func(o *orchestrator.Orchestrator) error {
 			suggestion := o.Ledger.AnalyzeProfitability()
 			fmt.Printf("[Scheduler] Financial Analysis: %s\n", suggestion)
+
+			// Self-Evolving: Dynamically adjust scheduler based on profit
+			scheduler.ReevaluateStrategy(suggestion)
+
 			o.L2.Add(orchestrator.MemoryEntry{
 				ID:        fmt.Sprintf("profit-analysis-%d", time.Now().Unix()),
 				Content:   suggestion,

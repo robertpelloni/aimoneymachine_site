@@ -9,7 +9,8 @@
 - [x] Implement A2A Mesh for cross-host collaboration. (Handoff implemented in v1.0.0-alpha.34)
 - [x] Implement robust OAuth2 flow for Social modules. (v1.0.0-alpha.35/36)
 - [x] Add native `sqlite-vec` extension loading (removing Go-level bridge). (v1.0.0-alpha.35)
-- [ ] Implement real-world Price Fetcher for Trading module (e.g. CoinGecko).
+- [x] Implement real-world Price Fetcher for Trading module (CoinGecko). (Done in v1.0.0-alpha.37)
+- [ ] Implement "Self-Evolving Chains" (Dynamic task creation based on profit).
 
 ## Future Tasks
 - [ ] Multi-exchange support for the Trading module.

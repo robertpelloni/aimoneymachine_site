@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -23,6 +24,22 @@ func NewScheduler(orch *Orchestrator) *Scheduler {
 	return &Scheduler{
 		Orchestrator: orch,
 		Tasks:        make([]*Task, 0),
+	}
+}
+
+func (s *Scheduler) ReevaluateStrategy(recommendation string) {
+	fmt.Printf("[Scheduler] Self-Evolving: Re-evaluating strategy based on: %s\n", recommendation)
+
+	for _, task := range s.Tasks {
+		// Example: If Trading is the best performer, increase its frequency
+		if strings.Contains(strings.ToLower(recommendation), strings.ToLower(task.Name)) {
+			oldInterval := task.Interval
+			task.Interval = task.Interval / 2
+			if task.Interval < 1*time.Minute {
+				task.Interval = 1 * time.Minute
+			}
+			fmt.Printf("[Scheduler] Accelerated %s task: %v -> %v\n", task.Name, oldInterval, task.Interval)
+		}
 	}
 }
 
