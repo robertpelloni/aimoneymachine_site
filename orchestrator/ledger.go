@@ -61,6 +61,32 @@ func (l *Ledger) Profit() float64 {
 	return l.TotalRevenue() - l.TotalExpenses()
 }
 
+func (l *Ledger) AnalyzeProfitability() string {
+	if len(l.Transactions) == 0 {
+		return "Insufficient data for financial analysis."
+	}
+
+	hustleProfits := make(map[string]float64)
+	for _, t := range l.Transactions {
+		if t.Type == Revenue {
+			hustleProfits[t.Hustle] += t.Amount
+		} else {
+			hustleProfits[t.Hustle] -= t.Amount
+		}
+	}
+
+	bestHustle := ""
+	maxProfit := -1000000.0
+	for h, p := range hustleProfits {
+		if p > maxProfit {
+			maxProfit = p
+			bestHustle = h
+		}
+	}
+
+	return fmt.Sprintf("Best Performing Hustle: %s (Profit: $%.2f). Recommendation: Increase agent allocation to %s.", bestHustle, maxProfit, bestHustle)
+}
+
 func (l *Ledger) Save(filepath string) error {
 	data, err := json.MarshalIndent(l, "", "  ")
 	if err != nil {

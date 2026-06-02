@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.0-alpha.37] - 2026-06-02
+### Added
+- **Global Stash Logic**: Refactored `sync.sh` to use a robust global stash/pop strategy for the Executive Protocol.
+- **Profit Analysis Engine**: Implemented autonomous financial evaluation that logs strategy optimization suggestions to L2 memory.
+- **Multi-Symbol Trading**: Added `ExecuteAll` capability to the Trading module for automated watchlist scanning.
+- **Repository Hygiene**: Standardized `.gitignore` and purged all compiled binaries from the source tree.
+
 ## [1.0.0-alpha.36] - 2026-06-02
 ### Added
 - **AI-Driven Self-Healing (BETA)**: Enhanced the `Healer` module to utilize LLM for context-aware system diagnosis and fix generation.

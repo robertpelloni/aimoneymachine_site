@@ -1,9 +1,11 @@
 package trading
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/robertpelloni/hustle/orchestrator"
 	"math/rand"
+	"net/http"
 	"strings"
 	"time"
 )
@@ -22,9 +24,6 @@ func (m *MockPriceFetcher) GetPrice(symbol string) (float64, error) {
 type CoinGeckoFetcher struct{}
 
 func (c *CoinGeckoFetcher) GetPrice(symbol string) (float64, error) {
-	// In a real-world implementation, we would use the CoinGecko API:
-	// https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd
-
 	// Map common symbols to CoinGecko IDs
 	ids := map[string]string{
 		"BTC": "bitcoin",
@@ -34,12 +33,33 @@ func (c *CoinGeckoFetcher) GetPrice(symbol string) (float64, error) {
 
 	id, ok := ids[symbol]
 	if !ok {
-		return 0, fmt.Errorf("symbol %s not supported by CoinGecko fetcher scaffold", symbol)
+		return 0, fmt.Errorf("symbol %s not supported by CoinGecko fetcher", symbol)
 	}
 
-	fmt.Printf("[Trading] Sourcing real-world price for %s via CoinGecko API scaffold...\n", id)
-	// We simulate the HTTP call to prevent sandbox connectivity issues in alpha
-	return 50000.0 + rand.Float64()*500.0, nil
+	fmt.Printf("[Trading] Sourcing real-world price for %s via CoinGecko API...\n", id)
+
+	url := fmt.Sprintf("https://api.coingecko.com/api/v3/simple/price?ids=%s&vs_currencies=usd", id)
+	resp, err := http.Get(url)
+	if err != nil {
+		return 0, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return 0, fmt.Errorf("coingecko returned status %d", resp.StatusCode)
+	}
+
+	var data map[string]map[string]float64
+	if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {
+		return 0, err
+	}
+
+	price, ok := data[id]["usd"]
+	if !ok {
+		return 0, fmt.Errorf("usd price not found for %s", id)
+	}
+
+	return price, nil
 }
 
 type TradingModule struct {
@@ -50,6 +70,17 @@ type TradingModule struct {
 	History      []float64
 	RSIHistory   []float64
 	Watchlist    []string
+}
+
+func (t *TradingModule) ExecuteAll() error {
+	fmt.Printf("[Trading] Executing strategy for entire watchlist: %v\n", t.Watchlist)
+	for _, sym := range t.Watchlist {
+		t.Symbol = sym
+		if err := t.ExecuteStrategy(); err != nil {
+			fmt.Printf("[Trading] Error executing for %s: %v\n", sym, err)
+		}
+	}
+	return nil
 }
 
 func (t *TradingModule) ExecuteStrategy() error {

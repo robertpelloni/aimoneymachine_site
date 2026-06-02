@@ -1,1 +1,10 @@
 bin/
+orchestrator/orchestrator
+hustle/social/social
+hustle/trading/trading
+hustle/curation/curator
+hustle/research/research
+*.db
+*.log
+ledger.json
+token_*.json

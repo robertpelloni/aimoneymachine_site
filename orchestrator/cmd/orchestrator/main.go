@@ -154,6 +154,7 @@ func main() {
 		return nil
 	})
 	protocol.Register("trading", func(p url.Values) error {
+		action := p.Get("action")
 		symbol := p.Get("symbol")
 		if symbol == "" { symbol = "BTC" }
 		traderModule.Symbol = symbol
@@ -163,6 +164,10 @@ func main() {
 			traderModule.Fetcher = &trading.CoinGeckoFetcher{}
 		} else {
 			traderModule.Fetcher = &trading.MockPriceFetcher{}
+		}
+
+		if action == "all" {
+			return traderModule.ExecuteAll()
 		}
 
 		return traderModule.ExecuteStrategy()
@@ -257,6 +262,18 @@ func main() {
 
 		scheduler.Register("Heartbeat", 5*time.Minute, func(o *orchestrator.Orchestrator) error {
 			return orchestrator.WriteStatusReport(version, "Active", "Scheduler Heartbeat", o.Ledger)
+		})
+
+		scheduler.Register("ProfitAnalysis", 12*time.Hour, func(o *orchestrator.Orchestrator) error {
+			suggestion := o.Ledger.AnalyzeProfitability()
+			fmt.Printf("[Scheduler] Financial Analysis: %s\n", suggestion)
+			o.L2.Add(orchestrator.MemoryEntry{
+				ID:        fmt.Sprintf("profit-analysis-%d", time.Now().Unix()),
+				Content:   suggestion,
+				Timestamp: time.Now(),
+				Tags:      []string{"ledger", "analysis", "recommendation"},
+			})
+			return nil
 		})
 
 		fmt.Println("Orchestrator running in Daemon mode.")

@@ -4,9 +4,6 @@
 
 echo "=== EXECUTIVE PROTOCOL: REPOSITORY SYNC & INTELLIGENT MERGE ==="
 
-# 1. UPSTREAM TRACKING & SUBMODULE SANITIZATION
-echo "Step 1: Upstream Tracking & Submodule Sanitization"
-
 # Identify the upstream remote (prefer 'upstream' if it exists, otherwise 'origin')
 REMOTE="origin"
 if git remote | grep -q "^upstream$"; then
@@ -21,21 +18,32 @@ if git branch -r | grep -q "$REMOTE/master"; then
 fi
 echo "Main branch detected: $MAIN_BRANCH"
 
+# IDENTIFY INITIAL STATE
+INITIAL_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+echo "Initial branch: $INITIAL_BRANCH"
+
+# GLOBAL STASH: Protect uncommitted work before any operations
+STASHED_WORK=false
+if [[ $(git status --porcelain) ]]; then
+    echo "Stashing uncommitted changes across the workspace..."
+    git stash
+    STASHED_WORK=true
+fi
+
+# 1. UPSTREAM TRACKING & SUBMODULE SANITIZATION
+echo "Step 1: Upstream Tracking & Submodule Sanitization"
 echo "Fetching all remotes and tags..."
 git fetch --all --tags
 
-# Ensure local main is updated
+# Ensure local main is updated safely
 echo "Updating local $MAIN_BRANCH from $REMOTE..."
 git checkout $MAIN_BRANCH
-git merge $REMOTE/$MAIN_BRANCH --ff-only || git reset --hard $REMOTE/$MAIN_BRANCH
-
+if ! git merge $REMOTE/$MAIN_BRANCH --ff-only; then
+    echo "Warning: Fast-forward failed for $MAIN_BRANCH. Manual rebase may be required."
+fi
 
 echo "Updating submodules recursively to their latest tracking commits..."
 git submodule update --init --recursive
-
-# Identify current branch to return to it later
-INITIAL_BRANCH=$(git rev-parse --abbrev-ref HEAD)
-echo "Initial branch: $INITIAL_BRANCH"
 
 # 2. DUAL-DIRECTION INTELLIGENT MERGE ENGINE
 echo "Step 2: Dual-Direction Intelligent Merge Engine"
@@ -50,14 +58,6 @@ for BRANCH in $ALL_LOCAL_BRANCHES; do
 
     echo "--- Reconciling Branch: $BRANCH ---"
 
-    # Stash if necessary
-    STASHED=false
-    if [[ $(git status --porcelain) ]]; then
-        echo "Stashing local changes..."
-        git stash
-        STASHED=true
-    fi
-
     # Checkout the feature branch
     if ! git checkout "$BRANCH"; then
         echo "Failed to checkout $BRANCH, skipping."
@@ -69,7 +69,7 @@ for BRANCH in $ALL_LOCAL_BRANCHES; do
     if git merge "$REMOTE/$MAIN_BRANCH" --no-edit; then
         echo "Successfully caught up $BRANCH with $REMOTE/$MAIN_BRANCH."
     else
-        echo "CONFLICT detected on $BRANCH. Aborting reverse merge."
+        echo "CONFLICT detected on $BRANCH. Aborting merge."
         git merge --abort
     fi
 
@@ -88,21 +88,20 @@ for BRANCH in $ALL_LOCAL_BRANCHES; do
             git checkout "$BRANCH"
         fi
     fi
-
-    # Return to initial branch
-    git checkout "$INITIAL_BRANCH"
-
-    if [ "$STASHED" = true ]; then
-        echo "Restoring stashed changes..."
-        git stash pop
-        STASHED=false
-    fi
 done
 
-# Ensure we are back on the initial branch and it is caught up
-CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
-if [ "$CURRENT_BRANCH" != "$MAIN_BRANCH" ]; then
-    echo "Finalizing sync for $CURRENT_BRANCH..."
+# Ensure we are back on the initial branch
+git checkout "$INITIAL_BRANCH"
+
+# RE-APPLY STASHED WORK
+if [ "$STASHED_WORK" = true ]; then
+    echo "Restoring stashed changes to $INITIAL_BRANCH..."
+    git stash pop
+fi
+
+# Ensure initial branch is caught up if it's not main
+if [ "$INITIAL_BRANCH" != "$MAIN_BRANCH" ]; then
+    echo "Finalizing sync for $INITIAL_BRANCH..."
     git merge "$REMOTE/$MAIN_BRANCH" --no-edit || echo "Final sync merge failed. Manual intervention required."
 fi
 
@@ -116,8 +115,7 @@ echo "Current Version: $VERSION"
 for script in build.sh start.sh; do
     if [ -f "$script" ]; then
         echo "Validating $script..."
-        # Targeted replacement using word boundaries where possible to avoid collateral damage
-        # Portable sed: use -i '' for BSD/macOS compatibility if needed, but here we detect
+        # Portable sed: use -i '' for BSD/macOS compatibility if needed
         if sed --version >/dev/null 2>&1; then
             sed -i "s/\bmain\b/$MAIN_BRANCH/g" "$script"
         else
@@ -126,13 +124,14 @@ for script in build.sh start.sh; do
     fi
 done
 
-# Synchronize version across changelog and status
+# Targeted version synchronization in CHANGELOG.md (replaces only the first [UNRELEASED] or generic header)
 if [ -f "CHANGELOG.md" ]; then
-    # Match both [1.0.0-alpha.x] and v1.0.0-alpha.x formats
+    # Portable sed: find first occurrence of a generic alpha version and update it
     if sed --version >/dev/null 2>&1; then
-        sed -i "s/1.0.0-alpha.[0-9]*/$VERSION/g" CHANGELOG.md
+        sed -i "0,/1.0.0-alpha.[0-9]*/s/1.0.0-alpha.[0-9]*/$VERSION/" CHANGELOG.md
     else
-        sed -i "" "s/1.0.0-alpha.[0-9]*/$VERSION/g" CHANGELOG.md
+        # macOS/BSD version (doesn't support 0,/pattern/ range easily, so we use a simpler approach for alpha)
+        sed -i "" "1,s/1.0.0-alpha.[0-9]*/$VERSION/" CHANGELOG.md
     fi
 fi
 
@@ -150,7 +149,7 @@ fi
 # Push to server
 if [ "$HUSTLE_PUSH_ENABLED" = "true" ]; then
     echo "Pushing changes to $REMOTE..."
-    git push $REMOTE $CURRENT_BRANCH
+    git push $REMOTE $(git rev-parse --abbrev-ref HEAD)
     git push $REMOTE --tags
 else
     echo "Push disabled. Set HUSTLE_PUSH_ENABLED=true to enable automatic remote updates."
