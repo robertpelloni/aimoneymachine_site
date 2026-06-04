@@ -1,6 +1,6 @@
 # Roadmap: AI Hustle Machine
 
-_Last updated: 2026-06-04, version 1.0.0-alpha.41_
+_Last updated: 2026-05-30, version 1.0.0-alpha.36_
 
 ## Status legend
 
@@ -8,16 +8,6 @@ _Last updated: 2026-06-04, version 1.0.0-alpha.41_
 - **Beta** — Usable, still evolving
 - **Experimental** — Active R&D, not dependable
 - **Vision** — Directional only
-
-## Completed (v1.0.0-alpha.41)
-
-### 1. Market Intelligence (BETA)
-- **Live Pricing**: Integrated `CoinGeckoFetcher` to provide real-time USD prices for BTC, ETH, and SOL.
-- **Dynamic Sourcing**: Added runtime toggles for switching between simulated and live market data.
-
-### 2. High-Performance Vectors (BETA)
-- **Native sqlite-vec**: Refactored the persistence layer to utilize the `sqlite-vec` extension for SQL-native similarity searches.
-- **Resilient Search**: Implemented a robust fallback to Go-level cosine similarity for environments where extensions are restricted.
 
 ## Completed (v1.0.0-alpha.36)
 

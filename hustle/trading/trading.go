@@ -38,7 +38,8 @@ func (c *CoinGeckoFetcher) GetPrice(symbol string) (float64, error) {
 	}
 
 	url := fmt.Sprintf("https://api.coingecko.com/api/v3/simple/price?ids=%s&vs_currencies=usd", id)
-	resp, err := http.Get(url)
+	client := &http.Client{Timeout: 10 * time.Second}
+	resp, err := client.Get(url)
 	if err != nil {
 		return 0, err
 	}

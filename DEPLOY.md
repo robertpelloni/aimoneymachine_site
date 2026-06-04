@@ -10,10 +10,5 @@
 2. Run `./sync.sh` to ensure all submodules and branches are aligned.
 3. Run `./build.sh` to compile the orchestrator and hustle modules.
 
-### External API Keys
-- `TAVILY_API_KEY`: Required for Research module.
-- `ANTHROPIC_API_KEY`: Required for LLM-driven orchestration.
-- `COINGECKO_API_KEY`: (Optional) For Pro-tier CoinGecko access.
-
 ## 3. Automated Execution
 The system is designed for continuous autonomous execution. Ensure environment variables for API keys are set before launching the orchestrator.

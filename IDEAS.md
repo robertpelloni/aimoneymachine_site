@@ -17,9 +17,3 @@
 
 ## 6. Self-Evolving Chains
 - Allow the orchestrator to dynamically create and schedule its own "hustle chains" based on successful profit patterns in the ledger.
-
-## 7. Sentiment-Weighted Order Book (NEW)
-- Use Research module's sentiment extraction to weight the Trading module's position sizes.
-
-## 8. Multi-Provider Vector Mesh
-- Extend `sqlite-vec` support to sync vectors across the A2A mesh, allowing for decentralized semantic indexing.
