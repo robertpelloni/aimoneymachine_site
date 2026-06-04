@@ -1,8 +1,9 @@
-go 1.24.0
+go 1.24.3
 
 use (
 	./hustle/curation
 	./hustle/research
 	./hustle/social
+	./hustle/trading
 	./orchestrator
 )

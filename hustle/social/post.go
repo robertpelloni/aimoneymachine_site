@@ -22,10 +22,18 @@ func (p *TwitterProvider) Post(content string) error {
 	return nil
 }
 
+func NewTwitterProvider() *TwitterProvider {
+	return &TwitterProvider{}
+}
+
 type LinkedInProvider struct{}
 func (p *LinkedInProvider) Post(content string) error {
 	fmt.Printf("[LinkedIn] Posting: %s\n", content)
 	return nil
+}
+
+func NewLinkedInProvider() *LinkedInProvider {
+	return &LinkedInProvider{}
 }
 
 func GenerateContent(orch *orchestrator.Orchestrator, topic string) string {

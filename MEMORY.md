@@ -2,6 +2,10 @@
 
 ## Initial State (2026-05-29)
 - Repository initialized with extensive knowledge base documentation from `borg` and `bobbybookmarks`.
+
+## State Evolution (v1.0.0-alpha.41)
+- Integrated real-world cryptocurrency data via CoinGecko.
+- Native `sqlite-vec` integration with Go-level fallback for robust vector search.
 - Core vision involves an Omni-Workspace with a Go-based "Hustle Orchestrator" for automated orchestration of side hustles.
 - Memory architecture follows a tiered approach: L1 (Scratchpad), L2 (Vault), L3 (Archive).
 - High emphasis on "Money Machines" - automated side hustles.

@@ -1,6 +1,4 @@
 #!/bin/bash
-set -e
-
 # THE EXECUTIVE PROTOCOL: REPOSITORY SYNCHRONIZATION & INTELLIGENT MERGE
 # This script maintains repository health by reconciling all local feature branches with main.
 
@@ -41,7 +39,7 @@ echo "Step 2: Dual-Direction Intelligent Merge Engine"
 ALL_LOCAL_BRANCHES=$(git branch --format='%(refname:short)')
 
 for BRANCH in $ALL_LOCAL_BRANCHES; do
-    if [ "$BRANCH" == "main" ]; then
+    if [ "$BRANCH" == "main" ] || [ "$BRANCH" == "master" ]; then
         continue
     fi
 
@@ -50,7 +48,7 @@ for BRANCH in $ALL_LOCAL_BRANCHES; do
     # Stash if necessary
     STASHED=false
     if [[ $(git status --porcelain) ]]; then
-        echo "Stashing local changes on $INITIAL_BRANCH..."
+        echo "Stashing local changes..."
         git stash
         STASHED=true
     fi
@@ -66,8 +64,24 @@ for BRANCH in $ALL_LOCAL_BRANCHES; do
     if git merge "$REMOTE/$MAIN_BRANCH" --no-edit; then
         echo "Successfully caught up $BRANCH with $REMOTE/$MAIN_BRANCH."
     else
-        echo "CONFLICT detected on $BRANCH. Aborting merge."
+        echo "CONFLICT detected on $BRANCH. Aborting reverse merge."
         git merge --abort
+    fi
+
+    # Forward Merge: Merging feature branch back into main (Optional/Automated)
+    # Directive: "Interrogate each active feature branch. If it contains unique development progress... merge it into main."
+    # For safety in this script, we only forward merge branches with the 'feat/ready-' prefix.
+    if [[ $BRANCH == feat/ready-* ]]; then
+        echo "Forward Merge: Merging $BRANCH back into $MAIN_BRANCH..."
+        git checkout $MAIN_BRANCH
+        if git merge "$BRANCH" --no-edit; then
+            echo "Successfully merged $BRANCH into $MAIN_BRANCH."
+            git checkout "$BRANCH" # Go back to feature branch for final state
+        else
+            echo "CONFLICT detected during forward merge of $BRANCH. Aborting."
+            git merge --abort
+            git checkout "$BRANCH"
+        fi
     fi
 
     # Return to initial branch
@@ -81,9 +95,10 @@ for BRANCH in $ALL_LOCAL_BRANCHES; do
 done
 
 # Ensure we are back on the initial branch and it is caught up
-if [ "$INITIAL_BRANCH" != "main" ]; then
-    echo "Finalizing sync for $INITIAL_BRANCH..."
-    git merge "$REMOTE/main" --no-edit || echo "Final sync merge failed. Manual intervention required."
+CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+if [ "$CURRENT_BRANCH" != "$MAIN_BRANCH" ]; then
+    echo "Finalizing sync for $CURRENT_BRANCH..."
+    git merge "$REMOTE/$MAIN_BRANCH" --no-edit || echo "Final sync merge failed. Manual intervention required."
 fi
 
 echo "Step 3: Workspace Cleanup, Documentation, & Push"

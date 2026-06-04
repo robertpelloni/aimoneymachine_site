@@ -3,11 +3,15 @@ package orchestrator
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	_ "github.com/mattn/go-sqlite3"
+	"math"
+	"sort"
 )
 
 type SQLiteStore struct {
-	db *sql.DB
+	db        *sql.DB
+	extLoaded bool
 }
 
 func NewSQLiteStore(filepath string) (*SQLiteStore, error) {
@@ -19,7 +23,24 @@ func NewSQLiteStore(filepath string) (*SQLiteStore, error) {
 
 	// Attempt to load sqlite-vec if it exists in standard paths
 	// This is defensive; if it fails, we fall back to Go-level cosine similarity
-	_, _ = db.Exec("SELECT load_extension('vec0')")
+	extLoaded := false
+	if _, err := db.Exec("SELECT load_extension('vec0')"); err == nil {
+		fmt.Println("[SQLite] sqlite-vec extension loaded successfully.")
+		extLoaded = true
+	} else {
+		fmt.Printf("[SQLite] Warning: failed to load sqlite-vec: %v. Using Go-level fallback.\n", err)
+	}
+
+	// Create virtual table for vectors if extension is loaded
+	if extLoaded {
+		_, err = db.Exec(`CREATE VIRTUAL TABLE IF NOT EXISTS vec_memories USING vec0(
+			embedding FLOAT[1536]
+		);`)
+		if err != nil {
+			fmt.Printf("[SQLite] Warning: failed to create virtual table: %v\n", err)
+			extLoaded = false
+		}
+	}
 
 	// Standard table for metadata
 	query := `
@@ -37,7 +58,7 @@ func NewSQLiteStore(filepath string) (*SQLiteStore, error) {
 		return nil, err
 	}
 
-	return &SQLiteStore{db: db}, nil
+	return &SQLiteStore{db: db, extLoaded: extLoaded}, nil
 }
 
 func (s *SQLiteStore) SaveMemory(tier string, entry MemoryEntry) error {
@@ -48,11 +69,27 @@ func (s *SQLiteStore) SaveMemory(tier string, entry MemoryEntry) error {
 		embeddingData, _ = json.Marshal(entry.Vector)
 	}
 
+	// Insert main record first
 	_, err := s.db.Exec(`
 		INSERT OR REPLACE INTO memories (id, tier, content, base_score, timestamp, tags, embedding)
 		VALUES (?, ?, ?, ?, ?, ?, ?)`,
 		entry.ID, tier, entry.Content, entry.BaseScore, entry.Timestamp, string(tagsData), embeddingData)
-	return err
+	if err != nil {
+		return err
+	}
+
+	// Update virtual table if extension is loaded and vector is present
+	if s.extLoaded && len(entry.Vector) > 0 {
+		_, err = s.db.Exec(`
+			INSERT OR REPLACE INTO vec_memories(rowid, embedding)
+			VALUES ((SELECT rowid FROM memories WHERE id = ?), ?)`,
+			entry.ID, embeddingData)
+		if err != nil {
+			fmt.Printf("[SQLite] Warning: failed to update vec_memories: %v\n", err)
+		}
+	}
+
+	return nil
 }
 
 func (s *SQLiteStore) LoadMemories(tier string) ([]MemoryEntry, error) {
@@ -80,20 +117,89 @@ func (s *SQLiteStore) LoadMemories(tier string) ([]MemoryEntry, error) {
 	return entries, nil
 }
 
-// VectorSearch finds similar memories using cosine similarity (mocked for now until sqlite-vec is loaded)
+// VectorSearch finds similar memories using cosine similarity
 func (s *SQLiteStore) VectorSearch(tier string, target []float32, limit int) ([]MemoryEntry, error) {
-	// In a real sqlite-vec setup, we would use:
-	// SELECT id, content, distance FROM memories WHERE tier = ? ORDER BY vec_distance_cosine(embedding, ?) LIMIT ?
+	if s.extLoaded {
+		targetData, _ := json.Marshal(target)
+		rows, err := s.db.Query(`
+			SELECT m.id, m.content, m.base_score, m.timestamp, m.tags, m.embedding
+			FROM memories m
+			JOIN vec_memories v ON m.rowid = v.rowid
+			WHERE m.tier = ?
+			ORDER BY vec_distance_cosine(v.embedding, ?)
+			LIMIT ?`, tier, targetData, limit)
+		if err == nil {
+			defer rows.Close()
+			var entries []MemoryEntry
+			for rows.Next() {
+				var e MemoryEntry
+				var tagsStr string
+				var embeddingData []byte
+				if err := rows.Scan(&e.ID, &e.Content, &e.BaseScore, &e.Timestamp, &tagsStr, &embeddingData); err == nil {
+					json.Unmarshal([]byte(tagsStr), &e.Tags)
+					if len(embeddingData) > 0 {
+						json.Unmarshal(embeddingData, &e.Vector)
+					}
+					entries = append(entries, e)
+				}
+			}
+			if len(entries) > 0 {
+				return entries, nil
+			}
+		}
+		fmt.Printf("[SQLite] SQL VectorSearch failed or empty: %v. Falling back to Go-level similarity.\n", err)
+	}
 
-	// For alpha, we load and calculate manually
+	// Fallback to Go-level cosine similarity
 	memories, err := s.LoadMemories(tier)
 	if err != nil {
 		return nil, err
 	}
 
-	// Simple mock: just return first N for now
-	if len(memories) > limit {
-		return memories[:limit], nil
+	type rankedResult struct {
+		entry MemoryEntry
+		sim   float64
 	}
-	return memories, nil
+	var ranked []rankedResult
+
+	for _, m := range memories {
+		if len(m.Vector) == 0 { continue }
+		sim := cosineSimilarity(m.Vector, target)
+		ranked = append(ranked, rankedResult{m, sim})
+	}
+
+	sort.Slice(ranked, func(i, j int) bool {
+		return ranked[i].sim > ranked[j].sim
+	})
+
+	var results []MemoryEntry
+	for i := 0; i < len(ranked) && i < limit; i++ {
+		results = append(results, ranked[i].entry)
+	}
+
+	// If no vector results, return first N memories as fallback
+	if len(results) == 0 {
+		if len(memories) > limit {
+			return memories[:limit], nil
+		}
+		return memories, nil
+	}
+
+	return results, nil
+}
+
+func cosineSimilarity(a, b []float32) float64 {
+	if len(a) != len(b) || len(a) == 0 {
+		return 0
+	}
+	var dot, normA, normB float64
+	for i := range a {
+		dot += float64(a[i] * b[i])
+		normA += float64(a[i] * a[i])
+		normB += float64(b[i] * b[i])
+	}
+	if normA == 0 || normB == 0 {
+		return 0
+	}
+	return dot / (math.Sqrt(normA) * math.Sqrt(normB))
 }
