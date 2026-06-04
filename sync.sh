@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 # THE EXECUTIVE PROTOCOL: REPOSITORY SYNCHRONIZATION & INTELLIGENT MERGE
 # This script maintains repository health by reconciling all local feature branches with main.
 

@@ -6,7 +6,7 @@
 - **Enhanced Vector Search**: Refactored `SQLiteStore` to support native `sqlite-vec` extension with automatic Go-level fallback.
 - **Interactive Flags**: Added `-real-prices` flag to the orchestrator to toggle live data sourcing.
 
-## [1.0.0-alpha.40] - 2026-06-02
+## [1.0.0-alpha.40] - 2026-06-03
 ### Added
 - **Integrated Service Layer (STABLE)**: Promoted the Orchestrator API to a full service layer.
 - **Remote Protocol Triggers**: Added `/sync` and `/chains` endpoints for remote orchestration and visibility.
