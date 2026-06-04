@@ -19,11 +19,13 @@ echo "Using remote: $REMOTE"
 MAIN_BRANCH="main"
 if git branch -r | grep -q "$REMOTE/master"; then
     MAIN_BRANCH="master"
+elif git branch | grep -q "master"; then
+    MAIN_BRANCH="master"
 fi
 echo "Main branch detected: $MAIN_BRANCH"
 
 echo "Fetching all remotes and tags..."
-git fetch --all --tags
+git fetch --all --tags || echo "Warning: Fetch failed, continuing with local state."
 
 
 echo "Updating submodules recursively to their latest tracking commits..."
@@ -46,11 +48,11 @@ for BRANCH in $ALL_LOCAL_BRANCHES; do
 
     echo "--- Reconciling Branch: $BRANCH ---"
 
-    # Stash if necessary
+    # Stash if necessary (including untracked files)
     STASHED=false
     if [[ $(git status --porcelain) ]]; then
         echo "Stashing local changes..."
-        git stash
+        git stash -u
         STASHED=true
     fi
 
