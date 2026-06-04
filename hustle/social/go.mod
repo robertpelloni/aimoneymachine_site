@@ -4,7 +4,7 @@ go 1.24.3
 
 require (
 	github.com/robertpelloni/hustle/orchestrator v0.0.0
-	golang.org/x/oauth2 v0.24.0
+	golang.org/x/oauth2 v0.27.0
 )
 
 require (
