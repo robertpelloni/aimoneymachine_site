@@ -14,3 +14,9 @@
 ## Discovered Optimizations
 - **LLM Sentiment Confluence:** Technical signals are noisy; filtering them through LLM-extracted market sentiment significantly reduces false positives in Trading.
 - **Mesh Aggregation:** Centralizing status in L1 memory allows the Dashboard to remain stateless and high-performance.
+
+## Deployment Verification (v1.0.0-alpha.42)
+- **Scheduler Stability:** Confirmed that sequential task execution (Research -> Curation -> Trading -> Sync) operates correctly in daemon mode.
+- **API Performance:** Verified real-world price fetching with CoinGecko typically completes under 2s.
+- **Mesh Resilience:** Mesh status aggregation is asynchronous and does not block the primary task loop unless many peers are unresponsive.
+- **Wealth Preservation:** ROI audits successfully detect deficits from persistent storage (`ledger.json`) and propose corrective termination.

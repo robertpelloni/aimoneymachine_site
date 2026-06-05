@@ -217,6 +217,10 @@ func main() {
 		})
 
 		scheduler.Register("ProfitAnalysis", 12*time.Hour, func(o *orchestrator.Orchestrator) error {
+			// Luxury wealth preservation audit
+			h := orchestrator.NewHealer(o)
+			h.WealthPreservation()
+
 			suggestion := o.Ledger.AnalyzeProfitability()
 			fmt.Printf("[Scheduler] Financial Analysis: %s\n", suggestion)
 

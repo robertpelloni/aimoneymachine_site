@@ -1,0 +1,8 @@
+=== AI Hustle Machine Orchestrator v1.0.0-alpha.42 ===
+[A2A] Subscribed to topic: alpha_discovery
+[A2A] Subscribed to topic: swarm_sync
+[A2A] Agent local-node subscribed to direct mesh
+Executing hustle URI: hustle://swarm?action=aggregate
+Protocol routing to module: swarm with params: map[action:[aggregate]]
+API running. Press Ctrl+C to terminate.
+[API] Orchestrator listening on port 8081
