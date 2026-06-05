@@ -1,1 +1,9 @@
 bin/
+*.log
+STATUS.json
+tasks.json
+ledger.json
+chains.json
+token_*.json
+*.db
+*.pdf
