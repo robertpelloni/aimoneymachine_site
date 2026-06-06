@@ -20,3 +20,4 @@
 - [ ] Real-world Social API Production Keys
 - [ ] Global Leaderboard (Mesh-wide profit ranking)
 - [ ] Self-Healing CI/CD (Autonomous PR creation for bug fixes)
+- [ ] Adaptive Mesh Sync: Volatility-aware synchronization frequency.

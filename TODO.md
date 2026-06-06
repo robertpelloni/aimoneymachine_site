@@ -1,6 +1,8 @@
 # Todo List
 
 ## Immediate Tasks
+- [ ] Implement LLM Response Caching to reduce orchestration latency.
+- [ ] Implement TTL-based pruning for L1 volatile memory.
 - [x] Consolidate `gstack` engineering skills into native `.agent/workflows/`. (Done in v1.0.0-alpha.49)
 - [x] Transition to unified monorepo architecture (removed all submodules). (Done in v1.0.0-alpha.49)
 - [x] Connect `WealthPreservation` corrective actions directly to `Scheduler` to auto-unschedule failed tasks. (Done in v1.0.0-alpha.44)
