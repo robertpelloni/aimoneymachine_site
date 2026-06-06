@@ -1,8 +1,8 @@
-# Release Notes - v1.0.0-alpha.52
+# Release Notes - v1.0.0-alpha.53
 
 ## "Fully Automated Luxury Protocol" (STABLE PRODUCTION RELEASE)
 
-This release marks the successful completion of the "Luxury Protocol" phase. The AI Hustle Machine is now a stable, self-evolving monorepo ready for QA verification. Final verification successful on 2026-06-06.
+This release marks the successful completion of the "Luxury Protocol" phase. The AI Hustle Machine is now a stable, self-evolving monorepo ready for QA verification. Final verification successful on 2026-06-06 (v1.0.0-alpha.53).
 
 ### New Core Features:
 - **Monorepo Consolidation**: Transitioned to a unified monorepo; removed `gstack` submodule and ported engineering workflows to native `.agent/`.
