@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.0.0-alpha.49] - 2026-06-06
+### Added
+- **Monorepo Consolidation**: Removed `gstack` submodule and ported 10 core engineering skills to native `.agent/workflows/`.
+- **Engineering Workflow Integration**: Unified `/office-hours`, `/plan-ceo-review`, and `/ship` into the core monorepo for Gemini CLI/Antigravity support.
+- **Unified Vision Finalized**: Synchronized all core documentation (README, MEMORY, TODO) to reflect the transition from multi-repo to monorepo.
+
 ## [1.0.0-alpha.48] - 2026-06-06
 ### Added
 - **Final Release Package**: Consolidated all production-ready binaries and state initializations.

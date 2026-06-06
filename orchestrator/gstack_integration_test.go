@@ -1,18 +1,24 @@
 package orchestrator
 
 import (
-	"testing"
-	"os/exec"
 	"os"
+	"testing"
 )
 
-func TestGStackSubmoduleExistence(t *testing.T) {
-	wd, _ := os.Getwd()
-	t.Logf("Working directory: %s", wd)
-	// Tests run from the package directory, so gstack is one level up
-	cmd := exec.Command("ls", "-d", "../gstack")
-	err := cmd.Run()
-	if err != nil {
-		t.Errorf("gstack submodule not found at ../gstack: %v", err)
+func TestGStackNativeSkills(t *testing.T) {
+	// The gstack submodule has been consolidated into native workflows.
+	// We verify that the skills exist in the .agent/workflows directory.
+	skills := []string{
+		"office-hours.md",
+		"plan-ceo-review.md",
+		"plan-eng-review.md",
+		"ship.md",
+	}
+
+	for _, skill := range skills {
+		path := "../.agent/workflows/" + skill
+		if _, err := os.Stat(path); os.IsNotExist(err) {
+			t.Errorf("Native skill %s not found in .agent/workflows/", skill)
+		}
 	}
 }

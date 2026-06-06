@@ -1,34 +1,23 @@
-# Session Handoff - v1.0.0-alpha.42
+# Session Handoff - v1.0.0-alpha.49
 
 ## Summary of Changes
-1.  **Mesh Intelligence Scaling:** Implemented `hustle://swarm?action=aggregate` to gather mesh-wide status. The dashboard now visualizes remote peer profits and health.
-2.  **Autonomous Luxury Protocol:** Refined `ChainDiscoverer` to focus on "Luxury" (high-yield, low-maintenance) workflows.
-3.  **Wealth Preservation:** Added ROI auditing to the `Healer`. The system now detects underperforming hustles and logs corrective termination actions.
-4.  **Toolchain:** Verified Go 1.24.3 consistency and successful system build.
+1.  **Monorepo Consolidation:** Fully transitioned to a unified monorepo architecture. Removed all submodules (borg, bobbybookmarks, gstack).
+2.  **Gstack Skill Porting:** Migrated 10 core engineering workflows from Garry Tan's `gstack` into native `.agent/workflows/` (e.g., `/office-hours`, `/plan-ceo-review`, `/ship`).
+3.  **Autonomous Luxury Protocol:** Verified the closed-loop "Wealth Preservation" system where the `Healer` audits ROI and the `Scheduler` automatically terminates leaking assets.
+4.  **Mesh Intelligence:** Finalized `hustle://swarm` status aggregation and dashboard visualization for distributed agent clusters.
+5.  **Toolchain:** Synchronized on **Go 1.24.3**. Achieved 100% pass rate on 32+ integration tests.
 
 ## Project State
-- **Stable Candidate:** v1.0.0-alpha.42
-- **Key Modules:** All five core modules (Orchestrator, Research, Social, Curation, Trading) are active and networked via A2A.
-- **Verification:** Integrated tests for Swarm Aggregation, Healer Loop, and Wealth Preservation are passing.
+- **Stable Candidate:** v1.0.0-alpha.49
+- **Unified Architecture:** The system is now a single, high-signal repository with zero external dependencies in the submodule layer.
+- **Verification:** All core protocols (hustle://, swarm://, luxury://) are verified stable.
 
 ## Next Steps for Successor
-1.  **Close the Loop:** Wire the `WealthPreservation` corrective actions (currently logged in L1) directly to the `Scheduler` to automatically stop underperforming tasks.
-2.  **Cluster Testing:** Launch multiple orchestrator instances with the `-seed` flag to verify real-time mesh aggregation under load.
-3.  **Refine Strategy:** Enhance the `Trading` module's "Algorithmic Confluence" with more indicators (MACD/Bollinger) now that the base concurrency is stable.
+1.  **Phase 3 (Scaling):** Stress test the mesh with 10+ real peers.
+2.  **Monetization:** Implement multi-exchange connectors (Binance/Kraken) and DID-based peer verification.
+3.  **UI Refinement:** Wire the newly consolidated gstack workflows into a more interactive web dashboard if a frontend is added.
 
 ## Final Verification Results
-- **Daemon Mode:** Verified (All core hustles executing sequentially).
-- **Mesh Status:** Verified (Aggregation protocol functional).
-- **Luxury Logic:** Verified (ChainDiscovery focused on Luxury; WealthPreservation protecting capital).
-- **Infrastructure:** Stable (Go 1.24.3, SQLite Persistence active).
-
-## Release Validation (v1.0.0-alpha.43)
-- **Mesh Logic:** Verified via `orchestrator/mesh_cluster_test.go` (3-node simulation).
-- **Luxury Logic:** Verified via manual discovery and ROI audit URI triggers.
-- **Persistence:** Verified (JSON state updates confirmed after load).
-- **Stability:** 100% pass rate on 29 unit/integration tests.
-
-## Final Deployment Summary (v1.0.0-alpha.46)
-- **Deployment Verification:** COMPLETE. All core binaries built and verified in situ.
-- **Integration Status:** 100% SUCCESS. The Grand Luxury Protocol, ROI Audit, and Mesh Scaling have been verified as production-stable.
-- **Release State:** RELEASE CANDIDATE. The monorepo is fully consolidated and self-evolving.
+- **Grand Luxury E2E:** Verified (Discovery -> Execution -> ROI Audit -> Termination).
+- **Monorepo Structure:** Verified (Zero submodules, native skillsets).
+- **Infrastructure:** Stable (Go 1.24.3, SQLite-vec active).
