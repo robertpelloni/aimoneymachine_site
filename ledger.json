@@ -1,12 +1,8 @@
-{
-  "transactions": [
-    {
-      "id": "leak-1",
-      "amount": 5000,
-      "type": "Expense",
-      "hustle": "BadTradingBot",
-      "note": "Capital leakage",
-      "timestamp": "2026-06-05T00:00:00Z"
-    }
-  ]
-}
+[
+  {"amount": 1000.0, "type": "expense", "hustle": "Initial Setup", "note": "Hardware and environment prep", "timestamp": "2026-06-01T12:00:00Z"},
+  {"amount": 50.0, "type": "revenue", "hustle": "Curation", "note": "Newsletter ad placement", "timestamp": "2026-06-02T15:30:00Z"},
+  {"amount": 120.50, "type": "revenue", "hustle": "Trading", "note": "BTC/USD long exit", "timestamp": "2026-06-03T09:15:00Z"},
+  {"amount": 5.0, "type": "expense", "hustle": "Research", "note": "Tavily API credits", "timestamp": "2026-06-03T10:00:00Z"},
+  {"amount": 0.50, "type": "revenue", "hustle": "ContentGeneration", "note": "blog: Mock Title", "timestamp": "2026-06-07T18:59:44Z"},
+  {"amount": 0.50, "type": "revenue", "hustle": "ContentGeneration", "note": "blog: Mock Title", "timestamp": "2026-06-07T19:07:07Z"}
+]

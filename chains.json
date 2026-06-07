@@ -1,4 +1,12 @@
 {
+  "curation": {
+    "name": "curation",
+    "description": "Curate AI news and post to Twitter",
+    "steps": [
+      "hustle://curation?topic=AI",
+      "hustle://social?platform=Twitter"
+    ]
+  },
   "luxury_chain_name": {
     "name": "luxury_chain_name",
     "description": "brief luxury-focused description",

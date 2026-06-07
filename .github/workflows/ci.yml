@@ -1,34 +1,19 @@
-name: AI Hustle Machine CI
+name: Go CI
 
 on:
   push:
-    branches: [ main, 'jules-*' ]
+    branches: [ main ]
   pull_request:
     branches: [ main ]
 
 jobs:
-  build-and-test:
+  test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: recursive
-
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: '1.24'
-
-      - name: Build
-        run: |
-          chmod +x build.sh sync.sh
-          ./build.sh
-
-      - name: Run Tests
-        run: go test -v ./orchestrator/... ./hustle/curation/... ./hustle/research/... ./hustle/trading/... ./hustle/content/...
-
-      - name: Verify CLI flags
-        run: ./bin/orchestrator -h 2>&1 | grep -q '\-agent' || echo 'Warning: agent flag missing'
-
-      - name: Sync Check
-        run: chmod +x sync.sh
+    - uses: actions/checkout@v4
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.24.3'
+    - name: Run Tests
+      run: go test ./...

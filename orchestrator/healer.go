@@ -64,8 +64,16 @@ func (h *Healer) Fix(diagnosis string) bool {
 
 func (h *Healer) Verify(fix string) bool {
 	fmt.Printf("Verifying fix: %s\n", fix)
-	// Mock verification failure logic
-	return h.RetryCount > 1
+
+	prompt := fmt.Sprintf("Act as a system auditor. A fix was applied to the system: %s. Analyze if this fix is likely to have resolved the underlying issue. Respond with ONLY 'SUCCESS' if you believe it is resolved, or 'FAILURE' if further action is needed.", fix)
+	response, err := h.Orchestrator.LLM.Generate(prompt)
+	if err != nil {
+		fmt.Printf("[Healer] Verification error: %v, falling back to mock\n", err)
+		return h.RetryCount > 1
+	}
+
+	fmt.Printf("[Healer] LLM Verification Response: %s\n", response)
+	return strings.Contains(strings.ToUpper(response), "SUCCESS")
 }
 
 // WealthPreservation analyzes active hustles and terminates underperforming ones

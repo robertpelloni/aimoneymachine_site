@@ -14,6 +14,15 @@ func ShowDashboard(orch *Orchestrator) {
 	fmt.Println("==================================================")
 	fmt.Printf(" [SYSTEM TIME]    %s\n", time.Now().Format("15:04:05"))
 	fmt.Printf(" [MEMORY STATE]   L1:%d, L2:%d, L3:%d entries\n", len(orch.L1.Entries), len(orch.L2.Entries), len(orch.L3.Entries))
+
+	// Content Metrics
+	contentCount := 0
+	contentEntries := orch.L1.Search("content")
+	contentCount = len(contentEntries)
+	if contentCount > 0 {
+		fmt.Printf(" [CONTENT HUB]    Generated: %d pieces\n", contentCount)
+	}
+
 	fmt.Println("--------------------------------------------------")
 	fmt.Println(" [FINANCIAL PERFORMANCE]")
 	fmt.Printf("  Revenue:        $%.2f\n", orch.Ledger.TotalRevenue())

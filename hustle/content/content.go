@@ -162,7 +162,7 @@ Requirements:
 - End with a "What to watch next" section
 - Tone: insider knowledge, concise, high-signal
 
-Format: Markdown`, req.Topic, req.Niche, req.TargetWords, keywordsStr)
+Format: Markdown`, req.Topic, req.Niche, req.TargetWords)
 
 	case SEOArticle:
 		return fmt.Sprintf(`Write an SEO-optimized article targeting the keyword: "%s".
@@ -178,7 +178,7 @@ Requirements:
 - Structure: Introduction → Problem → Solution → How-To → Takeaways → Conclusion
 - Write for search intent: informational/comparison
 
-Format: Markdown with HTML meta comment`, req.Topic, req.Niche, req.TargetWords, req.Topic, keywordsStr)
+Format: Markdown with HTML meta comment`, req.Topic, req.TargetWords, req.Topic, keywordsStr)
 
 	case SocialThread:
 		return fmt.Sprintf(`Write a viral Twitter/X thread about "%s" for the niche: %s.
@@ -192,7 +192,7 @@ Requirements:
 - End with a CTA tweet (follow, subscribe, link)
 - Tone: thought-provoking, insider perspective, no fluff
 
-Format: Number each tweet like 1/ 2/ etc.`, req.Topic, req.Niche, keywordsStr)
+Format: Number each tweet like 1/ 2/ etc.`, req.Topic, req.Niche)
 
 	default:
 		return fmt.Sprintf(`Write an informative article about "%s" (~%d words). Keywords: %s. Format: Markdown.`,

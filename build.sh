@@ -1,22 +1,17 @@
 #!/bin/bash
+set -e
+
 echo "Building AI Hustle Machine..."
 
-echo "Building Orchestrator..."
-cd orchestrator && go build -o ../bin/orchestrator ./cmd/orchestrator && cd ..
+# Ensure output directory exists
+mkdir -p bin
 
-echo "Building Research Hustle..."
-cd hustle/research && go build -o ../../bin/research ./cmd/research && cd ../..
+# Build modules
+go build -o bin/orchestrator ./orchestrator/cmd/orchestrator
+go build -o bin/curator ./hustle/curation/cmd/curator
+go build -o bin/research ./hustle/research/cmd/research
+go build -o bin/social ./hustle/social/cmd/social
+go build -o bin/trading ./hustle/trading/cmd/trading
+go build -o bin/content ./hustle/content/cmd/content
 
-echo "Building Social Media Hustle..."
-cd hustle/social && go build -o ../../bin/social ./cmd/social && cd ../..
-
-echo "Building Curation Hustle..."
-cd hustle/curation && go build -o ../../bin/curator ./cmd/curator && cd ../..
-
-echo "Building Content Hustle..."
-cd hustle/content && go build -o ../../bin/content ./cmd/content && cd ../..
-
-echo "Building Trading Hustle..."
-cd hustle/trading && go build -o ../../bin/trading ./cmd/trading && cd ../..
-
-echo "Build complete. Executables in bin/"
+echo "Build complete. Binaries located in bin/"

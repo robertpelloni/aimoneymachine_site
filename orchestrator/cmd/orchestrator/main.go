@@ -142,10 +142,18 @@ func main() {
 		if topic == "" {
 			topic = "AI"
 		}
+		contentStr := p.Get("content")
+
 		var provider social.Provider = social.NewTwitterProvider()
 		if strings.ToLower(platform) == "linkedin" {
 			provider = social.NewLinkedInProvider()
 		}
+
+		if contentStr != "" {
+			fmt.Printf("[Social] Posting explicit content to %s: %s\n", platform, contentStr)
+			return provider.Post(orch, platform, contentStr)
+		}
+
 		social.SchedulePost(orch, provider, platform, topic)
 		return nil
 	})
@@ -208,16 +216,21 @@ func main() {
 			swarm.ProvideEntry(peerID, id)
 		case "provide_entry":
 			id := p.Get("id")
-			cont := p.Get("content")
+			contentStr := p.Get("content")
 			orch.L2.Add(orchestrator.MemoryEntry{
 				ID:        id,
-				Content:   cont,
+				Content:   contentStr,
 				Timestamp: time.Now(),
 				Tags:      []string{"swarm", "received", "from:" + peerID},
 			})
 			fmt.Printf("[Swarm] Successfully ingested entry %s from %s\n", id, peerID)
 		case "aggregate":
 			swarm.AggregateStatus()
+		case "status_request":
+			swarm.ProvideStatus(peerID)
+		case "provide_status":
+			data := p.Get("data")
+			swarm.HandleStatusResponse(peerID, data)
 		}
 		return nil
 	})
@@ -339,6 +352,7 @@ func main() {
 			return protocol.HandleURI("hustle://content?topic=AI+automation+trends&type=blog")
 		})
 		scheduler.Register("SwarmSync", 4*time.Hour, func(o *orchestrator.Orchestrator) error {
+			protocol.HandleURI("hustle://swarm?action=aggregate")
 			return protocol.HandleURI("hustle://swarm?action=sync")
 		})
 		scheduler.Register("Sync", 6*time.Hour, func(o *orchestrator.Orchestrator) error {

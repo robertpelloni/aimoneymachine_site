@@ -18,6 +18,10 @@ The AI Hustle Machine is a self-evolving, federated ecosystem where **free local
 
 6. **Luxury Standards**: Focus on high-yield, high-signal activities. The goal is not just "work" but "luxury" — efficient generation of wealth with minimal maintenance.
 
+## Phase 3/4 Milestone: Real AI Integration
+
+As of v1.0.0-alpha.66, the system has successfully transitioned from mock LLMs to real local AI integration. The "brain" is now active, capable of semantic memory retrieval and autonomous strategic planning.
+
 ## The End State
 
 A globally distributed, self-healing mesh of thousands of nodes, each running local LLMs that continuously:
@@ -32,33 +36,6 @@ A globally distributed, self-healing mesh of thousands of nodes, each running lo
 - **Sync** their learned intelligence across the federated mesh
 
 All running 24/7 on free local compute. A true "Money Machine" for the post-human economy.
-
-## Technical Architecture Vision
-
-```
-Local Node                          Remote Peers
-┌──────────────────────┐           ┌──────────────────────┐
-│  LM Studio (Gemma 27B)│          │  Ollama (Qwen 32B)   │
-│         │             │           │         │            │
-│  ┌──────▼──────┐      │    A2A    │  ┌──────▼──────┐    │
-│  │ Agent Loop  │◄────►│  Mesh  ◄─┤─►│ Agent Loop  │    │
-│  │ (Observe→   │      │           │  │ (Observe→   │    │
-│  │  Think→Act→ │      │           │  │  Think→Act→ │    │
-│  │  Learn)     │      │           │  │  Learn)     │    │
-│  └──────┬──────┘      │           │  └──────┬──────┘    │
-│    ┌────┴────┐        │           │    ┌────┴────┐      │
-│    │hustle://│        │           │    │hustle://│      │
-│    └────┬────┘        │           │    └────┬────┘      │
-│    ┌────┴─────────┐   │           │    ┌────┴─────────┐│
-│    │5 Hustle Mods │   │           │    │5 Hustle Mods ││
-│    │+ Self-Heal   │   │           │    │+ Self-Heal   ││
-│    │+ Chain Disc  │   │           │    │+ Chain Disc  ││
-│    └──────────────┘   │           │    └──────────────┘│
-└──────────────────────┘           └──────────────────────┘
-         │                                    │
-         └──────── Shared Ledger ─────────────┘
-              (Federated Profit Tracking)
-```
 
 ## Key Differentiator
 

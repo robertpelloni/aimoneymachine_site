@@ -25,11 +25,15 @@ func (m *MockEmbedder) Embed(text string) ([]float32, error) {
 }
 
 type MockLLM struct {
-	Response string
+	Response     string
+	GenerateFunc func(prompt string) (string, error)
 }
 
 func (m *MockLLM) Generate(prompt string) (string, error) {
 	fmt.Printf("Mock LLM generating for prompt: %s\n", prompt)
+	if m.GenerateFunc != nil {
+		return m.GenerateFunc(prompt)
+	}
 	if m.Response != "" {
 		return m.Response, nil
 	}

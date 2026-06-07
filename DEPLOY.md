@@ -5,7 +5,7 @@
 - **Go 1.24.3** (Required toolchain)
 - **LM Studio** (Recommended) or **Ollama** for free local LLM inference
 - **A loaded model** in LM Studio (e.g., `gemma-4-26b-it`) or Ollama (e.g., `gemma3:27b`)
-- **gcc** (Required for `go-sqlite3` CGO — see Windows note below)
+- **gcc** (Required for `go-sqlite3` CGO)
 
 ## Quick Start
 
@@ -27,7 +27,7 @@ ollama pull gemma3:27b
 ### 2. Clone & Build
 
 ```bash
-git clone --recursive https://github.com/robertpelloni/fully_automated_gay_luxury_space_communism
+git clone https://github.com/robertpelloni/fully_automated_gay_luxury_space_communism
 cd fully_automated_gay_luxury_space_communism
 go work sync
 ./build.sh
