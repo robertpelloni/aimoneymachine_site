@@ -7,6 +7,7 @@ import (
 	"math/rand"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -66,9 +67,13 @@ type TradingModule struct {
 	History      []float64
 	RSIHistory   []float64
 	Watchlist    []string
+	mu           sync.Mutex
 }
 
 func (t *TradingModule) ExecuteStrategy() error {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+
 	fmt.Printf("[Trading] Executing strategy for Symbol: %s\n", t.Symbol)
 
 	price, err := t.Fetcher.GetPrice(t.Symbol)
@@ -149,6 +154,8 @@ func (t *TradingModule) ExecuteStrategy() error {
 }
 
 func (t *TradingModule) AddToWatchlist(symbol string) {
+	t.mu.Lock()
+	defer t.mu.Unlock()
 	fmt.Printf("[Trading] Adding %s to watchlist\n", symbol)
 	t.Watchlist = append(t.Watchlist, symbol)
 }
