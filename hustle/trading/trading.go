@@ -1,9 +1,13 @@
 package trading
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/robertpelloni/hustle/orchestrator"
 	"math/rand"
+	"net/http"
+	"strings"
+	"sync"
 	"time"
 )
 
@@ -18,6 +22,43 @@ func (m *MockPriceFetcher) GetPrice(symbol string) (float64, error) {
 	return 50000.0 + rand.Float64()*1000.0, nil
 }
 
+type CoinGeckoFetcher struct{}
+
+func (c *CoinGeckoFetcher) GetPrice(symbol string) (float64, error) {
+	// Map common symbols to CoinGecko IDs
+	ids := map[string]string{
+		"BTC":  "bitcoin",
+		"ETH":  "ethereum",
+		"SOL":  "solana",
+		"DOGE": "dogecoin",
+	}
+
+	id, ok := ids[strings.ToUpper(symbol)]
+	if !ok {
+		id = strings.ToLower(symbol)
+	}
+
+	url := fmt.Sprintf("https://api.coingecko.com/api/v3/simple/price?ids=%s&vs_currencies=usd", id)
+	client := &http.Client{Timeout: 10 * time.Second}
+	resp, err := client.Get(url)
+	if err != nil {
+		return 0, err
+	}
+	defer resp.Body.Close()
+
+	var result map[string]map[string]float64
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return 0, err
+	}
+
+	price, ok := result[id]["usd"]
+	if !ok {
+		return 0, fmt.Errorf("price for %s not found in response", symbol)
+	}
+
+	return price, nil
+}
+
 type TradingModule struct {
 	Orchestrator *orchestrator.Orchestrator
 	Broker       *orchestrator.A2ABroker
@@ -26,9 +67,13 @@ type TradingModule struct {
 	History      []float64
 	RSIHistory   []float64
 	Watchlist    []string
+	mu           sync.Mutex
 }
 
 func (t *TradingModule) ExecuteStrategy() error {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+
 	fmt.Printf("[Trading] Executing strategy for Symbol: %s\n", t.Symbol)
 
 	price, err := t.Fetcher.GetPrice(t.Symbol)
@@ -109,6 +154,8 @@ func (t *TradingModule) ExecuteStrategy() error {
 }
 
 func (t *TradingModule) AddToWatchlist(symbol string) {
+	t.mu.Lock()
+	defer t.mu.Unlock()
 	fmt.Printf("[Trading] Adding %s to watchlist\n", symbol)
 	t.Watchlist = append(t.Watchlist, symbol)
 }

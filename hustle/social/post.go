@@ -13,19 +13,29 @@ type SocialPost struct {
 }
 
 type Provider interface {
-	Post(content string) error
+	Post(orch *orchestrator.Orchestrator, platform, content string) error
 }
 
 type TwitterProvider struct{}
-func (p *TwitterProvider) Post(content string) error {
-	fmt.Printf("[Twitter] Posting: %s\n", content)
+
+func (p *TwitterProvider) Post(orch *orchestrator.Orchestrator, platform, content string) error {
+	fmt.Printf("[Twitter] Posting to %s: %s\n", platform, content)
 	return nil
 }
 
+func NewTwitterProvider() *TwitterProvider {
+	return &TwitterProvider{}
+}
+
 type LinkedInProvider struct{}
-func (p *LinkedInProvider) Post(content string) error {
-	fmt.Printf("[LinkedIn] Posting: %s\n", content)
+
+func (p *LinkedInProvider) Post(orch *orchestrator.Orchestrator, platform, content string) error {
+	fmt.Printf("[LinkedIn] Posting to %s: %s\n", platform, content)
 	return nil
+}
+
+func NewLinkedInProvider() *LinkedInProvider {
+	return &LinkedInProvider{}
 }
 
 func GenerateContent(orch *orchestrator.Orchestrator, topic string) string {
@@ -41,7 +51,7 @@ func SchedulePost(orch *orchestrator.Orchestrator, provider Provider, platform, 
 	content := GenerateContent(orch, topic)
 	fmt.Printf("Scheduling post for %s: %s\n", platform, content)
 
-	err := provider.Post(content)
+	err := provider.Post(orch, platform, content)
 	if err == nil {
 		orch.L1.Add(orchestrator.MemoryEntry{
 			ID:        fmt.Sprintf("social-%s-%d", platform, time.Now().Unix()),

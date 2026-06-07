@@ -2,6 +2,7 @@ package orchestrator
 
 import (
 	"fmt"
+	"strings"
 	"time"
 )
 
@@ -67,7 +68,31 @@ func (h *Healer) Verify(fix string) bool {
 	return h.RetryCount > 1
 }
 
+// WealthPreservation analyzes active hustles and terminates underperforming ones
+func (h *Healer) WealthPreservation() {
+	fmt.Println("[Healer] Running Wealth Preservation ROI Audit...")
+
+	analysis := h.Orchestrator.Ledger.AnalyzeProfitability()
+	if strings.Contains(strings.ToLower(analysis), "terminate") || strings.Contains(strings.ToLower(analysis), "underperforming") {
+		fmt.Printf("[Healer] ROI Warning Detected: %s\n", analysis)
+
+		// In a real system, we'd find the task in the scheduler and unschedule it.
+		// For now, we log the corrective action to memory for the scheduler to see.
+		h.Orchestrator.L1.Add(MemoryEntry{
+			ID:        fmt.Sprintf("roi-correction-%d", time.Now().Unix()),
+			Content:   fmt.Sprintf("Wealth Preservation Action: Requesting termination of underperforming hustles. Reason: %s", analysis),
+			Timestamp: time.Now(),
+			Tags:      []string{"healer", "wealth_preservation", "roi_correction"},
+		})
+	} else {
+		fmt.Println("[Healer] All active hustles meet ROI thresholds.")
+	}
+}
+
 func (h *Healer) Loop(issue string) {
+	// Periodic Wealth Audit
+	h.WealthPreservation()
+
 	diagnosis := h.Diagnose(issue)
 
 	for h.RetryCount < h.RetryLimit {

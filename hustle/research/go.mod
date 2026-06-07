@@ -1,6 +1,6 @@
 module github.com/robertpelloni/hustle/hustle/research
 
-go 1.24
+go 1.24.3
 
 require (
 	github.com/jung-kurt/gofpdf v1.16.2

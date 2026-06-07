@@ -1,6 +1,6 @@
 module github.com/robertpelloni/hustle/hustle/curation
 
-go 1.24
+go 1.24.3
 
 require (
 	github.com/mmcdole/gofeed v1.3.0

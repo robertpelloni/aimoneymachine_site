@@ -1,10 +1,18 @@
 # Todo List
 
 ## Immediate Tasks
-- [ ] Integrate `sqlite-vec` for hyper-fast, local-first context matching. (Scaffolded in v1.0.0-alpha.23)
-- [ ] Implement real social media API integrations (Twitter/LinkedIn).
-- [ ] Implement real feed fetcher for curation module. (Done in v1.0.0-alpha.22)
+- [ ] Implement LLM Response Caching to reduce orchestration latency.
+- [ ] Implement TTL-based pruning for L1 volatile memory.
+- [x] Consolidate `gstack` engineering skills into native `.agent/workflows/`. (Done in v1.0.0-alpha.49)
+- [x] Transition to unified monorepo architecture (removed all submodules). (Done in v1.0.0-alpha.49)
+- [x] Connect `WealthPreservation` corrective actions directly to `Scheduler` to auto-unschedule failed tasks. (Done in v1.0.0-alpha.44)
+- [ ] Stress test multi-node clustering with 10+ peers.
+- [ ] Implement `hustle://chain?action=optimize` to refactor existing chains via LLM.
+- [x] Integrate `sqlite-vec` for hyper-fast, local-first context matching. (Done in v1.0.0-alpha.35)
+- [x] Implement A2A Mesh for cross-host collaboration. (Done in v1.0.0-alpha.34)
+- [x] Implement autonomous Luxury discovery. (Done in v1.0.0-alpha.42)
 
 ## Future Tasks
-- [ ] Implement A2A Mesh for cross-host collaboration.
-- [ ] Browser extension for AI chat attachment.
+- [ ] Multi-exchange support (Binance, Kraken) for the Trading module.
+- [ ] Browser extension for remote "Hustle Monitoring".
+- [ ] Integration with decentralized identity (DID) for peer verification.

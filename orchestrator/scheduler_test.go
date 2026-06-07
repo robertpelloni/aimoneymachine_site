@@ -47,7 +47,7 @@ func TestSchedulerPersistence(t *testing.T) {
 	s2 := NewScheduler(orch)
 	s2.Register("PTask", 5*time.Minute, func(o *Orchestrator) error { return nil })
 
-	err = s2.LoadState(tmpFile)
+	err = s2.LoadState(tmpFile, NewHustleProtocol())
 	if err != nil {
 		t.Fatalf("LoadState failed: %v", err)
 	}

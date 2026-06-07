@@ -1,0 +1,47 @@
+[
+  {
+    "name": "DiscoveredChain:luxury_chain_name",
+    "interval": 3600000000000,
+    "last_run": "2026-06-06T06:51:31.150338033Z"
+  },
+  {
+    "name": "Research",
+    "interval": 3600000000000,
+    "last_run": "2026-06-06T06:51:31.152063657Z"
+  },
+  {
+    "name": "CurationChain",
+    "interval": 7200000000000,
+    "last_run": "2026-06-06T06:51:31.483460041Z"
+  },
+  {
+    "name": "Trading",
+    "interval": 1800000000000,
+    "last_run": "2026-06-06T06:51:31.483744439Z"
+  },
+  {
+    "name": "SwarmSync",
+    "interval": 14400000000000,
+    "last_run": "2026-06-06T06:51:31.484482926Z"
+  },
+  {
+    "name": "Sync",
+    "interval": 21600000000000,
+    "last_run": "2026-06-06T06:51:32.4174197Z"
+  },
+  {
+    "name": "ProfitAnalysis",
+    "interval": 43200000000000,
+    "last_run": "2026-06-06T06:51:32.417773496Z"
+  },
+  {
+    "name": "WorkflowDiscovery",
+    "interval": 86400000000000,
+    "last_run": "2026-06-06T06:51:32.41870751Z"
+  },
+  {
+    "name": "Heartbeat",
+    "interval": 300000000000,
+    "last_run": "2026-06-06T06:51:32.419198917Z"
+  }
+]

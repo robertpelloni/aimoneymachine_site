@@ -7,6 +7,12 @@ import (
 	"time"
 )
 
+// DiscoveredChain includes scheduling information
+type DiscoveredChain struct {
+	Chain
+	IntervalMinutes int `json:"interval_minutes"`
+}
+
 // ChainDiscoverer utilizes the LLM to evolve system workflows based on data
 type ChainDiscoverer struct {
 	Orchestrator *Orchestrator
@@ -21,7 +27,7 @@ func NewChainDiscoverer(orch *Orchestrator, mgr *ChainManager) *ChainDiscoverer 
 }
 
 // Discover analyzes the ledger and memory to propose and register a new workflow
-func (d *ChainDiscoverer) Discover() (*Chain, error) {
+func (d *ChainDiscoverer) Discover() (*DiscoveredChain, error) {
 	fmt.Println("[ChainDiscoverer] Analyzing system state for workflow evolution...")
 
 	// 1. Get Financial Context
@@ -35,19 +41,7 @@ func (d *ChainDiscoverer) Discover() (*Chain, error) {
 	}
 
 	// 3. Construct Prompt for LLM
-	prompt := fmt.Sprintf(`As the Swarm Evolution Engine, analyze the following system state and propose a NEW sequential workflow (Chain) of protocol URIs.
-Financial Context: %s
-Recent Successes:
-%s
-
-Existing Protocol Modules: research (query, action=analyze), curation (topic, feed), social (platform, topic, action=post), trading (symbol, action=all), healer (issue), ledger
-
-Output a JSON object for the NEW Chain:
-{
-  "name": "unique_chain_name",
-  "description": "brief description",
-  "steps": ["hustle://step1", "hustle://step2"]
-}`, profitAnalysis, successContext)
+	prompt := fmt.Sprintf("As the Swarm Evolution Engine, analyze the following system state and propose a NEW sequential workflow (Chain) of protocol URIs. Focus on LUXURY HUSTLES: high-ROI, low-maintenance, and passive income generation.\nFinancial Context: %s\nRecent Successes:\n%s\n\nExisting Protocol Modules: research (query), curation (topic), social (platform, topic, content), trading (symbol), healer (issue), ledger\n\nOutput a JSON object for the NEW Chain including a suggested execution interval in minutes:\n{\n  \"name\": \"luxury_chain_name\",\n  \"description\": \"brief luxury-focused description\",\n  \"steps\": [\"hustle://step1\", \"hustle://step2\"],\n  \"interval_minutes\": 60\n}", profitAnalysis, successContext)
 
 	response, err := d.Orchestrator.LLM.Generate(prompt)
 	if err != nil {
@@ -55,7 +49,6 @@ Output a JSON object for the NEW Chain:
 	}
 
 	// 4. Parse JSON from response
-	// Find the first { and last }
 	start := strings.Index(response, "{")
 	end := strings.LastIndex(response, "}")
 	if start == -1 || end == -1 || end <= start {
@@ -63,21 +56,21 @@ Output a JSON object for the NEW Chain:
 	}
 	jsonStr := response[start : end+1]
 
-	var newChain Chain
-	if err := json.Unmarshal([]byte(jsonStr), &newChain); err != nil {
+	var discovered DiscoveredChain
+	if err := json.Unmarshal([]byte(jsonStr), &discovered); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal discovered chain: %v", err)
 	}
 
 	// 5. Register the discovery
-	d.Manager.Register(&newChain)
+	d.Manager.Register(&discovered.Chain)
 
 	// Log to L2 Vault
 	d.Orchestrator.L2.Add(MemoryEntry{
 		ID:        fmt.Sprintf("chain-disc-%d", time.Now().Unix()),
-		Content:   fmt.Sprintf("Discovered and registered new workflow: %s (%s)", newChain.Name, newChain.Description),
+		Content:   fmt.Sprintf("Discovered and registered NEW LUXURY workflow: %s (%s) with interval %d min", discovered.Name, discovered.Description, discovered.IntervalMinutes),
 		Timestamp: time.Now(),
-		Tags:      []string{"discovery", "chain", "evolution"},
+		Tags:      []string{"discovery", "chain", "evolution", "luxury"},
 	})
 
-	return &newChain, nil
+	return &discovered, nil
 }

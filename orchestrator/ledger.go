@@ -77,11 +77,22 @@ func (l *Ledger) AnalyzeProfitability() string {
 
 	bestHustle := ""
 	maxProfit := -1000000.0
+	worstHustle := ""
+	minProfit := 1000000.0
+
 	for h, p := range hustleProfits {
 		if p > maxProfit {
 			maxProfit = p
 			bestHustle = h
 		}
+		if p < minProfit {
+			minProfit = p
+			worstHustle = h
+		}
+	}
+
+	if minProfit < 0 {
+		return fmt.Sprintf("CRITICAL ROI WARNING: Underperforming hustle detected: %s (Deficit: $%.2f). Action: Terminate immediately to preserve wealth. Best Hustle: %s (Profit: $%.2f).", worstHustle, -minProfit, bestHustle, maxProfit)
 	}
 
 	return fmt.Sprintf("Best Performing Hustle: %s (Profit: $%.2f). Recommendation: Increase agent allocation to %s.", bestHustle, maxProfit, bestHustle)

@@ -1,7 +1,9 @@
 package orchestrator
 
 import (
+	"encoding/json"
 	"fmt"
+	"net/url"
 	"strings"
 	"time"
 )
@@ -59,7 +61,7 @@ func (s *MemorySwarm) ProvideIndex(peerID string) {
 		Source:    "local-node",
 		Target:    peerID,
 		Type:      Response,
-		Payload:   fmt.Sprintf("hustle://swarm?action=provide_index&peer_id=local-node&data=%s", payload),
+		Payload:   fmt.Sprintf("hustle://swarm?action=provide_index&peer_id=local-node&data=%s", url.QueryEscape(payload)),
 		Timestamp: time.Now(),
 	}
 	s.Broker.Route(msg)
@@ -97,7 +99,7 @@ func (s *MemorySwarm) RequestEntry(peerID, entryID string) {
 		Source:    "local-node",
 		Target:    peerID,
 		Type:      Query,
-		Payload:   fmt.Sprintf("hustle://swarm?action=request_entry&peer_id=local-node&id=%s", entryID),
+		Payload:   fmt.Sprintf("hustle://swarm?action=request_entry&peer_id=local-node&id=%s", url.QueryEscape(entryID)),
 		Timestamp: time.Now(),
 	}
 	s.Broker.Route(msg)
@@ -119,9 +121,62 @@ func (s *MemorySwarm) ProvideEntry(peerID, entryID string) {
 		Source:    "local-node",
 		Target:    peerID,
 		Type:      Response,
-		Payload:   fmt.Sprintf("hustle://swarm?action=provide_entry&peer_id=local-node&id=%s&content=%s", entry.ID, entry.Content),
+		Payload:   fmt.Sprintf("hustle://swarm?action=provide_entry&peer_id=local-node&id=%s&content=%s", url.QueryEscape(entry.ID), url.QueryEscape(entry.Content)),
 		Timestamp: time.Now(),
 	}
 
 	s.Broker.Route(msg)
+}
+
+// AggregateStatus requests status from all peers
+func (s *MemorySwarm) AggregateStatus() {
+	fmt.Println("[Swarm] Aggregating mesh-wide status and profit...")
+	msg := Message{
+		ID:        fmt.Sprintf("agg-%d", time.Now().Unix()),
+		Source:    "local-node",
+		Type:      Query,
+		Topic:     "swarm_aggregate",
+		Payload:   "hustle://swarm?action=status_request",
+		Timestamp: time.Now(),
+	}
+	s.Broker.Broadcast(msg)
+}
+
+// ProvideStatus sends local status to a peer
+func (s *MemorySwarm) ProvideStatus(peerID string) {
+	status := map[string]interface{}{
+		"peer_id": "local-node",
+		"profit":  s.Orchestrator.Ledger.Profit(),
+		"revenue": s.Orchestrator.Ledger.TotalRevenue(),
+		"status":  "Active",
+	}
+	data, _ := json.Marshal(status)
+
+	msg := Message{
+		ID:        fmt.Sprintf("stat-%d", time.Now().Unix()),
+		Source:    "local-node",
+		Target:    peerID,
+		Type:      Response,
+		Payload:   fmt.Sprintf("hustle://swarm?action=provide_status&peer_id=local-node&data=%s", url.QueryEscape(string(data))),
+		Timestamp: time.Now(),
+	}
+	s.Broker.Route(msg)
+}
+
+// HandleStatusResponse logs the received peer status
+func (s *MemorySwarm) HandleStatusResponse(peerID, data string) {
+	var status map[string]interface{}
+	if err := json.Unmarshal([]byte(data), &status); err != nil {
+		fmt.Printf("[Swarm] Failed to parse status from %s: %v\n", peerID, err)
+		return
+	}
+
+	content := fmt.Sprintf("Mesh Peer %s Status: %v, Profit: $%.2f", peerID, status["status"], status["profit"])
+	s.Orchestrator.L1.Add(MemoryEntry{
+		ID:        fmt.Sprintf("mesh-stat-%s-%d", peerID, time.Now().Unix()),
+		Content:   content,
+		Timestamp: time.Now(),
+		Tags:      []string{"swarm", "mesh_status", "profit"},
+	})
+	fmt.Printf("[Swarm] Ingested status from %s\n", peerID)
 }

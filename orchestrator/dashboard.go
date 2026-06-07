@@ -20,11 +20,33 @@ func ShowDashboard(orch *Orchestrator) {
 	fmt.Printf("  Expenses:       $%.2f\n", orch.Ledger.TotalExpenses())
 	fmt.Printf("  NET PROFIT:     $%.2f\n", orch.Ledger.Profit())
 	fmt.Println("--------------------------------------------------")
+	fmt.Println(" [MESH SWARM OVERVIEW]")
+
+	// Find mesh status entries in L1
+	meshEntries := orch.L1.Search("mesh_status")
+	if len(meshEntries) > 0 {
+		for _, e := range meshEntries {
+			fmt.Printf("  [PEER] %s\n", e.Content)
+		}
+	} else {
+		fmt.Println("  (No remote mesh data aggregated yet)")
+	}
+
+	fmt.Println("--------------------------------------------------")
 	fmt.Println(" [RECENT ACTIVITY LOG]")
 
-	// Show last 3 L1 entries as events
+	// Show last 3 L1 entries as events (excluding mesh_status to avoid duplication)
 	count := 0
 	for i := len(orch.L1.Entries) - 1; i >= 0 && count < 3; i-- {
+		isMesh := false
+		for _, t := range orch.L1.Entries[i].Tags {
+			if t == "mesh_status" {
+				isMesh = true
+				break
+			}
+		}
+		if isMesh { continue }
+
 		fmt.Printf("  (%s) %s\n", orch.L1.Entries[i].Timestamp.Format("15:04"), orch.L1.Entries[i].Content)
 		count++
 	}
