@@ -3,7 +3,7 @@
 ## [1.0.0-alpha.66] - 2026-06-07
 
 ### Added
-- **Intelligent Phase 3 Integration**: Successfully merged "Real AI Integration" (Phase 3) with the "Fully Automated Luxury Protocol" (v1.0.0-alpha.65) stable baseline.
+- **Intelligent Phase 3 Integration**: Successfully merged "Real AI Integration" (Phase 3) with the "Fully Automated Luxury Protocol" (1.0.0-alpha.66) stable baseline.
 - **OpenAI-Compatible LLM Provider**: New `openai_compat.go` connects to LM Studio, Ollama, vLLM, or any OpenAI-compatible server. Auto-detects models, supports configurable base URL/model/API key via env vars.
 - **Real Embedding Provider**: `OpenAICompatEmbedder` generates real vector embeddings via local Nomic/embed model.
 - **Agent Loop** (`agent_loop.go`): Continuous LLM-driven decision loop implementing Observe → Think → Act → Learn → Evaluate.

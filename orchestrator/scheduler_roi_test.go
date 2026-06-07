@@ -20,7 +20,7 @@ func TestSchedulerWealthPreservationWiring(t *testing.T) {
 	// Simulate Wealth Preservation Action in memory
 	orch.L1.Add(MemoryEntry{
 		ID: "roi-kill-1",
-		Content: "Wealth Preservation Action: Requesting termination of underperforming hustles. Reason: ROI deficit in BadHustle",
+		Content: "Wealth Preservation Action: Requesting termination of underperforming hustles. Reason: Underperforming hustle detected: BadHustle",
 		Timestamp: time.Now(),
 		Tags: []string{"healer", "wealth_preservation"},
 	})

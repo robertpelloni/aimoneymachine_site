@@ -178,8 +178,12 @@ func (s *Scheduler) checkROICorrections() {
 	defer s.mu.Unlock()
 
 	for _, e := range corrections {
+		// e.Content looks like: "Wealth Preservation Action: Requesting termination of underperforming hustles. Reason: ... Underperforming hustle detected: [Name] ..."
+		// We need to be careful to only match the task name if it's explicitly marked for termination.
 		for _, task := range s.Tasks {
-			if strings.Contains(e.Content, task.Name) {
+			// Search for "Underperforming hustle detected: [TaskName]" or "[TaskName] (Deficit: ..."
+			if strings.Contains(e.Content, "Underperforming hustle detected: "+task.Name) ||
+			   strings.Contains(e.Content, "terminate "+task.Name) {
 				fmt.Printf("[Scheduler] Executing Wealth Preservation: Unregistering %s\n", task.Name)
 				s.unregisterNoLock(task.Name)
 			}
