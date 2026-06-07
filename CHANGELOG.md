@@ -1,5 +1,34 @@
 # Changelog
 
+## [1.0.0-alpha.63] - 2026-06-07
+
+### Added — Real AI Integration (Phase 3)
+- **OpenAI-Compatible LLM Provider**: New `openai_compat.go` connects to LM Studio, Ollama, vLLM, or any OpenAI-compatible server. Auto-detects models, supports configurable base URL/model/API key via env vars. Falls back to MockLLM gracefully.
+- **Real Embedding Provider**: `OpenAICompatEmbedder` generates real vector embeddings via local Nomic/embed model. Falls back to MockEmbedder if no server available.
+- **Agent Loop** (`agent_loop.go`): Continuous LLM-driven decision loop implementing Observe → Think → Act → Learn → Evaluate. The LLM decides which `hustle://` URI to execute based on memory context, financial state, and past outcomes. Supports configurable max iterations and wealth preservation auto-stop.
+- **Multi-Agent Orchestrator**: Concurrent agent loop management — launch multiple specialized agents (research, content, trading, social) in parallel with live status monitoring.
+- **HustlePlan Strategic Planner**: `PlanHustles()` asks the LLM to analyze current system state and generate 5 actionable hustle plans with priority rankings.
+- **Content Hustle Module** (`hustle/content/`): New module generating blogs, newsletters, SEO articles, and social threads. Saves to markdown with frontmatter, tracks revenue estimates, supports topic brainstorming.
+- **New CLI flags**: `-agent` (autonomous loop), `-agent-type` (focus area), `-agent-iterations`, `-autoplan` (LLM strategic planning)
+- **Interactive menu expanded**: 17 options now including content generation, topic brainstorming, agent loop, and auto-plan.
+- **Content hustle registered in protocol**: `hustle://content?topic=X&type=blog|newsletter|seo|thread`
+- **Fixed duplicate trading module init** in `main.go` (was declared twice)
+- **Build script updated**: Now includes content module
+- **go.work updated**: Added `./hustle/content` workspace module
+
+### Changed
+- **Orchestrator initialization**: Now attempts real LLM connection on startup. Prints clear status messages when LM Studio/Ollama is available vs falling back to mock.
+- **Daemon mode**: Added ContentGeneration scheduled task (every 3 hours)
+- **Wealth preservation in agent loop**: Auto-stops if profit < -$1000
+- **Agent loop default actions**: Includes all 5 hustle modules + chain discovery + swarm sync
+
+### Known Issues
+- **Windows CGO build failure**: `go-sqlite3` fails with gcc 15.2.0 on Windows (`cgo: cannot parse gcc output`). Needs investigation — may require switching to `modernc.org/sqlite` (pure Go SQLite).
+- **No tests yet for new code**: `agent_loop_test.go`, `openai_compat_test.go`, `content_test.go` still need to be written.
+- **Social posting is mock-only**: Twitter/LinkedIn providers exist but don't call real APIs.
+- **Healer loop is not closed**: Diagnoses and suggests fixes but cannot apply and verify them.
+- **Rollback handler is stub**: No actual git revert logic implemented.
+
 ## [1.0.0-alpha.62] - 2026-06-06
 ### Added
 - **Production Monitoring Phase**: Initiated 24-hour autonomous validation run of the luxury protocol.

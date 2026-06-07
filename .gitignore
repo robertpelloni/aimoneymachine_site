@@ -3,3 +3,6 @@ bin/
 token_*.json
 *.db
 *.pdf
+output/
+*.exe
+.env

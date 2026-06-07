@@ -13,6 +13,9 @@ cd hustle/social && go build -o ../../bin/social ./cmd/social && cd ../..
 echo "Building Curation Hustle..."
 cd hustle/curation && go build -o ../../bin/curator ./cmd/curator && cd ../..
 
+echo "Building Content Hustle..."
+cd hustle/content && go build -o ../../bin/content ./cmd/content && cd ../..
+
 echo "Building Trading Hustle..."
 cd hustle/trading && go build -o ../../bin/trading ./cmd/trading && cd ../..
 

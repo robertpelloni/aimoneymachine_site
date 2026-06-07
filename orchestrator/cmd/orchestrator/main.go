@@ -4,20 +4,22 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
-	"github.com/robertpelloni/hustle/hustle/curation"
-	"github.com/robertpelloni/hustle/hustle/research"
-	"github.com/robertpelloni/hustle/hustle/social"
-	"github.com/robertpelloni/hustle/hustle/trading"
-	"github.com/robertpelloni/hustle/orchestrator"
 	"net/url"
 	"os"
 	"os/exec"
 	"strings"
 	"time"
+
+	"github.com/robertpelloni/hustle/hustle/content"
+	"github.com/robertpelloni/hustle/hustle/curation"
+	"github.com/robertpelloni/hustle/hustle/research"
+	"github.com/robertpelloni/hustle/hustle/social"
+	"github.com/robertpelloni/hustle/hustle/trading"
+	"github.com/robertpelloni/hustle/orchestrator"
 )
 
 func main() {
-	hustleTask := flag.String("hustle", "", "Run a specific hustle module (research, social, curation, chain, trading, swarm)")
+	hustleTask := flag.String("hustle", "", "Run a specific hustle module (research, social, curation, content, chain, trading, swarm)")
 	hustleURI := flag.String("uri", "", "Run a hustle module via hustle:// URI")
 	syncMode := flag.Bool("sync", false, "Run repository synchronization protocol")
 	params := flag.String("params", "{}", "JSON parameters for the hustle module")
@@ -26,6 +28,11 @@ func main() {
 	interactive := flag.Bool("interactive", false, "Launch the interactive command menu")
 	apiPort := flag.String("api", "", "Start the HTTP API on specified port (e.g. 8080)")
 	realPrices := flag.Bool("real-prices", false, "Use real-world market prices via CoinGecko")
+	seedURL := flag.String("seed", "", "URL of a seed node for mesh federation")
+	agentMode := flag.Bool("agent", false, "Run as autonomous agent loop (LLM-driven decision making)")
+	agentType := flag.String("agent-type", "general", "Agent hustle focus: general, research, content, trading, social")
+	agentIter := flag.Int("agent-iterations", 20, "Max iterations for agent loop")
+	autoPlan := flag.Bool("autoplan", false, "LLM generates and executes a strategic hustle plan")
 	flag.Parse()
 
 	// Source version from VERSION.md
@@ -37,29 +44,45 @@ func main() {
 
 	fmt.Printf("=== AI Hustle Machine Orchestrator v%s ===\n", version)
 
+	// ── Initialize Orchestrator with REAL LLM ──
 	orch := orchestrator.NewOrchestrator()
+
+	// Wire up real LLM via LM Studio / OpenAI-compatible provider
+	llmProvider := orchestrator.NewOpenAICompatProvider()
+	// Auto-detect and test the LLM connection
+	if model, err := llmProvider.DetectModel(); err == nil {
+		fmt.Printf("[LLM] ✅ Connected to local LLM: %s\n", model)
+		orch.LLM = llmProvider
+		// Also set up real embeddings
+		orch.Embedder = orchestrator.NewOpenAICompatEmbedder()
+	} else {
+		fmt.Printf("[LLM] ⚠️  Local LLM not available (%v). Falling back to MockLLM.\n", err)
+		fmt.Printf("[LLM]    Start LM Studio or set LLM_BASE_URL to enable real AI.\n")
+	}
+
 	protocol := orchestrator.NewHustleProtocol()
 	chainManager := orchestrator.NewChainManager(orch, protocol)
 	chainManager.LoadState("chains.json")
-
 	discoverer := orchestrator.NewChainDiscoverer(orch, chainManager)
 	broker := orchestrator.NewA2ABroker(orch)
 	swarm := orchestrator.NewMemorySwarm(orch, broker)
 
-	// Initialize Trading for event handling
+	// ── Initialize Trading Module ──
 	var fetcher trading.PriceFetcher = &trading.MockPriceFetcher{}
 	if *realPrices {
 		fmt.Println("[Trading] Real-world price fetching enabled via CoinGecko.")
 		fetcher = &trading.CoinGeckoFetcher{}
 	}
-
 	traderModule := &trading.TradingModule{
 		Orchestrator: orch,
 		Broker:       broker,
 		Fetcher:      fetcher,
 	}
 
-	// Mesh Event Listener: Alpha Discovery
+	// ── Initialize Content Module ──
+	contentModule := content.NewContentModule(orch, "output/content")
+
+	// ── Mesh Event Listeners ──
 	alphaCh := broker.SubscribeTopic("alpha_discovery")
 	go func() {
 		for msg := range alphaCh {
@@ -68,7 +91,6 @@ func main() {
 		}
 	}()
 
-	// Mesh Event Listener: Swarm Sync
 	syncCh := broker.SubscribeTopic("swarm_sync")
 	go func() {
 		for msg := range syncCh {
@@ -77,7 +99,6 @@ func main() {
 		}
 	}()
 
-	// Agent Direct Message Listener (Handles incoming hustle:// URIs from mesh)
 	agentCh := broker.Subscribe("local-node")
 	go func() {
 		for msg := range agentCh {
@@ -88,17 +109,22 @@ func main() {
 		}
 	}()
 
-	// Register Handlers
+	// ── Register Protocol Handlers ──
 	protocol.Register("research", func(p url.Values) error {
 		query := p.Get("query")
-		if query == "" { query = "AI Trends" }
+		if query == "" {
+			query = "AI Trends"
+		}
 		searcher := research.NewResearchSearch(research.Tavily, orch, broker)
 		_, err := searcher.Query(query)
 		return err
 	})
+
 	protocol.Register("curation", func(p url.Values) error {
 		topic := p.Get("topic")
-		if topic == "" { topic = "AI" }
+		if topic == "" {
+			topic = "AI"
+		}
 		c := &curation.CurationModule{
 			Orchestrator: orch,
 			Fetcher:      curation.NewRSSFetcher(),
@@ -106,12 +132,16 @@ func main() {
 		}
 		return c.Curate(topic)
 	})
+
 	protocol.Register("social", func(p url.Values) error {
 		platform := p.Get("platform")
-		if platform == "" { platform = "Twitter" }
+		if platform == "" {
+			platform = "Twitter"
+		}
 		topic := p.Get("topic")
-		if topic == "" { topic = "AI" }
-
+		if topic == "" {
+			topic = "AI"
+		}
 		var provider social.Provider = social.NewTwitterProvider()
 		if strings.ToLower(platform) == "linkedin" {
 			provider = social.NewLinkedInProvider()
@@ -120,30 +150,51 @@ func main() {
 		return nil
 	})
 
-	// Initialize Trading for event handling
-	var fetcher trading.PriceFetcher = &trading.MockPriceFetcher{}
-	if *realPrices {
-		fmt.Println("[Trading] Real-world price fetching enabled via CoinGecko.")
-		fetcher = &trading.CoinGeckoFetcher{}
-	}
-
-	traderModule := &trading.TradingModule{
-		Orchestrator: orch,
-		Broker:       broker,
-		Fetcher:      fetcher,
-	}
-
 	protocol.Register("trading", func(p url.Values) error {
 		symbol := p.Get("symbol")
-		if symbol == "" { symbol = "BTC" }
+		if symbol == "" {
+			symbol = "BTC"
+		}
 		traderModule.Symbol = symbol
 		return traderModule.ExecuteStrategy()
 	})
+
+	protocol.Register("content", func(p url.Values) error {
+		topic := p.Get("topic")
+		if topic == "" {
+			topic = "AI automation trends"
+		}
+		contentType := p.Get("type")
+		if contentType == "" {
+			contentType = "blog"
+		}
+		niche := p.Get("niche")
+		if niche == "" {
+			niche = "AI & automation"
+		}
+		keywords := p.Get("keywords")
+		kwList := []string{"AI", "automation"}
+		if keywords != "" {
+			kwList = strings.Split(keywords, ",")
+		}
+
+		req := content.ContentRequest{
+			Topic:       topic,
+			Type:        content.ContentType(contentType),
+			Keywords:    kwList,
+			TargetWords: 800,
+			Niche:       niche,
+		}
+		_, err := contentModule.Generate(req)
+		return err
+	})
+
 	protocol.Register("swarm", func(p url.Values) error {
 		action := p.Get("action")
 		peerID := p.Get("peer_id")
-		if peerID == "" { peerID = "unknown-peer" }
-
+		if peerID == "" {
+			peerID = "unknown-peer"
+		}
 		switch action {
 		case "sync":
 			swarm.Sync()
@@ -157,127 +208,148 @@ func main() {
 			swarm.ProvideEntry(peerID, id)
 		case "provide_entry":
 			id := p.Get("id")
-			content := p.Get("content")
+			cont := p.Get("content")
 			orch.L2.Add(orchestrator.MemoryEntry{
 				ID:        id,
-				Content:   content,
+				Content:   cont,
 				Timestamp: time.Now(),
 				Tags:      []string{"swarm", "received", "from:" + peerID},
 			})
 			fmt.Printf("[Swarm] Successfully ingested entry %s from %s\n", id, peerID)
+		case "aggregate":
+			swarm.AggregateStatus()
 		}
 		return nil
 	})
+
 	protocol.Register("chain", func(p url.Values) error {
 		action := p.Get("action")
 		if action == "discover" {
 			_, err := discoverer.Discover()
 			return err
 		}
-
 		name := p.Get("name")
-		if name == "" { name = "curation" }
+		if name == "" {
+			name = "curation"
+		}
 		return chainManager.Execute(name)
 	})
+
 	protocol.Register("healer", func(p url.Values) error {
 		issue := p.Get("issue")
-		if issue == "" { issue = "Unknown system instability" }
+		if issue == "" {
+			issue = "Unknown system instability"
+		}
 		h := orchestrator.NewHealer(orch)
 		h.Loop(issue)
 		return nil
 	})
+
 	protocol.Register("sync", func(p url.Values) error {
 		return runSyncProtocol()
 	})
 
+	// ── Mesh Seed ──
 	if *seedURL != "" {
 		fmt.Printf("[Swarm] Joining mesh via seed: %s\n", *seedURL)
 		broker.RegisterPeer("seed-node", *seedURL)
-		// Trigger initial sync - handlers are now registered!
 		protocol.HandleURI("hustle://swarm?action=sync")
 	}
 
-	// Mesh Event Listener: Alpha Discovery
-	alphaCh := broker.SubscribeTopic("alpha_discovery")
-	go func() {
-		for msg := range alphaCh {
-			fmt.Printf("[Mesh] Received Alpha Discovery: %s\n", msg.Payload)
-			traderModule.AddToWatchlist(msg.Payload)
-		}
-	}()
-
-	// Mesh Event Listener: Swarm Sync
-	syncCh := broker.SubscribeTopic("swarm_sync")
-	go func() {
-		for msg := range syncCh {
-			fmt.Printf("[Mesh] Swarm Sync Notification from %s\n", msg.Source)
-			swarm.HandleSyncRequest(msg.Source)
-		}
-	}()
-
-	// Agent Direct Message Listener (Handles incoming hustle:// URIs from mesh)
-	agentCh := broker.Subscribe("local-node")
-	go func() {
-		for msg := range agentCh {
-			if strings.HasPrefix(msg.Payload, "hustle://") {
-				fmt.Printf("[A2A] Executing Mesh Protocol URI from %s: %s\n", msg.Source, msg.Payload)
-				protocol.HandleURI(msg.Payload)
-			}
-		}
-	}()
-
+	// ── API Server ──
 	if *apiPort != "" {
 		api := orchestrator.NewAPI(orch, protocol, broker, chainManager, discoverer)
 		go api.Start(*apiPort)
 	}
 
-	if *interactive {
-		runInteractiveMenu(orch, protocol, broker, traderModule, version)
+	// ── Agent Mode (NEW): LLM-driven autonomous loop ──
+	if *agentMode {
+		agent := orchestrator.NewAgentLoop(orch, protocol, broker, *agentType)
+		agent.State.MaxIter = *agentIter
+		fmt.Printf("[Agent] 🤖 Launching autonomous agent: %s (%d iterations)\n", *agentType, *agentIter)
+		if err := agent.Run(); err != nil {
+			fmt.Printf("[Agent] ❌ Agent failed: %v\n", err)
+			os.Exit(1)
+		}
 		return
 	}
 
+	// ── Auto-Plan Mode (NEW): LLM generates strategic plan and executes it ──
+	if *autoPlan {
+		fmt.Println("[AutoPlan] 🧠 Asking LLM to generate strategic hustle plan...")
+		plans, err := orchestrator.PlanHustles(orch)
+		if err != nil {
+			fmt.Printf("[AutoPlan] ❌ Planning failed: %v\n", err)
+			os.Exit(1)
+		}
+
+		fmt.Printf("[AutoPlan] 📋 Generated %d hustle plans:\n", len(plans))
+		for i, plan := range plans {
+			fmt.Printf("  %d. [%s] %s — %s (every %d min, priority: %s)\n",
+				i+1, plan.Category, plan.Name, plan.Description, plan.IntervalMin, plan.Priority)
+		}
+
+		// Execute the plans as agents
+		multiAgent := orchestrator.NewMultiAgentOrchestrator(orch, protocol, broker)
+		for _, plan := range plans {
+			if plan.Priority == "high" || plan.Priority == "medium" {
+				// Register chain from plan steps
+				chain := &orchestrator.Chain{
+					Name:        plan.Name,
+					Description: plan.Description,
+					Steps:       plan.Steps,
+				}
+				chainManager.Register(chain)
+				agent := multiAgent.AddAgent(plan.Category, 10)
+				_ = agent // will be run by RunAll
+			}
+		}
+
+		multiAgent.RunAll()
+		return
+	}
+
+	// ── Interactive Mode ──
+	if *interactive {
+		runInteractiveMenu(orch, protocol, broker, traderModule, contentModule, version)
+		return
+	}
+
+	// ── Dashboard Mode ──
 	if *dashboard {
 		orchestrator.StartLiveDashboard(orch)
 		return
 	}
 
+	// ── Daemon Mode ──
 	if *daemon {
 		scheduler := orchestrator.NewScheduler(orch)
 		scheduler.LoadState("tasks.json", protocol)
 
-		// Register Hustle Tasks using protocol
 		scheduler.Register("Research", 1*time.Hour, func(o *orchestrator.Orchestrator) error {
 			return protocol.HandleURI("hustle://research?query=AI+Agent+Trends")
 		})
-
 		scheduler.Register("CurationChain", 2*time.Hour, func(o *orchestrator.Orchestrator) error {
 			return protocol.HandleURI("hustle://chain")
 		})
-
 		scheduler.Register("Trading", 30*time.Minute, func(o *orchestrator.Orchestrator) error {
 			return protocol.HandleURI("hustle://trading?symbol=BTC")
 		})
-
+		scheduler.Register("ContentGeneration", 3*time.Hour, func(o *orchestrator.Orchestrator) error {
+			return protocol.HandleURI("hustle://content?topic=AI+automation+trends&type=blog")
+		})
 		scheduler.Register("SwarmSync", 4*time.Hour, func(o *orchestrator.Orchestrator) error {
 			return protocol.HandleURI("hustle://swarm?action=sync")
 		})
-
-		// Continuous Autonomous Execution: Sync Protocol
 		scheduler.Register("Sync", 6*time.Hour, func(o *orchestrator.Orchestrator) error {
 			return runSyncProtocol()
 		})
-
 		scheduler.Register("ProfitAnalysis", 12*time.Hour, func(o *orchestrator.Orchestrator) error {
-			// Luxury wealth preservation audit
 			h := orchestrator.NewHealer(o)
 			h.WealthPreservation()
-
 			suggestion := o.Ledger.AnalyzeProfitability()
 			fmt.Printf("[Scheduler] Financial Analysis: %s\n", suggestion)
-
-			// Self-Evolving: Dynamically adjust scheduler based on profit
 			scheduler.ReevaluateStrategy(suggestion)
-
 			o.L2.Add(orchestrator.MemoryEntry{
 				ID:        fmt.Sprintf("profit-analysis-%d", time.Now().Unix()),
 				Content:   suggestion,
@@ -286,18 +358,16 @@ func main() {
 			})
 			return nil
 		})
-
 		scheduler.Register("WorkflowDiscovery", 24*time.Hour, func(o *orchestrator.Orchestrator) error {
 			discovered, err := discoverer.Discover()
-			if err != nil { return err }
-
-			// Auto-register discovered chain into scheduler
+			if err != nil {
+				return err
+			}
 			scheduler.Register("DiscoveredChain:"+discovered.Name, time.Duration(discovered.IntervalMinutes)*time.Minute, func(o *orchestrator.Orchestrator) error {
 				return protocol.HandleURI(fmt.Sprintf("hustle://chain?name=%s", discovered.Name))
 			})
 			return nil
 		})
-
 		scheduler.Register("Heartbeat", 5*time.Minute, func(o *orchestrator.Orchestrator) error {
 			return orchestrator.WriteStatusReport(version, "Active", "Scheduler Heartbeat", o.Ledger)
 		})
@@ -307,6 +377,7 @@ func main() {
 		return
 	}
 
+	// ── Sync Mode ──
 	if *syncMode {
 		fmt.Println("Triggering repository sync protocol...")
 		if err := runSyncProtocol(); err != nil {
@@ -314,6 +385,7 @@ func main() {
 		}
 	}
 
+	// ── Single Task / URI Mode ──
 	if *hustleURI != "" {
 		fmt.Printf("Executing hustle URI: %s\n", *hustleURI)
 		if err := protocol.HandleURI(*hustleURI); err != nil {
@@ -321,7 +393,6 @@ func main() {
 		}
 	} else if *hustleTask != "" {
 		fmt.Printf("Launching hustle module: %s with params: %s\n", *hustleTask, *params)
-		// Map old style task to URI for consistency
 		uri := fmt.Sprintf("hustle://%s", *hustleTask)
 		if err := protocol.HandleURI(uri); err != nil {
 			fmt.Printf("Protocol error: %v\n", err)
@@ -336,7 +407,6 @@ func main() {
 
 	// Real-time status reporting with financial metrics
 	orchestrator.WriteStatusReport(version, "Running", "Orchestrator command processed", orch.Ledger)
-
 	fmt.Printf("Orchestrator initialized with L1: %d, L2: %d, L3: %d entries. Profit: $%.2f\n",
 		len(orch.L1.Entries), len(orch.L2.Entries), len(orch.L3.Entries), orch.Ledger.Profit())
 }
@@ -348,21 +418,28 @@ func runSyncProtocol() error {
 	return cmd.Run()
 }
 
-func runInteractiveMenu(orch *orchestrator.Orchestrator, protocol *orchestrator.HustleProtocol, broker *orchestrator.A2ABroker, traderModule *trading.TradingModule, version string) {
+func runInteractiveMenu(orch *orchestrator.Orchestrator, protocol *orchestrator.HustleProtocol, broker *orchestrator.A2ABroker, traderModule *trading.TradingModule, contentModule *content.ContentModule, version string) {
 	reader := bufio.NewReader(os.Stdin)
 	for {
 		fmt.Println("\n--- INTERACTIVE COMMAND MENU ---")
-		fmt.Println("1. Launch Research Hustle")
-		fmt.Println("2. Launch Social Hustle")
-		fmt.Println("3. Launch Curation Hustle")
-		fmt.Println("4. Launch Trading Hustle")
-		fmt.Println("5. Launch FULL CHAIN (Curate -> Post)")
-		fmt.Println("6. Trigger Swarm Sync")
-		fmt.Println("7. Broadcast Custom Mesh Event")
-		fmt.Println("8. Trading: SELL ALL & Clear History")
-		fmt.Println("9. View Dashboard")
+		fmt.Println(" 1. Launch Research Hustle")
+		fmt.Println(" 2. Launch Social Hustle")
+		fmt.Println(" 3. Launch Curation Hustle")
+		fmt.Println(" 4. Launch Trading Hustle")
+		fmt.Println(" 5. Launch FULL CHAIN (Curate -> Post)")
+		fmt.Println(" 6. Trigger Swarm Sync")
+		fmt.Println(" 7. Broadcast Custom Mesh Event")
+		fmt.Println(" 8. Trading: SELL ALL & Clear History")
+		fmt.Println(" 9. View Dashboard")
 		fmt.Println("10. Run Repository Sync")
-		fmt.Println("q. Quit")
+		fmt.Println("11. 🆕 Generate Blog Content")
+		fmt.Println("12. 🆕 Generate Newsletter")
+		fmt.Println("13. 🆕 Generate SEO Article")
+		fmt.Println("14. 🆕 Generate Social Thread")
+		fmt.Println("15. 🆕 Brainstorm Content Topics")
+		fmt.Println("16. 🆕 Start Agent Loop (10 iterations)")
+		fmt.Println("17. 🆕 Auto-Plan Hustles (LLM strategy)")
+		fmt.Println(" q. Quit")
 		fmt.Print("Select an option: ")
 
 		input, _ := reader.ReadString('\n')
@@ -395,7 +472,7 @@ func runInteractiveMenu(orch *orchestrator.Orchestrator, protocol *orchestrator.
 			})
 		case "8":
 			fmt.Println("Executing SELL ALL and clearing technical history...")
-			traderModule.ExecuteStrategy() // Mock call to clear if needed or just clear local
+			traderModule.ExecuteStrategy()
 			broker.Publish(orchestrator.Message{
 				ID:        fmt.Sprintf("sell-all-%d", time.Now().Unix()),
 				Source:    "interactive-user",
@@ -412,6 +489,69 @@ func runInteractiveMenu(orch *orchestrator.Orchestrator, protocol *orchestrator.
 		case "10":
 			if err := runSyncProtocol(); err != nil {
 				fmt.Printf("Sync error: %v\n", err)
+			}
+		case "11":
+			fmt.Print("Topic (default: AI automation trends): ")
+			topic, _ := reader.ReadString('\n')
+			topic = strings.TrimSpace(topic)
+			if topic == "" {
+				topic = "AI automation trends"
+			}
+			protocol.HandleURI(fmt.Sprintf("hustle://content?topic=%s&type=blog", url.QueryEscape(topic)))
+		case "12":
+			fmt.Print("Topic (default: This week in AI): ")
+			topic, _ := reader.ReadString('\n')
+			topic = strings.TrimSpace(topic)
+			if topic == "" {
+				topic = "This week in AI"
+			}
+			protocol.HandleURI(fmt.Sprintf("hustle://content?topic=%s&type=newsletter", url.QueryEscape(topic)))
+		case "13":
+			fmt.Print("Target keyword (default: best AI tools 2026): ")
+			topic, _ := reader.ReadString('\n')
+			topic = strings.TrimSpace(topic)
+			if topic == "" {
+				topic = "best AI tools 2026"
+			}
+			protocol.HandleURI(fmt.Sprintf("hustle://content?topic=%s&type=seo", url.QueryEscape(topic)))
+		case "14":
+			fmt.Print("Thread topic (default: How AI agents are replacing SaaS): ")
+			topic, _ := reader.ReadString('\n')
+			topic = strings.TrimSpace(topic)
+			if topic == "" {
+				topic = "How AI agents are replacing SaaS"
+			}
+			protocol.HandleURI(fmt.Sprintf("hustle://content?topic=%s&type=thread", url.QueryEscape(topic)))
+		case "15":
+			fmt.Print("Niche (default: AI & automation): ")
+			niche, _ := reader.ReadString('\n')
+			niche = strings.TrimSpace(niche)
+			if niche == "" {
+				niche = "AI & automation"
+			}
+			ideas, err := contentModule.GenerateTopicIdeas(niche, 10)
+			if err != nil {
+				fmt.Printf("Error: %v\n", err)
+			} else {
+				fmt.Println("\n📊 Content Topic Ideas:")
+				for i, idea := range ideas {
+					fmt.Printf("  %d. %s\n", i+1, idea)
+				}
+			}
+		case "16":
+			fmt.Println("🤖 Starting agent loop (10 iterations)...")
+			agent := orchestrator.NewAgentLoop(orch, protocol, broker, "general")
+			agent.State.MaxIter = 10
+			agent.Run()
+		case "17":
+			fmt.Println("🧠 Asking LLM to plan hustles...")
+			plans, err := orchestrator.PlanHustles(orch)
+			if err != nil {
+				fmt.Printf("Error: %v\n", err)
+			} else {
+				for i, p := range plans {
+					fmt.Printf("  %d. [%s/%s] %s — %s\n", i+1, p.Category, p.Priority, p.Name, p.Description)
+				}
 			}
 		case "q":
 			fmt.Println("Exiting...")

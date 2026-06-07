@@ -1,13 +1,67 @@
-# Vision — AI Hustle Machine v1.0.0-alpha.43
+# Vision — AI Hustle Machine
 
-## 1. The Ultimate Goal: Fully Automated Luxury
-The AI Hustle Machine is a self-evolving, federated ecosystem dedicated to autonomous revenue generation. It transforms "The Side Hustle" into a high-ROI, low-maintenance "Luxury" protocol. The vision is to orchestrate a massive mesh of agents that research, curate, trade, and socialize, achieving total financial autonomy without human intervention.
+## The Ultimate Goal: Fully Autonomous, Zero-Cost Income Generation
 
-## 2. Core Tenets
-1.  **Autonomous Evolution:** The machine discovers its own workflows. It analyzes its performance and "breeds" new chains of protocol URIs to maximize ROI.
-2.  **Wealth Preservation:** Failures are tolerated but underperformance is not. The system proactively terminates "leaking" hustles to protect the mesh's capital.
-3.  **Federated Intelligence:** No node is an island. Memory and status swarm across the mesh, creating a collective intelligence that is greater than the sum of its parts.
-4.  **Luxury Standards:** Focus on high-yield, high-signal activities. The goal is not just "work," but "luxury"—the efficient generation of wealth with minimal maintenance.
+The AI Hustle Machine is a self-evolving, federated ecosystem where **free local LLMs** orchestrate real revenue-generating activities without human intervention. Every decision — what to research, what to write, what to trade, when to post — is made by AI agents running in continuous loops on your own hardware at zero marginal cost.
 
-## 3. The End State
-A globally distributed, self-healing mesh of thousands of nodes, each contributing to a unified financial ledger, constantly evolving and refining its strategies to stay ahead of market trends and social dynamics. A true "Money Machine" for the post-human economy.
+## Core Tenets
+
+1. **Zero-Cost Intelligence**: Free local LLMs (LM Studio, Ollama) make every decision. No API keys required. The machine thinks for free.
+
+2. **Autonomous Evolution**: The machine discovers its own workflows. It analyzes its performance and "breeds" new chains of protocol URIs to maximize ROI. No human tells it what to do next.
+
+3. **Observe → Think → Act → Learn**: The agent loop is the core paradigm. Every action is informed by memory context, executed through the protocol, and the outcome is stored for future reasoning.
+
+4. **Wealth Preservation**: Failures are tolerated but underperformance is not. The system proactively terminates "leaking" hustles to protect capital. Profit is sacred.
+
+5. **Federated Intelligence**: No node is an island. Memory and status swarm across the mesh, creating collective intelligence greater than the sum of its parts.
+
+6. **Luxury Standards**: Focus on high-yield, high-signal activities. The goal is not just "work" but "luxury" — efficient generation of wealth with minimal maintenance.
+
+## The End State
+
+A globally distributed, self-healing mesh of thousands of nodes, each running local LLMs that continuously:
+
+- **Research** trending opportunities across markets and social media
+- **Create** monetizable content (blogs, newsletters, SEO articles, social threads)
+- **Trade** crypto assets with technical analysis and sentiment confluence
+- **Curate** intelligence into actionable reports and newsletters
+- **Post** optimized social content to grow audience and influence
+- **Discover** new high-ROI workflow chains and self-schedule them
+- **Heal** their own failures and optimize their own strategies
+- **Sync** their learned intelligence across the federated mesh
+
+All running 24/7 on free local compute. A true "Money Machine" for the post-human economy.
+
+## Technical Architecture Vision
+
+```
+Local Node                          Remote Peers
+┌──────────────────────┐           ┌──────────────────────┐
+│  LM Studio (Gemma 27B)│          │  Ollama (Qwen 32B)   │
+│         │             │           │         │            │
+│  ┌──────▼──────┐      │    A2A    │  ┌──────▼──────┐    │
+│  │ Agent Loop  │◄────►│  Mesh  ◄─┤─►│ Agent Loop  │    │
+│  │ (Observe→   │      │           │  │ (Observe→   │    │
+│  │  Think→Act→ │      │           │  │  Think→Act→ │    │
+│  │  Learn)     │      │           │  │  Learn)     │    │
+│  └──────┬──────┘      │           │  └──────┬──────┘    │
+│    ┌────┴────┐        │           │    ┌────┴────┐      │
+│    │hustle://│        │           │    │hustle://│      │
+│    └────┬────┘        │           │    └────┬────┘      │
+│    ┌────┴─────────┐   │           │    ┌────┴─────────┐│
+│    │5 Hustle Mods │   │           │    │5 Hustle Mods ││
+│    │+ Self-Heal   │   │           │    │+ Self-Heal   ││
+│    │+ Chain Disc  │   │           │    │+ Chain Disc  ││
+│    └──────────────┘   │           │    └──────────────┘│
+└──────────────────────┘           └──────────────────────┘
+         │                                    │
+         └──────── Shared Ledger ─────────────┘
+              (Federated Profit Tracking)
+```
+
+## Key Differentiator
+
+Most AI automation tools require paid API calls ($0.03-0.15 per request). At 100 decisions/day, that's $90-450/month just to think. The Hustle Machine runs on **free local LLMs** — the same Gemma/Qwen models running on your GPU. The cost of intelligence is zero. The potential output is unbounded.
+
+This is the difference between a machine that costs money to run and a machine that *makes* money to run.
