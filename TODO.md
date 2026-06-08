@@ -9,7 +9,7 @@
 - [x] Implement Git-based rollback in `orchestrator/rollback.go`. (v1.0.0-alpha.69)
 - [x] Add graceful shutdown (SIGINT handler) to persist state on exit. (v1.0.0-alpha.67)
 - [x] Enhance dashboard to show multi-agent status and iterations. (v1.0.0-alpha.69)
-- [ ] Add `--dry-run` flag to social module.
+- [x] Add `--dry-run` flag to social module. (v1.0.0-alpha.73)
 
 ## 🟡 Medium Priority
 - [ ] Make RSS feed list configurable via `.env`.

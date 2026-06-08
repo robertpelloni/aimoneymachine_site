@@ -202,6 +202,8 @@ func (m *L3Memory) Checksum() string {
 type Orchestrator struct {
 	Version   string            `json:"version"`
 	DryRun    bool              `json:"dry_run"`
+	RSSFeeds  []string          `json:"rss_feeds"`
+	TaskQueue []string          `json:"task_queue"`
 	L1        L1Memory          `json:"l1"`
 	L2        L2Memory          `json:"l2"`
 	L3        L3Memory          `json:"l3"`

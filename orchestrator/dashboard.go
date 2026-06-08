@@ -19,6 +19,11 @@ func ShowDashboard(orch *Orchestrator) {
 	fmt.Printf(" [SYSTEM TIME]    %s\n", time.Now().Format("15:04:05"))
 	fmt.Printf(" [MEMORY STATE]   L1:%d, L2:%d, L3:%d entries\n", len(orch.L1.Entries), len(orch.L2.Entries), len(orch.L3.Entries))
 
+	// Scheduler Status
+	if len(orch.TaskQueue) > 0 {
+		fmt.Printf(" [SCHEDULER]      Next: %s\n", strings.Join(orch.TaskQueue, " | "))
+	}
+
 	// Content Metrics
 	contentCount := 0
 	contentEntries := orch.L1.Search("content")
@@ -48,6 +53,22 @@ func ShowDashboard(orch *Orchestrator) {
 		fmt.Printf(" [ACTIVE AGENTS]  %s\n", strings.Join(agentList, ", "))
 		fmt.Printf(" [AGENT METRICS]  Success: %d | Errors: %d\n", successCount, failCount)
 
+		// Type-specific Metrics
+		for _, aType := range agentList {
+			sType := 0
+			eType := 0
+			for _, e := range agentEntries {
+				hasType := false
+				for _, t := range e.Tags { if t == aType { hasType = true; break } }
+				if !hasType { continue }
+				for _, t := range e.Tags {
+					if t == "success" { sType++ }
+					if t == "failure" { eType++ }
+				}
+			}
+			fmt.Printf("   - %s: %d OK, %d ERR\n", aType, sType, eType)
+		}
+
 		lastAgent := agentEntries[len(agentEntries)-1]
 		fmt.Printf(" [LAST ACTION]    %s\n", lastAgent.Content)
 	}
@@ -62,10 +83,13 @@ func ShowDashboard(orch *Orchestrator) {
 
 	collectiveProfit := orch.Ledger.Profit()
 	meshEntries := orch.L1.Search("mesh_status")
-	for range meshEntries {
-		// Mock parsing of profit from status string if needed, for now just sum local
-		// In a real system, we'd parse the peer's profit from the status message
-		collectiveProfit += 0.0 // Placeholder for peer profit aggregation
+	for _, e := range meshEntries {
+		// Parse peer's profit from the status message "PROFIT: $..."
+		if idx := strings.Index(e.Content, "PROFIT: $"); idx != -1 {
+			var p float64
+			fmt.Sscanf(e.Content[idx:], "PROFIT: $%f", &p)
+			collectiveProfit += p
+		}
 	}
 	fmt.Printf("  COLLECTIVE MESH PROFIT: $%.2f\n", collectiveProfit)
 

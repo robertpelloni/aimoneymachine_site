@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.0.0-alpha.74] - 2026-06-08
+
+### Added
+- **Dynamic RSS Management**: New interactive menu for managing RSS feeds (Add/List/Remove).
+- **Scheduler Observability**: Dashboard now displays the next 3 scheduled tasks and their countdowns.
+- **Enhanced Agent Metrics**: Per-type success/error breakdown (e.g., content, research) in the live Dashboard.
+- **Real Mesh Profit Aggregation**: Hardened parsing of peer profits for collective mesh wealth calculation.
+
 ## [1.0.0-alpha.73] - 2026-06-08
 
 ### Added
@@ -105,7 +113,7 @@
 ## [1.0.0-alpha.58] - 2026-06-06
 ### Added
 - **Final Release Sign-off**: Verified absolute stability of the autonomous luxury protocol via comprehensive E2E integration.
-- **Production Monorepo Ready**: Finalized all documentation and state synchronization for stable deployment.
+- **Production Monorepo Ready**: Finalized all documentation and versioning for stable deployment.
 
 ## [1.0.0-alpha.57] - 2026-06-06
 ### Added
@@ -140,7 +148,7 @@
 ## [1.0.0-alpha.51] - 2026-06-06
 ### Added
 - **Final Release Sign-off**: Completed final verification and sign-off for the "Fully Automated Luxury Protocol".
-- **Unified Release Package**: Consolidated all final integration logic and documentation for production readiness.
+- **Unified Release Package**: Consolidated all final tests and documentation into a stable production release.
 
 ## [1.0.0-alpha.50] - 2026-06-06
 ### Added

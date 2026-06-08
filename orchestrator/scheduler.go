@@ -4,9 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"sort"
 	"strings"
-	"time"
 	"sync"
+	"time"
 )
 
 type Task struct {
@@ -150,6 +151,9 @@ func (s *Scheduler) Start() {
 		// Check for ROI corrections in memory
 		s.checkROICorrections()
 
+		// Update Orchestrator metadata for UI
+		s.updateMetadata()
+
 		s.mu.Lock()
 		for _, task := range s.Tasks {
 			if time.Since(task.LastRun) >= task.Interval {
@@ -168,6 +172,34 @@ func (s *Scheduler) Start() {
 		s.mu.Unlock()
 		time.Sleep(1 * time.Second)
 	}
+}
+
+func (s *Scheduler) updateMetadata() {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	var queue []string
+	// Find next 3 tasks by time remaining
+	type taskWithTime struct {
+		name      string
+		remaining time.Duration
+	}
+	var sorted []taskWithTime
+	for _, t := range s.Tasks {
+		rem := t.Interval - time.Since(t.LastRun)
+		if rem < 0 {
+			rem = 0
+		}
+		sorted = append(sorted, taskWithTime{t.Name, rem})
+	}
+	sort.Slice(sorted, func(i, j int) bool {
+		return sorted[i].remaining < sorted[j].remaining
+	})
+
+	for i := 0; i < len(sorted) && i < 3; i++ {
+		queue = append(queue, fmt.Sprintf("%s (%v)", sorted[i].name, sorted[i].remaining.Round(time.Second)))
+	}
+	s.Orchestrator.TaskQueue = queue
 }
 
 func (s *Scheduler) checkROICorrections() {

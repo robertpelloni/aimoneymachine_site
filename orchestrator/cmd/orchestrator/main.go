@@ -134,10 +134,14 @@ func main() {
 		if topic == "" {
 			topic = "AI"
 		}
+		feeds := orch.RSSFeeds
+		if len(feeds) == 0 {
+			feeds = []string{"https://news.ycombinator.com/rss"}
+		}
 		c := &curation.CurationModule{
 			Orchestrator: orch,
 			Fetcher:      curation.NewRSSFetcher(),
-			Feeds:        []string{"https://news.ycombinator.com/rss"},
+			Feeds:        feeds,
 		}
 		return c.Curate(topic)
 	})
@@ -449,6 +453,54 @@ func runSyncProtocol() error {
 	return cmd.Run()
 }
 
+func runRSSMenu(orch *orchestrator.Orchestrator, reader *bufio.Reader) {
+	for {
+		fmt.Println("\n--- RSS FEED MANAGEMENT ---")
+		fmt.Println(" 1. List Current Feeds")
+		fmt.Println(" 2. Add New RSS Feed")
+		fmt.Println(" 3. Remove RSS Feed")
+		fmt.Println(" r. Return to Main Menu")
+		fmt.Print("Select option: ")
+
+		input, _ := reader.ReadString('\n')
+		input = strings.TrimSpace(input)
+
+		switch input {
+		case "1":
+			fmt.Println("Active RSS Feeds:")
+			if len(orch.RSSFeeds) == 0 {
+				fmt.Println("  (Using default: https://news.ycombinator.com/rss)")
+			} else {
+				for i, f := range orch.RSSFeeds {
+					fmt.Printf("  %d. %s\n", i+1, f)
+				}
+			}
+		case "2":
+			fmt.Print("Enter RSS Feed URL: ")
+			urlStr, _ := reader.ReadString('\n')
+			urlStr = strings.TrimSpace(urlStr)
+			if urlStr != "" {
+				orch.RSSFeeds = append(orch.RSSFeeds, urlStr)
+				fmt.Println("Feed added.")
+			}
+		case "3":
+			fmt.Print("Enter feed number to remove: ")
+			idxStr, _ := reader.ReadString('\n')
+			idxStr = strings.TrimSpace(idxStr)
+			var idx int
+			fmt.Sscanf(idxStr, "%d", &idx)
+			if idx > 0 && idx <= len(orch.RSSFeeds) {
+				orch.RSSFeeds = append(orch.RSSFeeds[:idx-1], orch.RSSFeeds[idx:]...)
+				fmt.Println("Feed removed.")
+			} else {
+				fmt.Println("Invalid index.")
+			}
+		case "r":
+			return
+		}
+	}
+}
+
 func runSpaceCommsSubmenu(orch *orchestrator.Orchestrator, protocol *orchestrator.HustleProtocol, broker *orchestrator.A2ABroker, reader *bufio.Reader) {
 	for {
 		fmt.Println("\n--- SPACE COMMUNICATION CONTROL ---")
@@ -536,6 +588,7 @@ func runInteractiveMenu(orch *orchestrator.Orchestrator, protocol *orchestrator.
 		fmt.Println("18. 🆕 View Content Library")
 		fmt.Println("19. 🆕 Space Communication (Mesh Control)")
 		fmt.Println("20. 🆕 Manual System Diagnosis")
+		fmt.Println("21. 🆕 RSS Feed Management")
 		fmt.Println(" q. Quit")
 		fmt.Print("Select an option: ")
 
@@ -674,6 +727,8 @@ func runInteractiveMenu(orch *orchestrator.Orchestrator, protocol *orchestrator.
 			h := orchestrator.NewHealer(orch)
 			fmt.Println("Starting LLM-verified diagnostic loop...")
 			h.Loop(issue)
+		case "21":
+			runRSSMenu(orch, reader)
 		case "q":
 			fmt.Println("Exiting...")
 			return
