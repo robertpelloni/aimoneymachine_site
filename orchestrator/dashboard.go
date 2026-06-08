@@ -2,6 +2,7 @@ package orchestrator
 
 import (
 	"fmt"
+	"strings"
 	"time"
 )
 
@@ -28,12 +29,20 @@ func ShowDashboard(orch *Orchestrator) {
 	if len(agentEntries) > 0 {
 		successCount := 0
 		failCount := 0
+		activeAgents := make(map[string]bool)
 		for _, e := range agentEntries {
 			for _, t := range e.Tags {
 				if t == "success" { successCount++ }
 				if t == "failure" { failCount++ }
+				if !strings.HasPrefix(t, "agent_loop") && t != "success" && t != "failure" {
+					activeAgents[t] = true
+				}
 			}
 		}
+
+		var agentList []string
+		for a := range activeAgents { agentList = append(agentList, a) }
+		fmt.Printf(" [ACTIVE AGENTS]  %s\n", strings.Join(agentList, ", "))
 		fmt.Printf(" [AGENT METRICS]  Success: %d | Errors: %d\n", successCount, failCount)
 
 		lastAgent := agentEntries[len(agentEntries)-1]

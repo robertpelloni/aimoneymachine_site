@@ -443,6 +443,69 @@ func runSyncProtocol() error {
 	return cmd.Run()
 }
 
+func runSpaceCommsSubmenu(orch *orchestrator.Orchestrator, protocol *orchestrator.HustleProtocol, broker *orchestrator.A2ABroker, reader *bufio.Reader) {
+	for {
+		fmt.Println("\n--- SPACE COMMUNICATION CONTROL ---")
+		fmt.Println(" 1. List Active Mesh Peers")
+		fmt.Println(" 2. Broadcast Global Directive")
+		fmt.Println(" 3. Trigger Mesh Synchronization")
+		fmt.Println(" 4. Sync Collective Strategy")
+		fmt.Println(" 5. View Collective Strategy Hub")
+		fmt.Println(" r. Return to Main Menu")
+		fmt.Print("Select option: ")
+
+		input, _ := reader.ReadString('\n')
+		input = strings.TrimSpace(input)
+
+		switch input {
+		case "1":
+			fmt.Println("Active Peers:")
+			for id, url := range broker.Peers {
+				fmt.Printf("  - %s: %s\n", id, url)
+			}
+		case "2":
+			fmt.Print("Enter Global Directive: ")
+			directive, _ := reader.ReadString('\n')
+			directive = strings.TrimSpace(directive)
+			broker.Publish(orchestrator.Message{
+				ID:        fmt.Sprintf("directive-%d", time.Now().Unix()),
+				Source:    "orchestrator-ui",
+				Type:      orchestrator.Command,
+				Topic:     "global_directives",
+				Payload:   directive,
+				Timestamp: time.Now(),
+			})
+			fmt.Println("Directive broadcasted to space.")
+		case "3":
+			protocol.HandleURI("hustle://swarm?action=sync")
+		case "4":
+			fmt.Println("Broadcasting local best hustle to mesh...")
+			analysis := orch.Ledger.AnalyzeProfitability()
+			broker.Publish(orchestrator.Message{
+				ID:        fmt.Sprintf("strategy-%d", time.Now().Unix()),
+				Source:    "orchestrator-ui",
+				Type:      orchestrator.Event,
+				Topic:     "collective_strategy",
+				Payload:   "COLLECTIVE_ALPHA: " + analysis,
+				Timestamp: time.Now(),
+			})
+			fmt.Println("Strategy synced.")
+		case "5":
+			fmt.Println("\n📊 COLLECTIVE STRATEGY HUB:")
+			strategies := orch.L1.Search("collective_strategy")
+			if len(strategies) == 0 {
+				fmt.Println("  (No shared strategies discovered in mesh yet)")
+			} else {
+				for _, s := range strategies {
+					fmt.Printf("  [%s] %s\n", s.Timestamp.Format("15:04"), s.Content)
+				}
+			}
+		case "r":
+			return
+		}
+	}
+}
+
 func runInteractiveMenu(orch *orchestrator.Orchestrator, protocol *orchestrator.HustleProtocol, broker *orchestrator.A2ABroker, traderModule *trading.TradingModule, contentModule *content.ContentModule, version string) {
 	reader := bufio.NewReader(os.Stdin)
 	for {
@@ -466,6 +529,7 @@ func runInteractiveMenu(orch *orchestrator.Orchestrator, protocol *orchestrator.
 		fmt.Println("17. 🆕 Auto-Plan Hustles (LLM strategy)")
 		fmt.Println("18. 🆕 View Content Library")
 		fmt.Println("19. 🆕 Space Communication (Mesh Control)")
+		fmt.Println("20. 🆕 Manual System Diagnosis")
 		fmt.Println(" q. Quit")
 		fmt.Print("Select an option: ")
 
@@ -593,50 +657,17 @@ func runInteractiveMenu(orch *orchestrator.Orchestrator, protocol *orchestrator.
 				}
 			}
 		case "19":
-			fmt.Println("\n--- SPACE COMMUNICATION CONTROL ---")
-			fmt.Println(" 1. List Active Mesh Peers")
-			fmt.Println(" 2. Broadcast Global Directive")
-			fmt.Println(" 3. Trigger Mesh Synchronization")
-			fmt.Println(" 4. Sync Collective Strategy")
-			fmt.Println(" r. Return to Main Menu")
-			fmt.Print("Select option: ")
-			meshInput, _ := reader.ReadString('\n')
-			meshInput = strings.TrimSpace(meshInput)
-
-			switch meshInput {
-			case "1":
-				fmt.Println("Active Peers:")
-				for id, url := range broker.Peers {
-					fmt.Printf("  - %s: %s\n", id, url)
-				}
-			case "2":
-				fmt.Print("Enter Global Directive: ")
-				directive, _ := reader.ReadString('\n')
-				directive = strings.TrimSpace(directive)
-				broker.Publish(orchestrator.Message{
-					ID:        fmt.Sprintf("directive-%d", time.Now().Unix()),
-					Source:    "orchestrator-ui",
-					Type:      orchestrator.Command,
-					Topic:     "global_directives",
-					Payload:   directive,
-					Timestamp: time.Now(),
-				})
-				fmt.Println("Directive broadcasted to space.")
-			case "3":
-				protocol.HandleURI("hustle://swarm?action=sync")
-			case "4":
-				fmt.Println("Broadcasting local best hustle to mesh...")
-				analysis := orch.Ledger.AnalyzeProfitability()
-				broker.Publish(orchestrator.Message{
-					ID:        fmt.Sprintf("strategy-%d", time.Now().Unix()),
-					Source:    "orchestrator-ui",
-					Type:      orchestrator.Event,
-					Topic:     "collective_strategy",
-					Payload:   "COLLECTIVE_ALPHA: " + analysis,
-					Timestamp: time.Now(),
-				})
-				fmt.Println("Strategy synced.")
+			runSpaceCommsSubmenu(orch, protocol, broker, reader)
+		case "20":
+			fmt.Print("Describe the system issue to diagnose: ")
+			issue, _ := reader.ReadString('\n')
+			issue = strings.TrimSpace(issue)
+			if issue == "" {
+				issue = "Manual override diagnostic"
 			}
+			h := orchestrator.NewHealer(orch)
+			fmt.Println("Starting LLM-verified diagnostic loop...")
+			h.Loop(issue)
 		case "q":
 			fmt.Println("Exiting...")
 			return

@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.0.0-alpha.70] - 2026-06-08
+
+### Added
+- **Luxury Space Communism UI**: Added a dedicated section to the Dashboard for federated wealth tracking.
+- **Collective Strategy Hub**: New interactive menu for viewing shared alpha and strategies from the mesh swarm.
+- **Manual Diagnostic UI**: Added option to trigger the LLM-verified Healer loop manually via the CLI.
+- **Refactored UI Submenus**: Improved interactive menu organization with specialized handlers for space communication.
+
 ## [1.0.0-alpha.69] - 2026-06-08
 
 ### Added
@@ -76,7 +84,7 @@
 ## [1.0.0-alpha.58] - 2026-06-06
 ### Added
 - **Final Release Sign-off**: Verified absolute stability of the autonomous luxury protocol via comprehensive E2E integration.
-- **Production Monorepo Ready**: Finalized documentation and state synchronization for stable deployment.
+- **Production Monorepo Ready**: Finalized all documentation and versioning for stable deployment.
 
 ## [1.0.0-alpha.57] - 2026-06-06
 ### Added
