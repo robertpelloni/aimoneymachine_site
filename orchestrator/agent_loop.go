@@ -71,7 +71,20 @@ func (a *AgentLoop) Run() error {
 		}
 
 		// 3. ACT: Execute the decided action via protocol
+		start := time.Now()
 		result := a.act(action)
+		duration := time.Since(start)
+
+		status := "success"
+		msg := ""
+		if strings.HasPrefix(result, "ERROR") {
+			status = "failed"
+			msg = result
+		}
+
+		if a.Orch.DB != nil {
+			a.Orch.DB.LogTaskExecution(action, duration, status, msg)
+		}
 
 		// 4. LEARN: Store the outcome in memory
 		a.learn(action, result)

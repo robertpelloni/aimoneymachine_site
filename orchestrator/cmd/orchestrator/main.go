@@ -56,6 +56,14 @@ func main() {
 	orch.Load("memory.json")
 	orch.DryRun = *dryRun
 
+	// Initialize SQLite Store
+	db, err := orchestrator.NewSQLiteStore("hustle.db")
+	if err != nil {
+		fmt.Printf("[SQLite] ⚠️ Failed to initialize database: %v\n", err)
+	} else {
+		orch.DB = db
+	}
+
 	// Wire up real LLM via LM Studio / OpenAI-compatible provider
 	llmProvider := orchestrator.NewOpenAICompatProvider()
 	// Auto-detect and test the LLM connection
@@ -590,6 +598,7 @@ func runInteractiveMenu(orch *orchestrator.Orchestrator, protocol *orchestrator.
 		fmt.Println("19. 🆕 Space Communication (Mesh Control)")
 		fmt.Println("20. 🆕 Manual System Diagnosis")
 		fmt.Println("21. 🆕 RSS Feed Management")
+		fmt.Println("22. 🆕 View Task History (SQLite)")
 		fmt.Println(" q. Quit")
 		fmt.Print("Select an option: ")
 
@@ -730,6 +739,10 @@ func runInteractiveMenu(orch *orchestrator.Orchestrator, protocol *orchestrator.
 			h.Loop(issue)
 		case "21":
 			runRSSMenu(orch, reader)
+		case "22":
+			orchestrator.ShowTaskHistory(orch)
+			fmt.Println("\nPress Enter to return to menu...")
+			reader.ReadString('\n')
 		case "q":
 			fmt.Println("Exiting...")
 			return

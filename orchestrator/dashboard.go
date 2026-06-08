@@ -183,6 +183,34 @@ func ShowDashboard(orch *Orchestrator) {
 	fmt.Println(" Tip: Use 'orchestrator -interactive' for controls.")
 }
 
+// ShowTaskHistory displays the recent task execution logs
+func ShowTaskHistory(orch *Orchestrator) {
+	if orch.DB == nil {
+		fmt.Println("Error: SQLite store not initialized.")
+		return
+	}
+
+	history, err := orch.DB.GetTaskHistory(20)
+	if err != nil {
+		fmt.Printf("Error fetching task history: %v\n", err)
+		return
+	}
+
+	fmt.Println("\n--- RECENT TASK EXECUTION HISTORY ---")
+	fmt.Printf("%-20s %-10s %-10s %-20s\n", "TASK NAME", "DURATION", "STATUS", "MESSAGE")
+	fmt.Println(strings.Repeat("-", 65))
+
+	for _, h := range history {
+		msg := h.Message
+		if len(msg) > 20 {
+			msg = msg[:17] + "..."
+		}
+		duration := time.Duration(h.DurationMs) * time.Millisecond
+		fmt.Printf("%-20s %-10v %-10s %-20s\n", h.TaskID, duration, h.Status, msg)
+	}
+	fmt.Println("--------------------------------------------------")
+}
+
 // StartLiveDashboard launches the dashboard in a refresh loop
 func StartLiveDashboard(orch *Orchestrator) {
 	for {

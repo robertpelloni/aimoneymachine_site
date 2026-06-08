@@ -159,12 +159,23 @@ func (s *Scheduler) Start() {
 			if time.Since(task.LastRun) >= task.Interval {
 				fmt.Printf("Running task: %s\n", task.Name)
 				s.mu.Unlock()
+				start := time.Now()
 				err := task.Execute(s.Orchestrator)
+				duration := time.Since(start)
 				s.mu.Lock()
 
+				status := "success"
+				msg := ""
 				if err != nil {
 					fmt.Printf("Task %s failed: %v\n", task.Name, err)
+					status = "failed"
+					msg = err.Error()
 				}
+
+				if s.Orchestrator.DB != nil {
+					s.Orchestrator.DB.LogTaskExecution(task.Name, duration, status, msg)
+				}
+
 				task.LastRun = time.Now()
 				s.saveStateNoLock("tasks.json")
 			}

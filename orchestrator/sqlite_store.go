@@ -4,9 +4,10 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	_ "github.com/mattn/go-sqlite3"
+	_ "modernc.org/sqlite"
 	"math"
 	"sort"
+	"time"
 )
 
 type SQLiteStore struct {
@@ -16,7 +17,7 @@ type SQLiteStore struct {
 
 func NewSQLiteStore(filepath string) (*SQLiteStore, error) {
 	// Enable loading extensions if available in the environment
-	db, err := sql.Open("sqlite3", filepath+"?_load_extension=1")
+	db, err := sql.Open("sqlite", filepath+"?_load_extension=1")
 	if err != nil {
 		return nil, err
 	}
@@ -54,6 +55,21 @@ func NewSQLiteStore(filepath string) (*SQLiteStore, error) {
 		embedding BLOB
 	);`
 	_, err = db.Exec(query)
+	if err != nil {
+		return nil, err
+	}
+
+	// Task History table
+	taskQuery := `
+	CREATE TABLE IF NOT EXISTS task_history (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		task_id TEXT,
+		duration_ms INTEGER,
+		status TEXT,
+		message TEXT,
+		timestamp DATETIME
+	);`
+	_, err = db.Exec(taskQuery)
 	if err != nil {
 		return nil, err
 	}
@@ -97,6 +113,42 @@ func (s *SQLiteStore) SaveMemory(tier string, entry MemoryEntry) error {
 	}
 
 	return nil
+}
+
+func (s *SQLiteStore) LogTaskExecution(taskID string, duration time.Duration, status string, message string) error {
+	_, err := s.db.Exec(`
+		INSERT INTO task_history (task_id, duration_ms, status, message, timestamp)
+		VALUES (?, ?, ?, ?, ?)`,
+		taskID, duration.Milliseconds(), status, message, time.Now())
+	return err
+}
+
+type TaskHistoryEntry struct {
+	ID         int       `json:"id"`
+	TaskID     string    `json:"task_id"`
+	DurationMs int64     `json:"duration_ms"`
+	Status     string    `json:"status"`
+	Message    string    `json:"message"`
+	Timestamp  time.Time `json:"timestamp"`
+}
+
+func (s *SQLiteStore) GetTaskHistory(limit int) ([]TaskHistoryEntry, error) {
+	rows, err := s.db.Query("SELECT id, task_id, duration_ms, status, message, timestamp FROM task_history ORDER BY timestamp DESC LIMIT ?", limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var history []TaskHistoryEntry
+	for rows.Next() {
+		var h TaskHistoryEntry
+		err := rows.Scan(&h.ID, &h.TaskID, &h.DurationMs, &h.Status, &h.Message, &h.Timestamp)
+		if err != nil {
+			return nil, err
+		}
+		history = append(history, h)
+	}
+	return history, nil
 }
 
 func (s *SQLiteStore) LoadMemories(tier string) ([]MemoryEntry, error) {

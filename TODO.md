@@ -1,7 +1,7 @@
 # Todo List
 
 ## 🔴 Blockers
-- [ ] **Fix Windows CGO build** — Migrate `go-sqlite3` to `modernc.org/sqlite` (pure Go).
+- [x] **Fix Windows CGO build** (v1.0.0-alpha.77) — Migrate `go-sqlite3` to `modernc.org/sqlite` (pure Go).
 - [ ] **Real Social Posting** — Replace stubs in `hustle/social/post.go` with real API calls.
 
 ## 🟠 High Priority
@@ -10,7 +10,7 @@
 
 ## 🟡 Medium Priority
 - [ ] **Dashboard Styling** — Add color codes to the terminal UI (green for profit, red for error).
-- [ ] **Task History** — Log task execution times and durations to SQLite.
+- [x] **Task History** (v1.0.0-alpha.77) — Log task execution times and durations to SQLite.
 
 ## 🟢 Lower Priority
 - [ ] **Multi-exchange support** — Binance, Kraken plugins.
