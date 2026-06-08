@@ -12,6 +12,9 @@ func ShowDashboard(orch *Orchestrator) {
 	fmt.Println("==================================================")
 	fmt.Println("          AI HUSTLE MACHINE DASHBOARD             ")
 	fmt.Println("   (Real-time visualization of machine health)    ")
+	if orch.DryRun {
+		fmt.Println("      ⚠️  [DRY-RUN MODE ACTIVE: NO POSTING]       ")
+	}
 	fmt.Println("==================================================")
 	fmt.Printf(" [SYSTEM TIME]    %s\n", time.Now().Format("15:04:05"))
 	fmt.Printf(" [MEMORY STATE]   L1:%d, L2:%d, L3:%d entries\n", len(orch.L1.Entries), len(orch.L2.Entries), len(orch.L3.Entries))

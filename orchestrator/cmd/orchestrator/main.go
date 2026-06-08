@@ -35,6 +35,7 @@ func main() {
 	agentType := flag.String("agent-type", "general", "Agent hustle focus: general, research, content, trading, social")
 	agentIter := flag.Int("agent-iterations", 20, "Max iterations for agent loop")
 	autoPlan := flag.Bool("autoplan", false, "LLM generates and executes a strategic hustle plan")
+	dryRun := flag.Bool("dry-run", false, "Execute in dry-run mode (no external mutations)")
 	flag.Parse()
 
 	// Source version from VERSION.md
@@ -52,6 +53,7 @@ func main() {
 
 	// ── Initialize Orchestrator with REAL LLM ──
 	orch := orchestrator.NewOrchestrator()
+	orch.DryRun = *dryRun
 
 	// Wire up real LLM via LM Studio / OpenAI-compatible provider
 	llmProvider := orchestrator.NewOpenAICompatProvider()
@@ -154,6 +156,10 @@ func main() {
 		var provider social.Provider = social.NewTwitterProvider()
 		if strings.ToLower(platform) == "linkedin" {
 			provider = social.NewLinkedInProvider()
+		}
+
+		if *dryRun {
+			provider.SetDryRun(true)
 		}
 
 		if contentStr != "" {

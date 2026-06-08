@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.0-alpha.73] - 2026-06-08
+
+### Added
+- **Social Dry-Run Mode**: Added `-dry-run` CLI flag and global `DryRun` state to prevent external posting during testing.
+- **Dry-Run Observability**: Dashboard now displays a prominent warning when dry-run mode is active.
+- **Provider Hardening**: Twitter and LinkedIn providers now support an explicit dry-run state.
+
 ## [1.0.0-alpha.72] - 2026-06-08
 
 ### Added
@@ -98,7 +105,7 @@
 ## [1.0.0-alpha.58] - 2026-06-06
 ### Added
 - **Final Release Sign-off**: Verified absolute stability of the autonomous luxury protocol via comprehensive E2E integration.
-- **Production Monorepo Ready**: Finalized all documentation and versioning for stable deployment.
+- **Production Monorepo Ready**: Finalized all documentation and state synchronization for stable deployment.
 
 ## [1.0.0-alpha.57] - 2026-06-06
 ### Added
@@ -133,7 +140,7 @@
 ## [1.0.0-alpha.51] - 2026-06-06
 ### Added
 - **Final Release Sign-off**: Completed final verification and sign-off for the "Fully Automated Luxury Protocol".
-- **Unified Release Package**: Consolidated all final tests and documentation into a stable production release.
+- **Unified Release Package**: Consolidated all final integration logic and documentation for production readiness.
 
 ## [1.0.0-alpha.50] - 2026-06-06
 ### Added

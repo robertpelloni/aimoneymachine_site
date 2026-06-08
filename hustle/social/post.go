@@ -14,11 +14,22 @@ type SocialPost struct {
 
 type Provider interface {
 	Post(orch *orchestrator.Orchestrator, platform, content string) error
+	SetDryRun(enabled bool)
 }
 
-type TwitterProvider struct{}
+type TwitterProvider struct {
+	DryRun bool
+}
+
+func (p *TwitterProvider) SetDryRun(enabled bool) {
+	p.DryRun = enabled
+}
 
 func (p *TwitterProvider) Post(orch *orchestrator.Orchestrator, platform, content string) error {
+	if p.DryRun {
+		fmt.Printf("[Twitter][DRY-RUN] Would post to %s: %s\n", platform, content)
+		return nil
+	}
 	fmt.Printf("[Twitter] Posting to %s: %s\n", platform, content)
 	return nil
 }
@@ -27,9 +38,19 @@ func NewTwitterProvider() *TwitterProvider {
 	return &TwitterProvider{}
 }
 
-type LinkedInProvider struct{}
+type LinkedInProvider struct {
+	DryRun bool
+}
+
+func (p *LinkedInProvider) SetDryRun(enabled bool) {
+	p.DryRun = enabled
+}
 
 func (p *LinkedInProvider) Post(orch *orchestrator.Orchestrator, platform, content string) error {
+	if p.DryRun {
+		fmt.Printf("[LinkedIn][DRY-RUN] Would post to %s: %s\n", platform, content)
+		return nil
+	}
 	fmt.Printf("[LinkedIn] Posting to %s: %s\n", platform, content)
 	return nil
 }
