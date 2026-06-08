@@ -2,7 +2,7 @@
 
 A self-orchestrating, LLM-driven autonomous agent system that runs revenue-generating "hustles" using free local AI models. The machine thinks, acts, learns, and evolves — without human intervention.
 
-**Current Version:** 1.0.0-alpha.72 · **Status:** Active Development · **Language:** Go 1.24.3
+**Current Version:** 1.0.0-alpha.75 · **Status:** Active Development · **Language:** Go 1.24.3
 
 ---
 

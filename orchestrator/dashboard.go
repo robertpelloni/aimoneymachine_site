@@ -2,6 +2,7 @@ package orchestrator
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 	"time"
 )
@@ -81,17 +82,52 @@ func ShowDashboard(orch *Orchestrator) {
 	fmt.Println("--------------------------------------------------")
 	fmt.Println(" [LUXURY SPACE COMMUNISM (FEDERATED WEALTH)]")
 
+	type peerProfit struct {
+		id     string
+		profit float64
+	}
+	var leaderboard []peerProfit
+
 	collectiveProfit := orch.Ledger.Profit()
+	leaderboard = append(leaderboard, peerProfit{"local-node", orch.Ledger.Profit()})
+
 	meshEntries := orch.L1.Search("mesh_status")
 	for _, e := range meshEntries {
-		// Parse peer's profit from the status message "PROFIT: $..."
 		if idx := strings.Index(e.Content, "PROFIT: $"); idx != -1 {
 			var p float64
 			fmt.Sscanf(e.Content[idx:], "PROFIT: $%f", &p)
 			collectiveProfit += p
+
+			// Extract peer ID
+			peerID := "unknown"
+			fmt.Sscanf(e.Content, "Mesh Peer %s Status:", &peerID)
+			leaderboard = append(leaderboard, peerProfit{peerID, p})
 		}
 	}
 	fmt.Printf("  COLLECTIVE MESH PROFIT: $%.2f\n", collectiveProfit)
+
+	// Collective Goal Progress
+	meshGoal := 10000.0
+	progress := (collectiveProfit / meshGoal) * 100
+	if progress < 0 { progress = 0 }
+	fmt.Printf("  MESH WEALTH GOAL: $%.2f (%.1f%% achieved)\n", meshGoal, progress)
+
+	// Display leaderboard
+	sort.Slice(leaderboard, func(i, j int) bool {
+		return leaderboard[i].profit > leaderboard[j].profit
+	})
+	fmt.Print("  LEADERBOARD: ")
+	for i := 0; i < len(leaderboard) && i < 3; i++ {
+		fmt.Printf("#%d %s ($%.2f) ", i+1, leaderboard[i].id, leaderboard[i].profit)
+	}
+	fmt.Println()
+
+	// Collective Alpha Insight
+	strategies := orch.L1.Search("collective_strategy")
+	if len(strategies) > 0 {
+		latest := strategies[len(strategies)-1]
+		fmt.Printf("  COLLECTIVE ALPHA: %s\n", latest.Content)
+	}
 
 	fmt.Println("--------------------------------------------------")
 	fmt.Println(" [MESH SWARM OVERVIEW]")

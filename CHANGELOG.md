@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.0-alpha.75] - 2026-06-08
+
+### Added
+- **Federated Profit Leaderboard**: Dashboard now displays a ranked list of top mesh peers by profit.
+- **Collective Wealth Goal**: Implemented tracking towards a mesh-wide financial target ($10,000).
+- **Mesh Strategy Insights**: Dashboard now displays the latest 'Collective Alpha' harvested from the mesh.
+
 ## [1.0.0-alpha.74] - 2026-06-08
 
 ### Added
@@ -113,7 +120,7 @@
 ## [1.0.0-alpha.58] - 2026-06-06
 ### Added
 - **Final Release Sign-off**: Verified absolute stability of the autonomous luxury protocol via comprehensive E2E integration.
-- **Production Monorepo Ready**: Finalized all documentation and versioning for stable deployment.
+- **Production Monorepo Ready**: Finalized documentation and versioning for stable deployment.
 
 ## [1.0.0-alpha.57] - 2026-06-06
 ### Added
@@ -148,7 +155,7 @@
 ## [1.0.0-alpha.51] - 2026-06-06
 ### Added
 - **Final Release Sign-off**: Completed final verification and sign-off for the "Fully Automated Luxury Protocol".
-- **Unified Release Package**: Consolidated all final tests and documentation into a stable production release.
+- **Unified Release Package**: Consolidated all final integration logic and documentation for production readiness.
 
 ## [1.0.0-alpha.50] - 2026-06-06
 ### Added
