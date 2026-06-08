@@ -6,9 +6,9 @@
 - [x] **Real Web Search** — Replace mock in `hustle/research/search.go` with Tavily/Brave API. (v1.0.0-alpha.68)
 
 ## 🟠 High Priority
-- [ ] Implement Git-based rollback in `orchestrator/rollback.go`.
+- [x] Implement Git-based rollback in `orchestrator/rollback.go`. (v1.0.0-alpha.69)
 - [x] Add graceful shutdown (SIGINT handler) to persist state on exit. (v1.0.0-alpha.67)
-- [ ] Enhance dashboard to show multi-agent status and iterations.
+- [x] Enhance dashboard to show multi-agent status and iterations. (v1.0.0-alpha.69)
 - [ ] Add `--dry-run` flag to social module.
 
 ## 🟡 Medium Priority

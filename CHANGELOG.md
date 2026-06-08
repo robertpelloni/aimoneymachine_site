@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.0-alpha.69] - 2026-06-08
+
+### Added
+- **Git-Based Rollback**: Implemented real `git checkout .` and `git clean -fd` in the `RollbackHandler` to return the system to the last stable commit.
+- **Rollback Verification**: Added automated tests for the rollback recovery sequence.
+- **Agent Metrics UI**: Enhanced the Dashboard to display aggregated success/error counts for autonomous agents.
+
 ## [1.0.0-alpha.68] - 2026-06-08
 
 ### Added
@@ -69,7 +76,7 @@
 ## [1.0.0-alpha.58] - 2026-06-06
 ### Added
 - **Final Release Sign-off**: Verified absolute stability of the autonomous luxury protocol via comprehensive E2E integration.
-- **Production Monorepo Ready**: Finalized documentation and versioning for stable deployment.
+- **Production Monorepo Ready**: Finalized documentation and state synchronization for stable deployment.
 
 ## [1.0.0-alpha.57] - 2026-06-06
 ### Added

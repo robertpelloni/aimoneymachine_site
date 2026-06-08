@@ -24,10 +24,20 @@ func ShowDashboard(orch *Orchestrator) {
 	}
 
 	// Agent Observability
-	agentEntries := orch.L1.Search("agent")
+	agentEntries := orch.L1.Search("agent_loop")
 	if len(agentEntries) > 0 {
+		successCount := 0
+		failCount := 0
+		for _, e := range agentEntries {
+			for _, t := range e.Tags {
+				if t == "success" { successCount++ }
+				if t == "failure" { failCount++ }
+			}
+		}
+		fmt.Printf(" [AGENT METRICS]  Success: %d | Errors: %d\n", successCount, failCount)
+
 		lastAgent := agentEntries[len(agentEntries)-1]
-		fmt.Printf(" [AGENT STATUS]   %s\n", lastAgent.Content)
+		fmt.Printf(" [LAST ACTION]    %s\n", lastAgent.Content)
 	}
 
 	fmt.Println("--------------------------------------------------")

@@ -32,7 +32,7 @@
 - [ ] **Content output pipeline** — automated hosting/deployment of generated markdown
 - [x] **Graceful shutdown** — persist state on SIGINT, resume on restart (v1.0.0-alpha.67)
 - [ ] **Windows CGO build fix** — Migrate to `modernc.org/sqlite`
-- [ ] **Real Rollback Logic** — Git-based state restoration
+- [x] **Real Rollback Logic** — Git-based state restoration (v1.0.0-alpha.69)
 
 ## Phase 5: Advanced Autonomy (v1.0.0-beta.11 – v1.0.0-rc.1) 📋 PLANNED
 - [ ] **Self-optimizing prompts** — A/B test prompt variations, track win rates

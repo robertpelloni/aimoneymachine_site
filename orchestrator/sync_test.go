@@ -24,9 +24,26 @@ func TestMergeConflictHandling(t *testing.T) {
 func TestRollback(t *testing.T) {
 	orch := NewOrchestrator()
 	rollback := NewRollbackHandler(orch)
-	err := rollback.Execute()
-	if err != nil {
+
+	// Create a dummy file to be cleaned
+	dummyFile := "uncommitted_test_file.txt"
+	if err := os.WriteFile(dummyFile, []byte("test"), 0644); err != nil {
+		t.Fatalf("Failed to create dummy file: %v", err)
+	}
+
+	// Execute rollback
+	if err := rollback.Execute(); err != nil {
 		t.Errorf("Rollback execution failed: %v", err)
+	}
+
+	// Verify file is gone
+	if _, err := os.Stat(dummyFile); err == nil {
+		t.Errorf("Dummy file still exists after rollback clean")
+		os.Remove(dummyFile) // cleanup
+	}
+
+	if len(orch.L2.Entries) == 0 {
+		t.Errorf("Expected rollback entry in L2 memory")
 	}
 }
 
