@@ -7,7 +7,7 @@
 
 ## 🟠 High Priority
 - [ ] Implement Git-based rollback in `orchestrator/rollback.go`.
-- [ ] Add graceful shutdown (SIGINT handler) to persist state on exit.
+- [x] Add graceful shutdown (SIGINT handler) to persist state on exit. (v1.0.0-alpha.67)
 - [ ] Enhance dashboard to show multi-agent status and iterations.
 - [ ] Add `--dry-run` flag to social module.
 

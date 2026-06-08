@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"math"
 	"os"
 	"sort"
@@ -251,4 +252,20 @@ func (o *Orchestrator) Load(filepath string) error {
 		return err
 	}
 	return json.Unmarshal(data, o)
+}
+
+func (o *Orchestrator) Shutdown() {
+	fmt.Println("[Orchestrator] Initiating graceful shutdown...")
+
+	// Persist final state
+	if err := o.Save("memory.json"); err != nil {
+		fmt.Printf("[Orchestrator] Error during state persistence: %v\n", err)
+	} else {
+		fmt.Println("[Orchestrator] System state persisted to memory.json")
+	}
+
+	if o.DB != nil {
+		o.DB.Close()
+	}
+	fmt.Println("[Orchestrator] Shutdown complete.")
 }

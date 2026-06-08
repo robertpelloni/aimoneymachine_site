@@ -30,7 +30,7 @@
 - [ ] **Research with real web search** — Tavily/Brave API integration
 - [ ] **Trading with real CoinGecko data** — verified in daemon mode with -real-prices
 - [ ] **Content output pipeline** — automated hosting/deployment of generated markdown
-- [ ] **Graceful shutdown** — persist state on SIGINT, resume on restart
+- [x] **Graceful shutdown** — persist state on SIGINT, resume on restart (v1.0.0-alpha.67)
 - [ ] **Windows CGO build fix** — Migrate to `modernc.org/sqlite`
 - [ ] **Real Rollback Logic** — Git-based state restoration
 

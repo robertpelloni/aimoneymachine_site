@@ -61,6 +61,13 @@ func NewSQLiteStore(filepath string) (*SQLiteStore, error) {
 	return &SQLiteStore{db: db, extLoaded: extLoaded}, nil
 }
 
+func (s *SQLiteStore) Close() error {
+	if s.db != nil {
+		return s.db.Close()
+	}
+	return nil
+}
+
 func (s *SQLiteStore) SaveMemory(tier string, entry MemoryEntry) error {
 	tagsData, _ := json.Marshal(entry.Tags)
 

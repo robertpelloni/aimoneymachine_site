@@ -7,6 +7,8 @@ import (
 	"net/url"
 	"os"
 	"os/exec"
+	"os/signal"
+	"syscall"
 	"strings"
 	"time"
 
@@ -43,6 +45,10 @@ func main() {
 	}
 
 	fmt.Printf("=== AI Hustle Machine Orchestrator v%s ===\n", version)
+
+	// ── Signal Handling ──
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
 
 	// ── Initialize Orchestrator with REAL LLM ──
 	orch := orchestrator.NewOrchestrator()
@@ -413,10 +419,15 @@ func main() {
 		}
 	}
 
-	// If we started API but no other long running mode, we need to wait
-	if *apiPort != "" {
-		fmt.Println("API running. Press Ctrl+C to terminate.")
-		select {}
+	// Wait for shutdown signal or exit if not in long-running mode
+	if *apiPort != "" || *daemon || *dashboard || *agentMode {
+		fmt.Println("Orchestrator running. Press Ctrl+C to terminate.")
+		select {
+		case sig := <-sigChan:
+			fmt.Printf("\n[Main] Received signal: %v\n", sig)
+			orch.Shutdown()
+			os.Exit(0)
+		}
 	}
 
 	// Real-time status reporting with financial metrics

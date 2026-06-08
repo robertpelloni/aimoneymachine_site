@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.0-alpha.67] - 2026-06-08
+
+### Added
+- **Graceful Shutdown**: Implemented SIGINT/SIGTERM signal handling in the main orchestrator loop.
+- **State Persistence**: Added `Shutdown()` method to ensure memory and ledger state are persisted to disk on exit.
+- **Database Safety**: Automated closing of SQLite connections during shutdown sequence.
+
 ## [1.0.0-alpha.66] - 2026-06-07
 
 ### Added
@@ -100,7 +107,7 @@
 
 ## [1.0.0-alpha.49] - 2026-06-06
 ### Added
-- **Monorepo Consolidation**: Removed `gstack` submodule and ported 10 core engineering skills to native `.agent/workflows/`.
+- **Monorepo Consolidation**: Removed `gstack` submodule and ported 10 core engineering workflows to native `.agent/workflows/`.
 - **Engineering Workflow Integration**: Unified `/office-hours`, `/plan-ceo-review`, and `/ship` into the core monorepo for Gemini CLI/Antigravity support.
 - **Unified Vision Finalized**: Synchronized all core documentation (README, MEMORY, TODO) to reflect the transition from multi-repo to monorepo.
 
