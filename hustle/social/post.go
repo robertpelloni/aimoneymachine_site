@@ -17,6 +17,9 @@ type SocialPost struct {
 	ScheduledAt time.Time
 }
 
+var twitterAPIEndpoint = "https://api.twitter.com/2/tweets"
+var linkedInAPIEndpoint = "https://api.linkedin.com/v2/ugcPosts"
+
 type Provider interface {
 	Post(orch *orchestrator.Orchestrator, platform, content string) error
 }
@@ -46,7 +49,7 @@ func (p *TwitterProvider) Post(orch *orchestrator.Orchestrator, platform, conten
 		return fmt.Errorf("failed to marshal twitter payload: %w", err)
 	}
 
-	resp, err := httpClient.Post("https://api.twitter.com/2/tweets", "application/json", bytes.NewBuffer(payloadBytes))
+	resp, err := httpClient.Post(twitterAPIEndpoint, "application/json", bytes.NewBuffer(payloadBytes))
 	if err != nil {
 		return fmt.Errorf("failed to post to twitter: %w", err)
 	}
@@ -101,7 +104,7 @@ func (p *LinkedInProvider) Post(orch *orchestrator.Orchestrator, platform, conte
 		return fmt.Errorf("failed to marshal linkedin payload: %w", err)
 	}
 
-	req, err := http.NewRequest("POST", "https://api.linkedin.com/v2/ugcPosts", bytes.NewBuffer(payloadBytes))
+	req, err := http.NewRequest("POST", linkedInAPIEndpoint, bytes.NewBuffer(payloadBytes))
 	if err != nil {
 		return fmt.Errorf("failed to create linkedin request: %w", err)
 	}
