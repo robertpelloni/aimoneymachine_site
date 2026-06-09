@@ -12,14 +12,14 @@
 - Hardened Content module prompt generation logic.
 - Optimized environment and dependency alignment.
 
-# 1.0.0-alpha.77
+# 1.0.0-alpha.78
 - Migrated to pure Go SQLite driver (`modernc.org/sqlite`) for Windows CGO compatibility.
 - Implemented Task Execution History logging to SQLite.
 - Added "View Task History" option to Interactive CLI.
 
 # Changelog
 
-## [1.0.0-alpha.77] - 2026-06-08
+## [1.0.0-alpha.78] - 2026-06-08
 
 ### Added
 - **Phase 4 Production Hardening**: Finalized core UI/UX enhancements for Luxury Space Communism and federated mesh observability.

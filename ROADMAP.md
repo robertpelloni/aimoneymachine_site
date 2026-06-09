@@ -25,7 +25,7 @@
 - Agent mode CLI flag (`-agent`, `-autoplan`)
 - Refactored Healer with LLM-verification
 
-## Phase 4: Production Hustle Operations (v1.0.0-alpha.67 – v1.0.0-alpha.77) ✅ COMPLETE
+## Phase 4: Production Hustle Operations (v1.0.0-alpha.67 – v1.0.0-alpha.78) ✅ COMPLETE
 - [x] **Real Research API** — Tavily integration for live intelligence (v1.0.0-alpha.68)
 - [x] **Graceful Shutdown** — State persistence on SIGINT/SIGTERM (v1.0.0-alpha.67)
 - [x] **Git Rollback** — Automated recovery to stable commits (v1.0.0-alpha.69)
@@ -35,7 +35,7 @@
 - [x] **Dynamic RSS** — User-managed feed lists for curation (v1.0.0-alpha.74)
 - [x] **Wealth Goals** — Mesh-wide financial targets and leaderboards (v1.0.0-alpha.75)
 
-## Phase 5: Advanced Autonomy & Scaling (v1.0.0-alpha.77 – v1.0.0-beta.10) 🔧 IN PROGRESS
+## Phase 5: Advanced Autonomy & Scaling (v1.0.0-alpha.78 – v1.0.0-beta.10) 🔧 IN PROGRESS
 - [ ] **Real Social API Integration** — Twitter/X and LinkedIn OAuth2/API calls
 - [ ] **Trading with real CoinGecko data** — verified in daemon mode with -real-prices
 - [ ] **Content output pipeline** — automated hosting/deployment of generated markdown
