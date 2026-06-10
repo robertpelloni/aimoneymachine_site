@@ -144,12 +144,14 @@ func ShowDashboard(orch *Orchestrator) {
 
 	// Collective Goal Progress
 	meshGoal := orch.WealthGoal
+	if meshGoal <= 0 { meshGoal = 1 } // Prevent division by zero
 	progress := (collectiveProfit / meshGoal) * 100
 	if progress < 0 { progress = 0 }
 
 	// ASCII Progress Bar
 	barWidth := 20
 	filled := int((progress / 100) * float64(barWidth))
+	if filled < 0 { filled = 0 }
 	if filled > barWidth { filled = barWidth }
 	bar := strings.Repeat("█", filled) + strings.Repeat("░", barWidth-filled)
 

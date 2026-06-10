@@ -2,7 +2,7 @@
 
 ## 🔴 Blockers
 - [x] **Fix Windows CGO build** (v1.0.0-alpha.78) — Migrate `go-sqlite3` to `modernc.org/sqlite` (pure Go).
-- [ ] **Real Social Posting** — Replace stubs in `hustle/social/post.go` with real API calls.
+- [x] **Real Social Posting** (v1.0.0-alpha.81) — Replaced stubs in `hustle/social/post.go` with real Twitter/LinkedIn API calls.
 
 ## 🟠 High Priority
 - [ ] **Real Trading Data** — Ensure CoinGecko fetcher is production-stable with API keys if needed.
@@ -17,6 +17,7 @@
 - [ ] **LLM response cache** — Content-addressable local cache.
 
 ## ✅ Completed
+- [x] **Real Social Posting** (v1.0.0-alpha.81)
 - [x] **Dynamic RSS Management** (v1.0.0-alpha.74)
 - [x] **Scheduler Observability** (v1.0.0-alpha.74)
 - [x] **Real Research API** (v1.0.0-alpha.68)

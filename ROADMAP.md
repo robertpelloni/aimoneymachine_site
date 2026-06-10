@@ -25,8 +25,10 @@
 - Agent mode CLI flag (`-agent`, `-autoplan`)
 - Refactored Healer with LLM-verification
 
-## Phase 4: Production Hustle Operations (v1.0.0-alpha.67 – v1.0.0-alpha.78) ✅ COMPLETE
+## Phase 4: Production Hustle Operations (v1.0.0-alpha.67 – v1.0.0-alpha.81) ✅ COMPLETE
 - [x] **Real Research API** — Tavily integration for live intelligence (v1.0.0-alpha.68)
+- [x] **Real Social API Integration** — Twitter (OAuth 1.0a) and LinkedIn (v2 UGC) API calls (v1.0.0-alpha.81)
+- [x] **Windows CGO build fix** — Migrated to `modernc.org/sqlite` (v1.0.0-alpha.78)
 - [x] **Graceful Shutdown** — State persistence on SIGINT/SIGTERM (v1.0.0-alpha.67)
 - [x] **Git Rollback** — Automated recovery to stable commits (v1.0.0-alpha.69)
 - [x] **Mesh UI** — Federated profit and status observability (v1.0.0-alpha.70)
@@ -35,14 +37,12 @@
 - [x] **Dynamic RSS** — User-managed feed lists for curation (v1.0.0-alpha.74)
 - [x] **Wealth Goals** — Mesh-wide financial targets and leaderboards (v1.0.0-alpha.75)
 
-## Phase 5: Advanced Autonomy & Scaling (v1.0.0-alpha.78 – v1.0.0-beta.10) 🔧 IN PROGRESS
-- [ ] **Real Social API Integration** — Twitter/X and LinkedIn OAuth2/API calls
+## Phase 5: Advanced Autonomy & Scaling (v1.0.0-alpha.82 – v1.0.0-beta.10) 🔧 IN PROGRESS
 - [ ] **Trading with real CoinGecko data** — verified in daemon mode with -real-prices
 - [ ] **Content output pipeline** — automated hosting/deployment of generated markdown
-- [ ] **Windows CGO build fix** — Migrate to `modernc.org/sqlite`
+- [ ] **Self-optimizing prompts** — A/B test prompt variations, track win rates
 
 ## Phase 5: Advanced Autonomy (v1.0.0-beta.11 – v1.0.0-rc.1) 📋 PLANNED
-- [ ] **Self-optimizing prompts** — A/B test prompt variations, track win rates
 - [ ] **Advanced trading indicators** — MACD, Bollinger Bands, volume analysis
 - [ ] **Multi-exchange trading** — Binance, Kraken exchange plugins
 - [ ] **Cross-hustle feedback** — research discoveries feed content topics, content feeds social

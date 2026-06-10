@@ -18,6 +18,9 @@ type SocialPost struct {
 	ScheduledAt time.Time
 }
 
+var twitterAPIEndpoint = "https://api.twitter.com/2/tweets"
+var linkedInAPIEndpoint = "https://api.linkedin.com/v2/ugcPosts"
+
 type Provider interface {
 	Post(orch *orchestrator.Orchestrator, platform, content string) error
 	SetDryRun(enabled bool)
@@ -61,16 +64,10 @@ func (p *TwitterProvider) Post(orch *orchestrator.Orchestrator, platform, conten
 
 	apiURL := p.APIURL
 	if apiURL == "" {
-		apiURL = "https://api.twitter.com/2/tweets"
+		apiURL = twitterAPIEndpoint
 	}
 
-	req, err := http.NewRequest("POST", apiURL, bytes.NewBuffer(reqBody))
-	if err != nil {
-		return fmt.Errorf("failed to create request: %w", err)
-	}
-	req.Header.Set("Content-Type", "application/json")
-
-	resp, err := httpClient.Do(req)
+	resp, err := httpClient.Post(apiURL, "application/json", bytes.NewBuffer(reqBody))
 	if err != nil {
 		return fmt.Errorf("failed to send request to Twitter API: %w", err)
 	}
@@ -90,7 +87,7 @@ func NewTwitterProvider(apiKey, apiSecret, accessToken, accessSecret string) *Tw
 		APISecret:    apiSecret,
 		AccessToken:  accessToken,
 		AccessSecret: accessSecret,
-		APIURL:       "https://api.twitter.com/2/tweets",
+		APIURL:       twitterAPIEndpoint,
 	}
 }
 
@@ -118,7 +115,7 @@ func (p *LinkedInProvider) Post(orch *orchestrator.Orchestrator, platform, conte
 
 	apiURL := p.APIURL
 	if apiURL == "" {
-		apiURL = "https://api.linkedin.com/v2/ugcPosts"
+		apiURL = linkedInAPIEndpoint
 	}
 
 	client := p.HTTPClient
@@ -175,7 +172,7 @@ func NewLinkedInProvider(accessToken, authorURN string) *LinkedInProvider {
 		AccessToken: accessToken,
 		AuthorURN:   authorURN,
 		HTTPClient:  &http.Client{Timeout: 10 * time.Second},
-		APIURL:      "https://api.linkedin.com/v2/ugcPosts",
+		APIURL:      linkedInAPIEndpoint,
 	}
 }
 
