@@ -1,3 +1,9 @@
+## [1.0.0-alpha.81] - 2026-06-09
+
+### Changed
+- **Version Increment**: Initialized metadata for next development cycle.
+- **Unified State**: Confirmed monorepo consistency across all modules.
+
 ## [1.0.0-alpha.80] - 2026-06-09
 
 ### Changed

@@ -2,7 +2,7 @@
 
 A self-orchestrating, LLM-driven autonomous agent system that runs revenue-generating "hustles" using free local AI models. The machine thinks, acts, learns, and evolves — without human intervention.
 
-**Current Version:** 1.0.0-alpha.78 · **Status:** Active Development · **Language:** Go 1.24.3
+**Current Version:** 1.0.0-alpha.81 · **Status:** Active Development · **Language:** Go 1.25.0
 
 ---
 
@@ -54,7 +54,7 @@ The Orchestrator provides a REST API for remote monitoring and control.
 ## 🚀 Quick Start
 
 ### Prerequisites
-- **Go 1.24.3** (required toolchain)
+- **Go 1.25.0** (required toolchain)
 - **LM Studio** (recommended) or **Ollama** for free local LLM
 - A loaded model (e.g., `gemma-4-26b`, `qwen3-27b`)
 

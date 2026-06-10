@@ -121,6 +121,10 @@ func (s *ResearchSearch) queryTavily(q string) ([]SearchResult, error) {
 	}
 	defer resp.Body.Close()
 
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("tavily API returned status: %d", resp.StatusCode)
+	}
+
 	var data struct {
 		Results []struct {
 			URL     string `json:"url"`
