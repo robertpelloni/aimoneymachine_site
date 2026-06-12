@@ -69,7 +69,7 @@ func main() {
 	// Auto-detect and test the LLM connection
 	if model, err := llmProvider.DetectModel(); err == nil {
 		fmt.Printf("[LLM] ✅ Connected to local LLM: %s\n", model)
-		orch.LLM = llmProvider
+		orch.LLM = &orchestrator.CachedLLM{Provider: llmProvider, DB: orch.DB, Enabled: true}
 		// Also set up real embeddings
 		orch.Embedder = orchestrator.NewOpenAICompatEmbedder()
 	} else {
@@ -774,11 +774,58 @@ func runInteractiveMenu(orch *orchestrator.Orchestrator, protocol *orchestrator.
 			} else {
 				fmt.Println("Invalid amount. Goal unchanged.")
 			}
+		case "24":
+			runCacheMenu(orch, reader)
 		case "q":
 			fmt.Println("Exiting...")
 			return
 		default:
 			fmt.Println("Invalid option, please try again.")
+		}
+	}
+}
+
+func runCacheMenu(orch *orchestrator.Orchestrator, reader *bufio.Reader) {
+	for {
+		fmt.Println("\n--- LLM CACHE MANAGEMENT ---")
+		if orch.DB != nil {
+			count, _ := orch.DB.GetCacheCount()
+			fmt.Printf(" Responses in cache: %d\n", count)
+		}
+
+		cached, isCached := orch.LLM.(*orchestrator.CachedLLM)
+		status := "DISABLED"
+		if isCached && cached.Enabled {
+			status = "ENABLED"
+		}
+		fmt.Printf(" Cache Status: %s\n", status)
+
+		fmt.Println(" 1. Toggle Cache (On/Off)")
+		fmt.Println(" 2. Clear All Cached Responses")
+		fmt.Println(" r. Return to Main Menu")
+		fmt.Print("Select option: ")
+
+		input, _ := reader.ReadString('\n')
+		input = strings.TrimSpace(input)
+
+		switch input {
+		case "1":
+			if isCached {
+				cached.Enabled = !cached.Enabled
+				fmt.Printf("Cache is now %v\n", cached.Enabled)
+			} else {
+				fmt.Println("Error: LLM is not using a cache provider.")
+			}
+		case "2":
+			if orch.DB != nil {
+				if err := orch.DB.ClearLLMCache(); err != nil {
+					fmt.Printf("Error clearing cache: %v\n", err)
+				} else {
+					fmt.Println("Cache cleared.")
+				}
+			}
+		case "r":
+			return
 		}
 	}
 }

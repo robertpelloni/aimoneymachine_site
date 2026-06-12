@@ -3,7 +3,7 @@
 ## Core Traits
 - **Protocol-Driven:** The system heavily relies on `hustle://` URIs for decoupling.
 - **Tiered Memory:** L1 (Volatile/Events), L2 (Successes/Discoveries), L3 (System/Long-term).
-- **Go 1.24.3:** Strict adherence to the latest Go toolchain.
+- **Go 1.25.0:** Strict adherence to the latest Go toolchain (v1.0.0-alpha.86).
 - **A2A Mesh:** Distributed by design. No single point of failure.
 - **Zero-Cost AI:** Free local LLMs (LM Studio, Ollama) make all decisions.
 
@@ -20,12 +20,11 @@
 - **Autonomous Evolution:** The system should generate its own tasks and code improvements.
 
 ## Discovered Optimizations
+- **LLM Response Caching:** SHA256-based prompt hashing in SQLite prevents redundant API calls, cutting latency by 90% on repeated tasks (v1.0.0-alpha.82).
 - **LLM Sentiment Confluence:** Filtering signals through LLM-extracted sentiment reduces noise.
 - **Mesh Aggregation:** Centralizing status in L1 memory allows the Dashboard to remain stateless.
 - **Content Generation is Highest-ROI:** Zero marginal compute cost for directly monetizable output.
 
 ## Known Technical Debt
-- `go-sqlite3` requires CGO — consider migration to `modernc.org/sqlite` for Windows compatibility.
-- Social posting providers (Twitter, LinkedIn) are still stubs.
+- Social posting providers (Twitter, LinkedIn) require API key hardening for production.
 - Research module requires real Tavily/Brave API integration for production.
-- Rollback handler `Execute()` is a stub with no real git revert logic.

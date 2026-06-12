@@ -1,3 +1,14 @@
+## [1.0.0-alpha.86] - 2026-06-09
+
+### Added
+- **LLM Response Caching**: Implemented a content-addressable SQLite-backed cache for LLM responses. Prompts are hashed (SHA256) to prevent redundant API calls, reducing costs and latency.
+- **Cache Management UI**: Added a dedicated interactive menu for toggling the cache, clearing stored responses, and monitoring cache hits/misses.
+- **Enhanced Terminal Dashboard**: Integrated real-time cache status and hit metrics into the main dashboard visualization.
+
+### Fixed
+- **Dashboard Stability**: Resolved a division-by-zero panic in the wealth progress bar when the mesh goal is zero.
+- **Test Hardening**: Updated the dashboard integration test with an ANSI-stripping helper to ensure color-coded UI output doesn't break string matching.
+
 ## [1.0.0-alpha.81] - 2026-06-09
 
 ### Changed

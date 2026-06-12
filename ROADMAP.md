@@ -39,14 +39,14 @@
 - [ ] **Real Social API Integration** — Twitter/X and LinkedIn OAuth2/API calls
 - [ ] **Trading with real CoinGecko data** — verified in daemon mode with -real-prices
 - [ ] **Content output pipeline** — automated hosting/deployment of generated markdown
-- [ ] **Windows CGO build fix** — Migrate to `modernc.org/sqlite`
+- [x] **Windows CGO build fix** — Migrated to `modernc.org/sqlite` (v1.0.0-alpha.78)
+- [x] **LLM response cache** — Content-addressable cache for identical prompts (v1.0.0-alpha.82)
 
 ## Phase 5: Advanced Autonomy (v1.0.0-beta.11 – v1.0.0-rc.1) 📋 PLANNED
 - [ ] **Self-optimizing prompts** — A/B test prompt variations, track win rates
 - [ ] **Advanced trading indicators** — MACD, Bollinger Bands, volume analysis
 - [ ] **Multi-exchange trading** — Binance, Kraken exchange plugins
 - [ ] **Cross-hustle feedback** — research discoveries feed content topics, content feeds social
-- [ ] **LLM response cache** — content-addressable cache for identical prompts
 
 ## Phase 6: Federation & Scale (v1.0.0-rc.2 – v1.0.0) 📋 PLANNED
 - [ ] **Multi-node cluster testing** — 10+ peers with real mesh sync

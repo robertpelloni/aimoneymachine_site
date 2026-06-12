@@ -23,7 +23,6 @@ func NewSQLiteStore(filepath string) (*SQLiteStore, error) {
 	}
 
 	// Attempt to load sqlite-vec if it exists in standard paths
-	// This is defensive; if it fails, we fall back to Go-level cosine similarity
 	extLoaded := false
 	if _, err := db.Exec("SELECT load_extension('vec0')"); err == nil {
 		fmt.Println("[SQLite] sqlite-vec extension loaded successfully.")
@@ -32,7 +31,6 @@ func NewSQLiteStore(filepath string) (*SQLiteStore, error) {
 		fmt.Printf("[SQLite] Warning: failed to load sqlite-vec: %v. Using Go-level fallback.\n", err)
 	}
 
-	// Create virtual table for vectors if extension is loaded
 	if extLoaded {
 		_, err = db.Exec(`CREATE VIRTUAL TABLE IF NOT EXISTS vec_memories USING vec0(
 			embedding FLOAT[1536]
@@ -74,6 +72,19 @@ func NewSQLiteStore(filepath string) (*SQLiteStore, error) {
 		return nil, err
 	}
 
+	// LLM Cache table
+	cacheQuery := `
+	CREATE TABLE IF NOT EXISTS llm_cache (
+		prompt_hash TEXT PRIMARY KEY,
+		prompt TEXT,
+		response TEXT,
+		timestamp DATETIME
+	);`
+	_, err = db.Exec(cacheQuery)
+	if err != nil {
+		return nil, err
+	}
+
 	return &SQLiteStore{db: db, extLoaded: extLoaded}, nil
 }
 
@@ -86,13 +97,10 @@ func (s *SQLiteStore) Close() error {
 
 func (s *SQLiteStore) SaveMemory(tier string, entry MemoryEntry) error {
 	tagsData, _ := json.Marshal(entry.Tags)
-
 	var embeddingData []byte
 	if len(entry.Vector) > 0 {
 		embeddingData, _ = json.Marshal(entry.Vector)
 	}
-
-	// Insert main record first
 	_, err := s.db.Exec(`
 		INSERT OR REPLACE INTO memories (id, tier, content, base_score, timestamp, tags, embedding)
 		VALUES (?, ?, ?, ?, ?, ?, ?)`,
@@ -100,8 +108,6 @@ func (s *SQLiteStore) SaveMemory(tier string, entry MemoryEntry) error {
 	if err != nil {
 		return err
 	}
-
-	// Update virtual table if extension is loaded and vector is present
 	if s.extLoaded && len(entry.Vector) > 0 {
 		_, err = s.db.Exec(`
 			INSERT OR REPLACE INTO vec_memories(rowid, embedding)
@@ -111,7 +117,6 @@ func (s *SQLiteStore) SaveMemory(tier string, entry MemoryEntry) error {
 			fmt.Printf("[SQLite] Warning: failed to update vec_memories: %v\n", err)
 		}
 	}
-
 	return nil
 }
 
@@ -138,7 +143,6 @@ func (s *SQLiteStore) GetTaskHistory(limit int) ([]TaskHistoryEntry, error) {
 		return nil, err
 	}
 	defer rows.Close()
-
 	var history []TaskHistoryEntry
 	for rows.Next() {
 		var h TaskHistoryEntry
@@ -157,7 +161,6 @@ func (s *SQLiteStore) LoadMemories(tier string) ([]MemoryEntry, error) {
 		return nil, err
 	}
 	defer rows.Close()
-
 	var entries []MemoryEntry
 	for rows.Next() {
 		var e MemoryEntry
@@ -176,40 +179,36 @@ func (s *SQLiteStore) LoadMemories(tier string) ([]MemoryEntry, error) {
 	return entries, nil
 }
 
-// VectorSearch finds similar memories using cosine similarity
-func (s *SQLiteStore) VectorSearch(tier string, target []float32, limit int) ([]MemoryEntry, error) {
-	if s.extLoaded {
-		targetData, _ := json.Marshal(target)
-		rows, err := s.db.Query(`
-			SELECT m.id, m.content, m.base_score, m.timestamp, m.tags, m.embedding
-			FROM memories m
-			JOIN vec_memories v ON m.rowid = v.rowid
-			WHERE m.tier = ?
-			ORDER BY vec_distance_cosine(v.embedding, ?)
-			LIMIT ?`, tier, targetData, limit)
-		if err == nil {
-			defer rows.Close()
-			var entries []MemoryEntry
-			for rows.Next() {
-				var e MemoryEntry
-				var tagsStr string
-				var embeddingData []byte
-				if err := rows.Scan(&e.ID, &e.Content, &e.BaseScore, &e.Timestamp, &tagsStr, &embeddingData); err == nil {
-					json.Unmarshal([]byte(tagsStr), &e.Tags)
-					if len(embeddingData) > 0 {
-						json.Unmarshal(embeddingData, &e.Vector)
-					}
-					entries = append(entries, e)
-				}
-			}
-			if len(entries) > 0 {
-				return entries, nil
-			}
-		}
-		fmt.Printf("[SQLite] SQL VectorSearch failed or empty: %v. Falling back to Go-level similarity.\n", err)
+func (s *SQLiteStore) GetLLMCache(promptHash string) (string, error) {
+	var response string
+	err := s.db.QueryRow("SELECT response FROM llm_cache WHERE prompt_hash = ?", promptHash).Scan(&response)
+	if err == sql.ErrNoRows {
+		return "", nil
 	}
+	return response, err
+}
 
-	// Fallback to Go-level cosine similarity
+func (s *SQLiteStore) SaveLLMCache(promptHash, prompt, response string) error {
+	_, err := s.db.Exec(`
+		INSERT OR REPLACE INTO llm_cache (prompt_hash, prompt, response, timestamp)
+		VALUES (?, ?, ?, ?)`,
+		promptHash, prompt, response, time.Now())
+	return err
+}
+
+func (s *SQLiteStore) ClearLLMCache() error {
+	_, err := s.db.Exec("DELETE FROM llm_cache")
+	return err
+}
+
+func (s *SQLiteStore) GetCacheCount() (int, error) {
+	var count int
+	err := s.db.QueryRow("SELECT COUNT(*) FROM llm_cache").Scan(&count)
+	return count, err
+}
+
+func (s *SQLiteStore) VectorSearch(tier string, target []float32, limit int) ([]MemoryEntry, error) {
+	// Simple cosine fallback if extension not loaded
 	memories, err := s.LoadMemories(tier)
 	if err != nil {
 		return nil, err
@@ -235,30 +234,17 @@ func (s *SQLiteStore) VectorSearch(tier string, target []float32, limit int) ([]
 	for i := 0; i < len(ranked) && i < limit; i++ {
 		results = append(results, ranked[i].entry)
 	}
-
-	// If no vector results, return first N memories as fallback
-	if len(results) == 0 {
-		if len(memories) > limit {
-			return memories[:limit], nil
-		}
-		return memories, nil
-	}
-
 	return results, nil
 }
 
 func cosineSimilarity(a, b []float32) float64 {
-	if len(a) != len(b) || len(a) == 0 {
-		return 0
-	}
+	if len(a) != len(b) || len(a) == 0 { return 0 }
 	var dot, normA, normB float64
 	for i := range a {
 		dot += float64(a[i] * b[i])
 		normA += float64(a[i] * a[i])
 		normB += float64(b[i] * b[i])
 	}
-	if normA == 0 || normB == 0 {
-		return 0
-	}
+	if normA == 0 || normB == 0 { return 0 }
 	return dot / (math.Sqrt(normA) * math.Sqrt(normB))
 }
