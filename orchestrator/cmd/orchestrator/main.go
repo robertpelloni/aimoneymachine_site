@@ -622,6 +622,7 @@ func runInteractiveMenu(orch *orchestrator.Orchestrator, protocol *orchestrator.
 		fmt.Println("21. 🆕 RSS Feed Management")
 		fmt.Println("22. 🆕 View Task History (SQLite)")
 		fmt.Println("23. 🆕 Configure Collective Wealth Goal")
+		fmt.Println("24. 🆕 AI Council Debate (Sentiment Analysis)")
 		fmt.Println(" q. Quit")
 		fmt.Print("Select an option: ")
 
@@ -632,7 +633,22 @@ func runInteractiveMenu(orch *orchestrator.Orchestrator, protocol *orchestrator.
 		case "1":
 			protocol.HandleURI("hustle://research")
 		case "2":
-			protocol.HandleURI("hustle://social")
+			fmt.Println("\n--- SOCIAL HUSTLE PLATFORM ---")
+			fmt.Println(" 1. Twitter/X")
+			fmt.Println(" 2. LinkedIn")
+			fmt.Print("Select platform: ")
+			pStr, _ := reader.ReadString('\n')
+			pStr = strings.TrimSpace(pStr)
+
+			platform := "Twitter"
+			if pStr == "2" { platform = "LinkedIn" }
+
+			fmt.Print("Enter topic (default AI): ")
+			topic, _ := reader.ReadString('\n')
+			topic = strings.TrimSpace(topic)
+			if topic == "" { topic = "AI" }
+
+			protocol.HandleURI(fmt.Sprintf("hustle://social?platform=%s&topic=%s", platform, url.QueryEscape(topic)))
 		case "3":
 			protocol.HandleURI("hustle://curation")
 		case "4":
@@ -722,18 +738,64 @@ func runInteractiveMenu(orch *orchestrator.Orchestrator, protocol *orchestrator.
 				}
 			}
 		case "16":
-			fmt.Println("🤖 Starting agent loop (10 iterations)...")
-			agent := orchestrator.NewAgentLoop(orch, protocol, broker, "general")
-			agent.State.MaxIter = 10
-			agent.Run()
+			fmt.Println("\n--- MULTI-AGENT CONTROL ---")
+			fmt.Println(" 1. Research Agent")
+			fmt.Println(" 2. Trading Agent")
+			fmt.Println(" 3. Content Agent")
+			fmt.Println(" 4. Social Agent")
+			fmt.Println(" 5. Generalist Agent")
+			fmt.Print("Select agent type: ")
+			aTypeStr, _ := reader.ReadString('\n')
+			aTypeStr = strings.TrimSpace(aTypeStr)
+
+			var aType string
+			switch aTypeStr {
+			case "1": aType = "research"
+			case "2": aType = "trading"
+			case "3": aType = "content"
+			case "4": aType = "social"
+			default: aType = "general"
+			}
+
+			fmt.Print("Enter max iterations (default 10): ")
+			iterStr, _ := reader.ReadString('\n')
+			iterStr = strings.TrimSpace(iterStr)
+			iters := 10
+			fmt.Sscanf(iterStr, "%d", &iters)
+
+			fmt.Printf("🤖 Launching %s agent loop (%d iterations)...\n", aType, iters)
+			agent := orchestrator.NewAgentLoop(orch, protocol, broker, aType)
+			agent.State.MaxIter = iters
+			go agent.Run()
+			fmt.Println("Agent started in background. View progress in Dashboard.")
 		case "17":
-			fmt.Println("🧠 Asking LLM to plan hustles...")
-			plans, err := orchestrator.PlanHustles(orch)
-			if err != nil {
-				fmt.Printf("Error: %v\n", err)
+			fmt.Println("\n--- WORKFLOW & STRATEGY ---")
+			fmt.Println(" 1. Auto-Plan Hustles (LLM Strategy)")
+			fmt.Println(" 2. Discover & Register Luxury Chain")
+			fmt.Print("Select option: ")
+			wStr, _ := reader.ReadString('\n')
+			wStr = strings.TrimSpace(wStr)
+
+			if wStr == "2" {
+				fmt.Println("✨ Launching ChainDiscoverer for luxury workflow evolution...")
+				discovered, err := discoverer.Discover()
+				if err != nil {
+					fmt.Printf("Discovery failed: %v\n", err)
+				} else {
+					fmt.Printf("✅ Discovered: %s (%s)\n", discovered.Name, discovered.Description)
+					fmt.Printf("   Steps: %v\n", discovered.Steps)
+					fmt.Printf("   Interval: %d minutes\n", discovered.IntervalMinutes)
+					fmt.Println("   Registered and scheduled in local repository.")
+				}
 			} else {
-				for i, p := range plans {
-					fmt.Printf("  %d. [%s/%s] %s — %s\n", i+1, p.Category, p.Priority, p.Name, p.Description)
+				fmt.Println("🧠 Asking LLM to plan hustles...")
+				plans, err := orchestrator.PlanHustles(orch)
+				if err != nil {
+					fmt.Printf("Error: %v\n", err)
+				} else {
+					for i, p := range plans {
+						fmt.Printf("  %d. [%s/%s] %s — %s\n", i+1, p.Category, p.Priority, p.Name, p.Description)
+					}
 				}
 			}
 		case "18":
@@ -780,6 +842,22 @@ func runInteractiveMenu(orch *orchestrator.Orchestrator, protocol *orchestrator.
 				protocol.HandleURI(fmt.Sprintf("hustle://swarm?action=set_goal&amount=%.2f", newGoal))
 			} else {
 				fmt.Println("Invalid amount. Goal unchanged.")
+			}
+		case "24":
+			fmt.Print("Enter topic for Council Debate: ")
+			topic, _ := reader.ReadString('\n')
+			topic = strings.TrimSpace(topic)
+			if topic != "" {
+				council := orchestrator.NewCouncil(orch)
+				fmt.Printf("⚖️  Convening the AI Council for topic: %s\n", topic)
+				score, conclusion, err := council.Debate(topic)
+				if err != nil {
+					fmt.Printf("Council failed: %v\n", err)
+				} else {
+					fmt.Printf("\n--- COUNCIL VERDICT ---\n")
+					fmt.Printf("Weighted Sentiment Score: %.2f\n", score)
+					fmt.Printf("Synthesis: %s\n", conclusion)
+				}
 			}
 		case "q":
 			fmt.Println("Exiting...")
