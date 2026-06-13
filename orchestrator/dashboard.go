@@ -130,9 +130,12 @@ func ShowTaskHistory(orch *Orchestrator) {
 	}
 }
 
-func StartLiveDashboard(orch *Orchestrator) {
+func StartLiveDashboard(orch *Orchestrator, refreshRate time.Duration) {
+	if refreshRate <= 0 {
+		refreshRate = 1 * time.Second
+	}
 	for {
 		ShowDashboard(orch)
-		time.Sleep(2 * time.Second)
+		time.Sleep(refreshRate)
 	}
 }

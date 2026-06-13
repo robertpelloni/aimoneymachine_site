@@ -22,7 +22,9 @@ func (m *MockPriceFetcher) GetPrice(symbol string) (float64, error) {
 	return 50000.0 + rand.Float64()*1000.0, nil
 }
 
-type CoinGeckoFetcher struct{}
+type CoinGeckoFetcher struct {
+	APIKey string
+}
 
 func (c *CoinGeckoFetcher) GetPrice(symbol string) (float64, error) {
 	// Map common symbols to CoinGecko IDs
@@ -38,13 +40,35 @@ func (c *CoinGeckoFetcher) GetPrice(symbol string) (float64, error) {
 		id = strings.ToLower(symbol)
 	}
 
-	url := fmt.Sprintf("https://api.coingecko.com/api/v3/simple/price?ids=%s&vs_currencies=usd", id)
+	baseURL := "https://api.coingecko.com/api/v3"
+	if c.APIKey != "" {
+		baseURL = "https://pro-api.coingecko.com/api/v3"
+	}
+
+	url := fmt.Sprintf("%s/simple/price?ids=%s&vs_currencies=usd", baseURL, id)
 	client := &http.Client{Timeout: 10 * time.Second}
-	resp, err := client.Get(url)
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return 0, err
+	}
+
+	if c.APIKey != "" {
+		req.Header.Set("x-cg-pro-api-key", c.APIKey)
+	}
+
+	resp, err := client.Do(req)
 	if err != nil {
 		return 0, err
 	}
 	defer resp.Body.Close()
+
+	if resp.StatusCode == http.StatusTooManyRequests {
+		return 0, fmt.Errorf("CoinGecko rate limit exceeded (HTTP 429)")
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return 0, fmt.Errorf("CoinGecko API returned status %d", resp.StatusCode)
+	}
 
 	var result map[string]map[string]float64
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
@@ -82,7 +106,14 @@ func (t *TradingModule) ExecuteStrategy() error {
 	}
 	t.History = append(t.History, price)
 
-	fmt.Printf("[Trading] Current Price for %s: $%.2f\n", t.Symbol, price)
+	source := "MOCK"
+	if f, ok := t.Fetcher.(*CoinGeckoFetcher); ok {
+		source = "COINGECKO_PUBLIC"
+		if f.APIKey != "" {
+			source = "COINGECKO_PRO"
+		}
+	}
+	fmt.Printf("[Trading] Current Price for %s: $%.2f (Source: %s)\n", t.Symbol, price, source)
 
 	// Technical Indicator: Simple Moving Average (SMA)
 	sma := t.calculateSMA(5)
@@ -115,7 +146,7 @@ func (t *TradingModule) ExecuteStrategy() error {
 	// Persist to memory
 	t.Orchestrator.L1.Add(orchestrator.MemoryEntry{
 		ID:        fmt.Sprintf("trade-%s-%d", t.Symbol, time.Now().Unix()),
-		Content:   fmt.Sprintf("Trade Decision for %s: %s at $%.2f (SMA: $%.2f, RSI: %.2f, Div: %s)", t.Symbol, decision, price, sma, rsi, divergence),
+		Content:   fmt.Sprintf("Trade Decision for %s: %s at $%.2f (Source: %s) (SMA: $%.2f, RSI: %.2f, Div: %s)", t.Symbol, decision, price, source, sma, rsi, divergence),
 		Timestamp: time.Now(),
 		Tags:      []string{"trading", t.Symbol, decision},
 	})

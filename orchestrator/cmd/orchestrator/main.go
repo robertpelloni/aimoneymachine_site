@@ -36,6 +36,7 @@ func main() {
 	agentIter := flag.Int("agent-iterations", 20, "Max iterations for agent loop")
 	autoPlan := flag.Bool("autoplan", false, "LLM generates and executes a strategic hustle plan")
 	dryRun := flag.Bool("dry-run", false, "Execute in dry-run mode (no external mutations)")
+	refreshRate := flag.Int("refresh", 1000, "Dashboard refresh rate in milliseconds")
 	flag.Parse()
 
 	// Source version from VERSION.md
@@ -89,7 +90,11 @@ func main() {
 	var fetcher trading.PriceFetcher = &trading.MockPriceFetcher{}
 	if *realPrices {
 		fmt.Println("[Trading] Real-world price fetching enabled via CoinGecko.")
-		fetcher = &trading.CoinGeckoFetcher{}
+		cgKey := os.Getenv("COINGECKO_API_KEY")
+		if cgKey != "" {
+			fmt.Println("[Trading] CoinGecko Pro API Key detected.")
+		}
+		fetcher = &trading.CoinGeckoFetcher{APIKey: cgKey}
 	}
 	traderModule := &trading.TradingModule{
 		Orchestrator: orch,
@@ -372,7 +377,7 @@ func main() {
 
 	// ── Dashboard Mode ──
 	if *dashboard {
-		orchestrator.StartLiveDashboard(orch)
+		orchestrator.StartLiveDashboard(orch, time.Duration(*refreshRate)*time.Millisecond)
 		return
 	}
 
@@ -732,10 +737,12 @@ func runInteractiveMenu(orch *orchestrator.Orchestrator, protocol *orchestrator.
 				}
 			}
 		case "18":
-			files, err := os.ReadDir("output/content")
+			path, err := contentModule.GenerateGallery()
 			if err != nil {
-				fmt.Printf("Error reading content library: %v\n", err)
+				fmt.Printf("Error generating gallery: %v\n", err)
 			} else {
+				fmt.Printf("✅ Content Gallery generated: %s\n", path)
+				files, _ := os.ReadDir("output/content")
 				fmt.Println("\n📂 CONTENT LIBRARY:")
 				for _, f := range files {
 					if !f.IsDir() {
