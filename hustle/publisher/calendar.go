@@ -38,6 +38,7 @@ type CalendarEntry struct {
 
 // NewContentCalendar creates a new content calendar
 func NewContentCalendar() *ContentCalendar {
+	// Social providers need DryRun config from Orchestrator, handled in PublishEntry
 	return &ContentCalendar{
 		Entries:    make([]CalendarEntry, 0),
 		WordPress:  NewWordPressPublisher(),
@@ -175,6 +176,7 @@ func (c *ContentCalendar) publishToWordPress(entry *CalendarEntry, content strin
 
 func (c *ContentCalendar) publishToTwitter(orch *orchestrator.Orchestrator, entry *CalendarEntry, content string) error {
 	fmt.Printf("[Calendar] Posting to Twitter: %s\n", entry.Title)
+	c.Twitter.SetDryRun(orch.DryRun)
 
 	// Twitter threads are handled by the LLM usually, but for simple calendar posts, we use the provider directly
 	return c.Twitter.Post(orch, "Twitter", content)
@@ -182,6 +184,7 @@ func (c *ContentCalendar) publishToTwitter(orch *orchestrator.Orchestrator, entr
 
 func (c *ContentCalendar) publishToLinkedIn(orch *orchestrator.Orchestrator, entry *CalendarEntry, content string) error {
 	fmt.Printf("[Calendar] Posting to LinkedIn: %s\n", entry.Title)
+	c.LinkedIn.SetDryRun(orch.DryRun)
 	return c.LinkedIn.Post(orch, "LinkedIn", content)
 }
 

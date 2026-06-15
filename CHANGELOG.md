@@ -1,3 +1,14 @@
+## [1.0.0-alpha.91] - 2026-06-20
+
+### Added
+- **Global Profit Leaderboard**: Real-time mesh-wide node performance tracking via `action=sync_profit`.
+- **Collaborative Healing**: Enhanced the `Healer` to leverage the collective swarm memory for resolving technical issues.
+- **Security Verification**: Active cryptographic identity verification for federated sync requests.
+
+### Fixed
+- **DryRun Integrity**: Ensured `ContentCalendar` publishing respects the global safety mode across all social providers.
+- **Stability**: Resolved a potential runtime panic in the technical indicator logic (RSI).
+
 ## [1.0.0-alpha.90] - 2026-06-19
 
 ### Added

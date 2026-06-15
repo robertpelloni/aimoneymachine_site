@@ -357,6 +357,17 @@ func main() {
 		case "provide_status":
 			data := p.Get("data")
 			swarm.HandleStatusResponse(peerID, data)
+		case "sync_profit":
+			profitStr := p.Get("profit")
+			var amount float64
+			fmt.Sscanf(profitStr, "%f", &amount)
+			content := fmt.Sprintf("Leaderboard Sync: Peer %s Profit: $%.2f", peerID, amount)
+			orch.L1.Add(orchestrator.MemoryEntry{
+				ID:        fmt.Sprintf("leaderboard-%s-%d", peerID, time.Now().Unix()),
+				Content:   content,
+				Timestamp: time.Now(),
+				Tags:      []string{"swarm", "leaderboard", "profit"},
+			})
 		case "set_goal":
 			amountStr := p.Get("amount")
 			var amount float64

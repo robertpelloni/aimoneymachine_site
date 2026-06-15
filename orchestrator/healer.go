@@ -23,7 +23,17 @@ func NewHealer(o *Orchestrator) *Healer {
 func (h *Healer) Diagnose(issue string) string {
 	fmt.Printf("Diagnosing issue: %s\n", issue)
 
-	prompt := fmt.Sprintf("Act as a system architect. Diagnose the following system issue: %s. Provide a concise explanation of the root cause.", issue)
+	// Collaborative Healing: Search mesh memory for similar issues
+	meshFixes := h.Orchestrator.L2.Search("resolution")
+	var fixContext string
+	if len(meshFixes) > 0 {
+		fixContext = "\nRECENT MESH RESOLUTIONS:\n"
+		for _, f := range meshFixes {
+			fixContext += fmt.Sprintf("- %s\n", f.Content)
+		}
+	}
+
+	prompt := fmt.Sprintf("Act as a system architect. Diagnose the following system issue: %s. Provide a concise explanation of the root cause. %s", issue, fixContext)
 	diagnosis, err := h.Orchestrator.LLM.Generate(prompt)
 	if err != nil {
 		diagnosis = "Unable to generate AI diagnosis; defaulting to 'Incomplete system state'."

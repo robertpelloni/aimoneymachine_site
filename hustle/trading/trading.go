@@ -480,12 +480,17 @@ func (t *TradingModule) calculateSMA(period int) float64 {
 }
 
 func (t *TradingModule) calculateRSI(period int) float64 {
+	// Guard against empty history or history shorter than period + 1 (for first change)
 	if len(t.History) <= period {
 		return 50.0 // Neutral default
 	}
 
 	var gains, losses float64
-	for i := len(t.History) - period; i < len(t.History); i++ {
+	// Start loop from index that ensures i-1 is valid
+	startIdx := len(t.History) - period
+	if startIdx < 1 { startIdx = 1 }
+
+	for i := startIdx; i < len(t.History); i++ {
 		change := t.History[i] - t.History[i-1]
 		if change > 0 {
 			gains += change

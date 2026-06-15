@@ -164,9 +164,38 @@ func ShowDashboard(orch *Orchestrator) {
 	sort.Slice(leaderboard, func(i, j int) bool {
 		return leaderboard[i].profit > leaderboard[j].profit
 	})
+	// Load Leaderboard Sync Entries from L1
+	syncEntries := orch.L1.Search("leaderboard")
+	for _, e := range syncEntries {
+		if idx := strings.Index(e.Content, "Profit: $"); idx != -1 {
+			var amount float64
+			fmt.Sscanf(e.Content[idx:], "Profit: $%f", &amount)
+
+			// Extract peer ID
+			peerID := "unknown"
+			fmt.Sscanf(e.Content, "Leaderboard Sync: Peer %s Profit:", &peerID)
+
+			// Update or Add
+			found := false
+			for j, lp := range leaderboard {
+				if lp.id == peerID {
+					leaderboard[j].profit = amount
+					found = true
+					break
+				}
+			}
+			if !found {
+				leaderboard = append(leaderboard, peerProfit{peerID, amount})
+			}
+		}
+	}
+
 	fmt.Printf("\n  %sPEER LEADERBOARD:%s\n", colorBold, colorReset)
 	fmt.Printf("  %-15s %-15s %-10s\n", "RANK", "PEER ID", "PROFIT")
 	fmt.Println("  " + strings.Repeat("-", 42))
+	sort.Slice(leaderboard, func(i, j int) bool {
+		return leaderboard[i].profit > leaderboard[j].profit
+	})
 	for i := 0; i < len(leaderboard) && i < 5; i++ {
 		rankColor := colorReset
 		if i == 0 { rankColor = colorYellow }
