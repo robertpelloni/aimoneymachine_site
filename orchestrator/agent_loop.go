@@ -158,7 +158,7 @@ Available modules and their parameters:
 - hustle://curation?topic=TOPIC — Curate and summarize content on a topic
 - hustle://social?platform=PLATFORM&topic=TOPIC — Generate and post content (platform: Twitter, LinkedIn)
 - hustle://trading?symbol=SYMBOL — Execute trading strategy for a crypto symbol
-- hustle://content?topic=TOPIC&type=TYPE — Generate monetizable content (type: blog, newsletter, seo, thread)
+- hustle://content?topic=TOPIC&type=TYPE — Generate monetizable content (type: blog, newsletter, seo, thread, tool)
 - hustle://content?topic=TOPIC&type=TYPE&publish=true — Generate AND publish content to WordPress/Newsletter
 - hustle://leadgen?topic=TOPIC — Discover business leads for a topic
 - hustle://calendar?action=process — Process and publish scheduled content
@@ -181,7 +181,7 @@ STRATEGY GUIDELINES:
 4. If errors are high, run healer. If profitable, double down on what works.
 5. Vary your actions — do NOT repeat the same action twice in a row.
 6. Use specific, targeted queries rather than generic ones.
-7. Mix content types: blog posts for SEO, newsletters for subscribers, threads for viral reach.
+7. Mix content types: blog posts for SEO, newsletters for subscribers, threads for viral reach, and utility tools for utility SEO traffic.
 
 Respond with ONLY the hustle:// URI, nothing else. Example: hustle://content?topic=AI+agent+market+trends+2026&type=blog`,
 		a.State.HustleType, context, a.State.Iterations, a.State.Successes, a.State.Errors)
@@ -427,8 +427,8 @@ Generate plans from these categories:
 2. LeadGen — Automated lead discovery for business opportunities
 3. Curation — Content aggregation and newsletter generation
 4. Social — Automated content posting for audience growth
-5. Trading — Crypto trading with technical analysis
-6. Content — Blog/article/SEO/Newsletter generation and publishing
+5. Trading — Crypto trading with real execution on Binance
+6. Content — Blog/article/SEO/Newsletter/Utility-Tool generation and publishing
 
 Respond with a JSON array of exactly 5 objects:
 [

@@ -1,3 +1,14 @@
+## [1.0.0-alpha.88] - 2026-06-17
+
+### Added
+- **Real Trade Execution (Binance)**: Implemented `BinanceExecutor` for authenticated BUY/SELL orders on the Binance exchange, transitioning from paper trading to real capital growth.
+- **Autonomous Outreach Delivery (SMTP)**: Added SMTP support to the `outreach` module. The machine now autonomously delivers personalized pitches to discovered leads using their extracted contact info.
+- **Micro-SaaS Generation**: Expanded `ContentModule` with a `tool` type to generate self-contained HTML/JS applications, driving diversified "Utility SEO" traffic.
+- **Acquisition Pipeline Hardening**: Updated `LeadGen` to autonomously extract contact emails from research results.
+
+### Fixed
+- **Safety Lockdown**: Fixed a critical bug where `ContentCalendar` publishing would bypass `DryRun` mode. All social posts now correctly honor the global safety state.
+
 ## [1.0.0-alpha.87] - 2026-06-16
 
 ### Added

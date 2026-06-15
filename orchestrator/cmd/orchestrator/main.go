@@ -106,10 +106,18 @@ func main() {
 		fmt.Println("[Trading] COINGECKO_API_KEY " + mapBool(os.Getenv("COINGECKO_API_KEY") != "", "set", "not set — using free tier (rate limited)"))
 		fmt.Println("[Trading] COINGECKO_API_URL: " + getEnvDefault("COINGECKO_API_URL", "https://api.coingecko.com/api/v3"))
 	}
+	// ── Initialize Trading Module ──
+	var executor trading.TradeExecutor = &trading.MockExecutor{}
+	if os.Getenv("BINANCE_API_KEY") != "" {
+		fmt.Println("[Trading] Real execution enabled via Binance.")
+		executor = trading.NewBinanceExecutor()
+	}
+
 	traderModule := &trading.TradingModule{
 		Orchestrator: orch,
 		Broker:       broker,
 		Fetcher:      fetcher,
+		Executor:     executor,
 	}
 
 	// ── Initialize Content Module ──
@@ -380,11 +388,24 @@ func main() {
 		if topic == "" {
 			topic = "AI automation services"
 		}
+		send := p.Get("send") == "true"
+
 		pitches, err := research.GenerateOutreach(orch, topic)
 		if err != nil {
 			return err
 		}
 		fmt.Printf("[Outreach] ✅ Prepared %d personalized pitches for %s\n", len(pitches), topic)
+
+		if send {
+			for _, pitch := range pitches {
+				if pitch.Platform == "email" {
+					if err := research.SendEmail(pitch); err != nil {
+						fmt.Printf("[Outreach] ❌ Failed to send email to %s: %v\n", pitch.RecipientName, err)
+					}
+				}
+			}
+		}
+
 		return nil
 	})
 
@@ -394,7 +415,7 @@ func main() {
 			pending := contentCalendar.GetPendingEntries()
 			fmt.Printf("[Calendar] Processing %d pending entries\n", len(pending))
 			for _, entry := range pending {
-				if err := contentCalendar.PublishEntry(&entry); err != nil {
+				if err := contentCalendar.PublishEntry(orch, &entry); err != nil {
 					fmt.Printf("[Calendar] ❌ Failed to publish %s: %v\n", entry.ID, err)
 				}
 			}

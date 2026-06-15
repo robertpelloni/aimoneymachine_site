@@ -2,16 +2,51 @@ package research
 
 import (
 	"fmt"
-	"github.com/robertpelloni/hustle/orchestrator"
+	"net/smtp"
+	"os"
 	"time"
+
+	"github.com/robertpelloni/hustle/orchestrator"
 )
 
 // OutreachPitch represents a personalized outreach message
 type OutreachPitch struct {
 	RecipientName string `json:"recipient_name"`
+	RecipientEmail string `json:"recipient_email,omitempty"`
 	Subject       string `json:"subject"`
 	Message       string `json:"message"`
 	Platform      string `json:"platform"` // email, linkedin, twitter
+}
+
+// SendEmail autonomously delivers a pitch via SMTP
+func SendEmail(pitch OutreachPitch) error {
+	from := os.Getenv("SMTP_USER")
+	password := os.Getenv("SMTP_PASSWORD")
+	host := os.Getenv("SMTP_HOST")
+	port := os.Getenv("SMTP_PORT")
+
+	to := pitch.RecipientEmail
+	if to == "" {
+		to = os.Getenv("OUTREACH_TARGET_EMAIL") // Fallback
+	}
+
+	if from == "" || password == "" || host == "" || to == "" {
+		return fmt.Errorf("SMTP configuration incomplete (from=%s, host=%s, to=%s)", from, host, to)
+	}
+
+	msg := []byte("To: " + to + "\r\n" +
+		"Subject: " + pitch.Subject + "\r\n" +
+		"\r\n" +
+		pitch.Message + "\r\n")
+
+	auth := smtp.PlainAuth("", from, password, host)
+	err := smtp.SendMail(host+":"+port, auth, from, []string{to}, msg)
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("[Outreach] ✅ Successfully sent email to %s\n", to)
+	return nil
 }
 
 // GenerateOutreach uses the LLM to create personalized pitches for discovered leads
@@ -44,6 +79,7 @@ Respond with a JSON array of objects:
 [
   {
     "recipient_name": "Name of company or contact",
+    "recipient_email": "Email address if known from context",
     "subject": "Compelling subject line",
     "message": "The personalized pitch (2-3 paragraphs)",
     "platform": "linkedin|email"

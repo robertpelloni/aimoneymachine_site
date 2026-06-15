@@ -19,6 +19,7 @@ const (
 	Newsletter  ContentType = "newsletter"
 	SEOArticle  ContentType = "seo"
 	SocialThread ContentType = "thread"
+	MicroTool   ContentType = "tool"
 )
 
 // ContentRequest specifies what content to generate
@@ -205,6 +206,19 @@ Requirements:
 - Tone: thought-provoking, insider perspective, no fluff
 
 Format: Number each tweet like 1/ 2/ etc.`, req.Topic, req.Niche)
+
+	case MicroTool:
+		return fmt.Sprintf(`Generate a self-contained, single-file HTML/JavaScript utility tool for: "%s".
+
+Requirements:
+- Niche: %s
+- The tool must be useful and solve a specific problem (e.g. calculator, converter, generator)
+- Include CSS for a modern, dark-themed UI
+- All logic must be in the same file
+- Include SEO-friendly text description above and below the tool
+- Add a footer with an affiliate link call-to-action
+
+Format: Complete HTML file`, req.Topic, req.Niche)
 
 	default:
 		return fmt.Sprintf(`Write an informative article about "%s" (~%d words). Keywords: %s. Format: Markdown.`,

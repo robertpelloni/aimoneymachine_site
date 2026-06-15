@@ -13,6 +13,8 @@
 - [x] **LLM response cache** (v1.0.0-alpha.86) — Content-addressable local SQLite cache.
 - [x] **Bollinger Bands & MACD** (v1.0.0-alpha.87) — Advanced technical indicators for trading.
 - [x] **Ghost Protocol Base** (v1.0.0-alpha.87) — Stealth mode task jitter.
+- [x] **Binance Execution** (v1.0.0-alpha.88) — Real trade implementation.
+- [x] **Outreach Delivery** (v1.0.0-alpha.88) — SMTP pitch distribution.
 
 ## 🟡 Medium Priority
 - [x] **Dashboard Styling** (v1.0.0-alpha.78) — Add color codes to the terminal UI (green for profit, red for error).

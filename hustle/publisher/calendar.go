@@ -105,7 +105,7 @@ func (c *ContentCalendar) GetPendingEntries() []CalendarEntry {
 }
 
 // PublishEntry publishes a calendar entry
-func (c *ContentCalendar) PublishEntry(entry *CalendarEntry) error {
+func (c *ContentCalendar) PublishEntry(orch *orchestrator.Orchestrator, entry *CalendarEntry) error {
 	if entry.Content == "" {
 		return fmt.Errorf("no content to publish")
 	}
@@ -119,9 +119,9 @@ func (c *ContentCalendar) PublishEntry(entry *CalendarEntry) error {
 	case "wordpress":
 		err = c.publishToWordPress(entry, content)
 	case "twitter":
-		err = c.publishToTwitter(entry, content)
+		err = c.publishToTwitter(orch, entry, content)
 	case "linkedin":
-		err = c.publishToLinkedIn(entry, content)
+		err = c.publishToLinkedIn(orch, entry, content)
 	case "newsletter":
 		err = c.publishToNewsletter(entry, content)
 	case "all":
@@ -130,10 +130,10 @@ func (c *ContentCalendar) PublishEntry(entry *CalendarEntry) error {
 		if e := c.publishToWordPress(entry, content); e != nil {
 			errs = append(errs, fmt.Sprintf("WordPress: %v", e))
 		}
-		if e := c.publishToTwitter(entry, content); e != nil {
+		if e := c.publishToTwitter(orch, entry, content); e != nil {
 			errs = append(errs, fmt.Sprintf("Twitter: %v", e))
 		}
-		if e := c.publishToLinkedIn(entry, content); e != nil {
+		if e := c.publishToLinkedIn(orch, entry, content); e != nil {
 			errs = append(errs, fmt.Sprintf("LinkedIn: %v", e))
 		}
 		if e := c.publishToNewsletter(entry, content); e != nil {
@@ -173,16 +173,14 @@ func (c *ContentCalendar) publishToWordPress(entry *CalendarEntry, content strin
 	return nil
 }
 
-func (c *ContentCalendar) publishToTwitter(entry *CalendarEntry, content string) error {
-	orch := &orchestrator.Orchestrator{} // Mock orch for provider
+func (c *ContentCalendar) publishToTwitter(orch *orchestrator.Orchestrator, entry *CalendarEntry, content string) error {
 	fmt.Printf("[Calendar] Posting to Twitter: %s\n", entry.Title)
 
 	// Twitter threads are handled by the LLM usually, but for simple calendar posts, we use the provider directly
 	return c.Twitter.Post(orch, "Twitter", content)
 }
 
-func (c *ContentCalendar) publishToLinkedIn(entry *CalendarEntry, content string) error {
-	orch := &orchestrator.Orchestrator{}
+func (c *ContentCalendar) publishToLinkedIn(orch *orchestrator.Orchestrator, entry *CalendarEntry, content string) error {
 	fmt.Printf("[Calendar] Posting to LinkedIn: %s\n", entry.Title)
 	return c.LinkedIn.Post(orch, "LinkedIn", content)
 }

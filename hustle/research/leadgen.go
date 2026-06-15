@@ -12,6 +12,7 @@ type Lead struct {
 	Description string `json:"description"`
 	Needs       string `json:"needs"`
 	ContactURL  string `json:"contact_url"`
+	Email       string `json:"email,omitempty"`
 }
 
 // DiscoverLeads uses the LLM to identify potential business leads from research
@@ -42,7 +43,8 @@ Respond with a JSON array of 3 objects:
     "name": "Company or Niche Name",
     "description": "Short description of what they do",
     "needs": "Specific AI/automation need you identified",
-    "contact_url": "URL to their contact page or relevant info"
+    "contact_url": "URL to their contact page or relevant info",
+    "email": "Email address if found in context, otherwise leave empty"
   }
 ]
 
@@ -57,7 +59,7 @@ Respond ONLY with valid JSON.`, context)
 	for _, lead := range leads {
 		orch.L2.Add(orchestrator.MemoryEntry{
 			ID:        fmt.Sprintf("lead-%d", time.Now().UnixNano()),
-			Content:   fmt.Sprintf("DISCOVERED LEAD: %s - %s. Needs: %s. Contact: %s", lead.Name, lead.Description, lead.Needs, lead.ContactURL),
+			Content:   fmt.Sprintf("DISCOVERED LEAD: %s - %s. Needs: %s. Contact: %s. Email: %s", lead.Name, lead.Description, lead.Needs, lead.ContactURL, lead.Email),
 			BaseScore: 75.0,
 			Timestamp: time.Now(),
 			Tags:      []string{"leadgen", topic, lead.Name},

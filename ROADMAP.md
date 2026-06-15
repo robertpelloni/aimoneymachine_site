@@ -47,9 +47,11 @@
 - [x] **Advanced trading indicators** — Bollinger Bands and MACD implementation (v1.0.0-alpha.87)
 - [x] **Stealth Mode** — Ghost Protocol jitter for scheduled tasks (v1.0.0-alpha.87)
 - [x] **Self-optimizing prompts** — ROI-driven prompt mutation loop (v1.0.0-alpha.87)
+- [x] **Real-world Execution** — Binance and SMTP delivery integration (v1.0.0-alpha.88)
+- [x] **Micro-SaaS Pivot** — Autonomous generation of utility tools (v1.0.0-alpha.88)
 
 ## Phase 5: Advanced Autonomy (v1.0.0-beta.11 – v1.0.0-rc.1) 📋 PLANNED
-- [ ] **Multi-exchange trading** — Binance, Kraken exchange plugins
+- [ ] **Multi-exchange trading** — Kraken, Coinbase exchange plugins
 
 ## Phase 6: Federation & Scale (v1.0.0-rc.2 – v1.0.0) 📋 PLANNED
 - [ ] **Multi-node cluster testing** — 10+ peers with real mesh sync

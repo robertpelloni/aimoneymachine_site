@@ -240,11 +240,23 @@ func min(a, b int) int {
 	return b
 }
 
+type TradeExecutor interface {
+	ExecuteOrder(symbol, side, orderType string, quantity float64) error
+}
+
+type MockExecutor struct{}
+
+func (m *MockExecutor) ExecuteOrder(symbol, side, orderType string, quantity float64) error {
+	fmt.Printf("[MockExecutor] Simulating %s %s for %f\n", side, symbol, quantity)
+	return nil
+}
+
 type TradingModule struct {
 	Orchestrator *orchestrator.Orchestrator
 	Broker       *orchestrator.A2ABroker
 	Symbol       string
 	Fetcher      PriceFetcher
+	Executor     TradeExecutor
 	History      []float64
 	RSIHistory   []float64
 	MACDHistory  []float64
@@ -312,6 +324,21 @@ func (t *TradingModule) ExecuteStrategy() error {
 	})
 
 	if decision != "HOLD" {
+		// Execution of real or mock trade
+		if t.Executor != nil {
+			// Naive quantity logic for autonomous engine (0.001 BTC equivalent)
+			qty := 0.001
+			if strings.Contains(t.Symbol, "ETH") {
+				qty = 0.01
+			} else if strings.Contains(t.Symbol, "SOL") {
+				qty = 0.1
+			}
+
+			if err := t.Executor.ExecuteOrder(t.Symbol, decision, "MARKET", qty); err != nil {
+				fmt.Printf("[Trading] ❌ Execution failed: %v\n", err)
+			}
+		}
+
 		t.Orchestrator.Ledger.Add(orchestrator.Transaction{
 			Amount: 0.10, // Simulating execution fee
 			Type:   orchestrator.Expense,
