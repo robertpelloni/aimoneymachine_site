@@ -10,6 +10,7 @@
 - [x] **Content Deployment Pipeline** (v1.0.0-alpha.84) — Automated deploy to WordPress or GitHub Pages from the content output.
 - [x] **Affiliate Automation** (v1.0.0-alpha.84) — Automatic link insertion in all generated content.
 - [x] **Lead Discovery** (v1.0.0-alpha.84) — LLM-driven identification of business leads from research.
+- [x] **LLM response cache** (v1.0.0-alpha.86) — Content-addressable local SQLite cache.
 
 ## 🟡 Medium Priority
 - [x] **Dashboard Styling** (v1.0.0-alpha.78) — Add color codes to the terminal UI (green for profit, red for error).
@@ -17,7 +18,6 @@
 
 ## 🟢 Lower Priority
 - [ ] **Multi-exchange support** — Binance, Kraken plugins.
-- [ ] **LLM response cache** — Content-addressable local cache.
 
 ## ✅ Completed
 - [x] **Dynamic RSS Management** (v1.0.0-alpha.74)

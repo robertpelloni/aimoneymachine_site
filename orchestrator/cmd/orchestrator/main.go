@@ -70,7 +70,12 @@ func main() {
 	// Auto-detect and test the LLM connection
 	if model, err := llmProvider.DetectModel(); err == nil {
 		fmt.Printf("[LLM] ✅ Connected to local LLM: %s\n", model)
-		orch.LLM = llmProvider
+		// Wrap with cache if DB available
+		if orch.DB != nil {
+			orch.LLM = &orchestrator.CachingLLM{Provider: llmProvider, Store: orch.DB}
+		} else {
+			orch.LLM = llmProvider
+		}
 		// Also set up real embeddings
 		orch.Embedder = orchestrator.NewOpenAICompatEmbedder()
 	} else {

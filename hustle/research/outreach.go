@@ -52,13 +52,8 @@ Respond with a JSON array of objects:
 
 Respond ONLY with valid JSON.`, context)
 
-	llm, ok := orch.LLM.(*orchestrator.OpenAICompatProvider)
-	if !ok {
-		return nil, fmt.Errorf("outreach requires JSON-capable LLM")
-	}
-
 	var pitches []OutreachPitch
-	if err := llm.GenerateJSON(prompt, &pitches); err != nil {
+	if err := orch.LLM.GenerateJSON(prompt, &pitches); err != nil {
 		return nil, fmt.Errorf("outreach generation failed: %v", err)
 	}
 

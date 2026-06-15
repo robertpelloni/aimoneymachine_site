@@ -42,13 +42,13 @@
 - [x] **Affiliate Integration** — Automated link insertion in content (v1.0.0-alpha.84)
 - [x] **Lead Generation** — Autonomous business lead discovery (v1.0.0-alpha.84)
 - [x] **Windows CGO build fix** — Migrate to `modernc.org/sqlite`
+- [x] **LLM response cache** — Content-addressable SQLite cache for identical prompts (v1.0.0-alpha.86)
+- [x] **Cross-hustle feedback** — Lead discovery seeds content and outreach (v1.0.0-alpha.86)
 
 ## Phase 5: Advanced Autonomy (v1.0.0-beta.11 – v1.0.0-rc.1) 📋 PLANNED
 - [ ] **Self-optimizing prompts** — A/B test prompt variations, track win rates
 - [ ] **Advanced trading indicators** — MACD, Bollinger Bands, volume analysis
 - [ ] **Multi-exchange trading** — Binance, Kraken exchange plugins
-- [ ] **Cross-hustle feedback** — research discoveries feed content topics, content feeds social
-- [ ] **LLM response cache** — content-addressable cache for identical prompts
 
 ## Phase 6: Federation & Scale (v1.0.0-rc.2 – v1.0.0) 📋 PLANNED
 - [ ] **Multi-node cluster testing** — 10+ peers with real mesh sync

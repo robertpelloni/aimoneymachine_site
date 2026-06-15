@@ -48,21 +48,9 @@ Respond with a JSON array of 3 objects:
 
 Respond ONLY with valid JSON.`, context)
 
-	llm, ok := orch.LLM.(*orchestrator.OpenAICompatProvider)
 	var leads []Lead
-	if ok {
-		if err := llm.GenerateJSON(prompt, &leads); err != nil {
-			return nil, fmt.Errorf("lead extraction failed: %v", err)
-		}
-	} else {
-		// Fallback for mock/other providers
-		resp, err := orch.LLM.Generate(prompt)
-		if err != nil {
-			return nil, err
-		}
-		// Basic parsing could go here, but for now just return empty or mock
-		fmt.Printf("[LeadGen] LLM Response (non-JSON): %s\n", resp)
-		return nil, fmt.Errorf("lead extraction requires JSON-capable LLM")
+	if err := orch.LLM.GenerateJSON(prompt, &leads); err != nil {
+		return nil, fmt.Errorf("lead extraction failed: %v", err)
 	}
 
 	// 3. Record in memory

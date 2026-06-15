@@ -387,6 +387,25 @@ type HustlePlan struct {
 // PlanHustles asks the LLM to analyze current state and generate a set of actionable hustle plans
 func PlanHustles(orch *Orchestrator) ([]HustlePlan, error) {
 	profitAnalysis := orch.Ledger.AnalyzeProfitability()
+
+	// High-signal inputs: Discovered Alpha and Leads
+	alphaEntries := orch.L2.Search("alpha")
+	leadEntries := orch.L2.Search("leadgen")
+
+	var signalContext string
+	if len(alphaEntries) > 0 {
+		signalContext += "\nDISCOVERED ALPHA (HIGH-SIGNAL):\n"
+		for _, e := range alphaEntries {
+			signalContext += fmt.Sprintf("- %s\n", e.Content)
+		}
+	}
+	if len(leadEntries) > 0 {
+		signalContext += "\nDISCOVERED LEADS (ACQUISITION TARGETS):\n"
+		for _, e := range leadEntries {
+			signalContext += fmt.Sprintf("- %s\n", e.Content)
+		}
+	}
+
 	recentActivity := orch.L1.Search("")
 	if len(recentActivity) > 10 {
 		recentActivity = recentActivity[len(recentActivity)-10:]
@@ -401,6 +420,7 @@ func PlanHustles(orch *Orchestrator) ([]HustlePlan, error) {
 
 FINANCIAL STATE: %s
 RECENT ACTIVITY:
+%s
 %s
 
 Generate plans from these categories:
@@ -424,24 +444,11 @@ Respond with a JSON array of exactly 5 objects:
 ]
 
 Include "publish=true" in content steps where appropriate to ensure monetization.
-Be specific. Use real trending topics. Focus on LUXURY (high-ROI, low-maintenance).`, profitAnalysis, activityStr)
-
-	llm, ok := orch.LLM.(*OpenAICompatProvider)
-	if !ok {
-		// Fallback for non-OpenAI compat providers
-		response, err := orch.LLM.Generate(prompt)
-		if err != nil {
-			return nil, err
-		}
-		var plans []HustlePlan
-		if err := json.Unmarshal([]byte(response), &plans); err != nil {
-			return nil, fmt.Errorf("failed to parse LLM plan response: %v", err)
-		}
-		return plans, nil
-	}
+PRIORITIZE: Use the DISCOVERED ALPHA or LEADS to seed content topics and keywords. If you found a lead, generate content targeting their niche and prepare an outreach pitch.
+Be specific. Use real trending topics. Focus on LUXURY (high-ROI, low-maintenance).`, profitAnalysis, activityStr, signalContext)
 
 	var plans []HustlePlan
-	if err := llm.GenerateJSON(prompt, &plans); err != nil {
+	if err := orch.LLM.GenerateJSON(prompt, &plans); err != nil {
 		return nil, fmt.Errorf("failed to generate hustle plans: %v", err)
 	}
 

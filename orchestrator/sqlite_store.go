@@ -74,6 +74,19 @@ func NewSQLiteStore(filepath string) (*SQLiteStore, error) {
 		return nil, err
 	}
 
+	// LLM Cache table
+	cacheQuery := `
+	CREATE TABLE IF NOT EXISTS llm_cache (
+		prompt_hash TEXT PRIMARY KEY,
+		response TEXT,
+		model TEXT,
+		timestamp DATETIME
+	);`
+	_, err = db.Exec(cacheQuery)
+	if err != nil {
+		return nil, err
+	}
+
 	return &SQLiteStore{db: db, extLoaded: extLoaded}, nil
 }
 
@@ -130,6 +143,23 @@ type TaskHistoryEntry struct {
 	Status     string    `json:"status"`
 	Message    string    `json:"message"`
 	Timestamp  time.Time `json:"timestamp"`
+}
+
+func (s *SQLiteStore) GetCachedResponse(hash string) (string, bool) {
+	var response string
+	err := s.db.QueryRow("SELECT response FROM llm_cache WHERE prompt_hash = ?", hash).Scan(&response)
+	if err != nil {
+		return "", false
+	}
+	return response, true
+}
+
+func (s *SQLiteStore) CacheResponse(hash, response, model string) error {
+	_, err := s.db.Exec(`
+		INSERT OR REPLACE INTO llm_cache (prompt_hash, response, model, timestamp)
+		VALUES (?, ?, ?, ?)`,
+		hash, response, model, time.Now())
+	return err
 }
 
 func (s *SQLiteStore) GetTaskHistory(limit int) ([]TaskHistoryEntry, error) {

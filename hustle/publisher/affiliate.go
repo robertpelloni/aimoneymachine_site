@@ -127,13 +127,8 @@ Respond with a JSON array of objects:
 
 Respond ONLY with valid JSON.`, niche)
 
-	llm, ok := orch.LLM.(*orchestrator.OpenAICompatProvider)
-	if !ok {
-		return fmt.Errorf("affiliate discovery requires JSON-capable LLM")
-	}
-
 	var newLinks []AffiliateLink
-	if err := llm.GenerateJSON(prompt, &newLinks); err != nil {
+	if err := orch.LLM.GenerateJSON(prompt, &newLinks); err != nil {
 		return fmt.Errorf("failed to generate affiliate links: %v", err)
 	}
 
