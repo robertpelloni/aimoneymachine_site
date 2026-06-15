@@ -6,6 +6,7 @@ import (
 	"crypto/sha512"
 	"encoding/base64"
 	"fmt"
+	"encoding/json"
 	"io"
 	"net/http"
 	"net/url"
@@ -21,6 +22,29 @@ type KrakenExecutor struct {
 	APISecret string
 	BaseURL   string
 	Client    *http.Client
+}
+
+func (k *KrakenExecutor) GetPrice(symbol string) (float64, error) {
+	url := fmt.Sprintf("%s/0/public/Ticker?pair=%s", k.BaseURL, symbol)
+	resp, err := k.Client.Get(url)
+	if err != nil {
+		return 0, err
+	}
+	defer resp.Body.Close()
+
+	var result struct {
+		Result map[string]struct {
+			C []string `json:"c"`
+		} `json:"result"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return 0, err
+	}
+
+	for _, data := range result.Result {
+		return strconv.ParseFloat(data.C[0], 64)
+	}
+	return 0, fmt.Errorf("no price data for %s", symbol)
 }
 
 func NewKrakenExecutor() *KrakenExecutor {

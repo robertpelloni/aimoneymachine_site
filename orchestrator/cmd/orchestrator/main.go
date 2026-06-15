@@ -56,6 +56,15 @@ func main() {
 	// ── Initialize Orchestrator with REAL LLM ──
 	orch := orchestrator.NewOrchestrator()
 	orch.Load("memory.json")
+
+	// Initialize Identity (DID)
+	id, err := orchestrator.NewIdentity()
+	if err == nil {
+		orch.Identity = id
+		fmt.Printf("[Identity] Node DID: %s\n", id.GetDID())
+	} else {
+		fmt.Printf("[Identity] ⚠️ Failed to initialize identity: %v\n", err)
+	}
 	orch.DryRun = *dryRun
 	orch.StealthMode = *stealth
 
@@ -243,6 +252,12 @@ func main() {
 			symbol = "BTC"
 		}
 		traderModule.Symbol = symbol
+
+		action := p.Get("action")
+		if action == "arbitrage" {
+			return traderModule.ScanArbitrage()
+		}
+
 		return traderModule.ExecuteStrategy()
 	})
 

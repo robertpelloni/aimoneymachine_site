@@ -1,3 +1,22 @@
+## [1.0.0-alpha.90] - 2026-06-19
+
+### Added
+- **Cross-Exchange Arbitrage Scanner**: New `ScanArbitrage` capability in the `TradingModule` that detects and logs profitable price gaps between Binance and Kraken.
+- **Federated Identity (DID)**: Implemented Ed25519-based node identity system for secure mesh communication. Nodes now sign sync requests to verify authenticity.
+- **Adaptive Swarm Synchronization**: Updated `MemorySwarm` to autonomously trigger immediate delta-syncs when high-profit peers ($>1000) are detected in the mesh.
+- **Security Hardening**: Integrated DID verification as a prerequisite for federated memory reconciliation.
+
+## [1.0.0-alpha.89] - 2026-06-18
+
+### Added
+- **Social Engagement Loop**: Implemented autonomous Search & Reply capabilities for Twitter/X. The machine now actively participates in niche conversations to grow its reach and brand authority.
+- **Sentiment-Driven Trading (Confluence 2.0)**: Upgraded the `TradingModule` to perform live news/social sentiment analysis via the `research` module before trade execution. Decisions now require both technical confluence and positive sentiment.
+- **Multi-Exchange Execution (Kraken)**: Added `KrakenExecutor` for diversified capital management, allowing real-world trade execution on both Binance and Kraken.
+- **Cross-Module Integration**: Established direct functional dependency between `trading` and `research` for high-fidelity signal extraction.
+
+### Fixed
+- **Social API Interface**: Hardened the `social.Provider` interface and implementations to handle Search/Reply routing correctly across Twitter and LinkedIn stubs.
+
 ## [1.0.0-alpha.88] - 2026-06-17
 
 ### Added

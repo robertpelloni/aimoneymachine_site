@@ -25,6 +25,9 @@
 - **Content Generation is Highest-ROI:** Zero marginal compute cost for directly monetizable output.
 - **Automated Affiliate Inflow:** Every generated asset is a monetization vector via integrated affiliate insertion.
 - **Lead Discovery Loop:** Research now feeds directly into lead generation, creating high-value business intelligence.
+- **Engagement-Driven Growth:** Social module now includes a Search & Reply loop to autonomously grow audience reach.
+- **Confluence 2.0:** Trading decisions are now gated by both technical indicators (Bollinger/MACD) and real-time market sentiment analysis.
+- **Multi-Exchange Execution:** Abstracted trade execution allows for real-world capital growth on Binance and Kraken.
 
 ## Known Technical Debt
 - `go-sqlite3` requires CGO — consider migration to `modernc.org/sqlite` for Windows compatibility.

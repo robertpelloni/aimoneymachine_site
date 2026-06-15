@@ -243,6 +243,7 @@ func min(a, b int) int {
 
 type TradeExecutor interface {
 	ExecuteOrder(symbol, side, orderType string, quantity float64) error
+	GetPrice(symbol string) (float64, error)
 }
 
 type MockExecutor struct{}
@@ -250,6 +251,10 @@ type MockExecutor struct{}
 func (m *MockExecutor) ExecuteOrder(symbol, side, orderType string, quantity float64) error {
 	fmt.Printf("[MockExecutor] Simulating %s %s for %f\n", side, symbol, quantity)
 	return nil
+}
+
+func (m *MockExecutor) GetPrice(symbol string) (float64, error) {
+	return 50000.0, nil
 }
 
 type TradingModule struct {
@@ -263,6 +268,37 @@ type TradingModule struct {
 	MACDHistory  []float64
 	Watchlist    []string
 	mu           sync.Mutex
+}
+
+// ScanArbitrage compares prices across Binance and Kraken
+func (t *TradingModule) ScanArbitrage() error {
+	binance := NewBinanceExecutor()
+	kraken := NewKrakenExecutor()
+
+	p1, err1 := binance.GetPrice(t.Symbol)
+	p2, err2 := kraken.GetPrice(t.Symbol)
+
+	if err1 != nil || err2 != nil {
+		return fmt.Errorf("arbitrage scan failed: binance=%v, kraken=%v", err1, err2)
+	}
+
+	diff := math.Abs(p1 - p2)
+	pct := (diff / ((p1 + p2) / 2)) * 100
+
+	fmt.Printf("[Arbitrage] %s: Binance=$%.2f, Kraken=$%.2f | Diff=$%.2f (%.2f%%)\n", t.Symbol, p1, p2, diff, pct)
+
+	if pct > 0.5 {
+		fmt.Printf("[Arbitrage] 🚨 PROFIT OPPORTUNITY DETECTED for %s\n", t.Symbol)
+		t.Orchestrator.L2.Add(orchestrator.MemoryEntry{
+			ID:        fmt.Sprintf("arb-%s-%d", t.Symbol, time.Now().Unix()),
+			Content:   fmt.Sprintf("Arbitrage Opportunity: %s price gap %.2f%% ($%.2f)", t.Symbol, pct, diff),
+			BaseScore: 90.0,
+			Timestamp: time.Now(),
+			Tags:      []string{"trading", "arbitrage", "alpha", t.Symbol},
+		})
+	}
+
+	return nil
 }
 
 func (t *TradingModule) ExecuteStrategy() error {

@@ -15,6 +15,10 @@
 - [x] **Ghost Protocol Base** (v1.0.0-alpha.87) — Stealth mode task jitter.
 - [x] **Binance Execution** (v1.0.0-alpha.88) — Real trade implementation.
 - [x] **Outreach Delivery** (v1.0.0-alpha.88) — SMTP pitch distribution.
+- [x] **Social Engagement** (v1.0.0-alpha.89) — Search & Reply loop implementation.
+- [x] **Sentiment Confluence** (v1.0.0-alpha.89) — Research-backed trading.
+- [x] **Arbitrage Scanner** (v1.0.0-alpha.90) — Binance vs Kraken price gap detection.
+- [x] **DID Identity** (v1.0.0-alpha.90) — Secure mesh node authentication.
 
 ## 🟡 Medium Priority
 - [x] **Dashboard Styling** (v1.0.0-alpha.78) — Add color codes to the terminal UI (green for profit, red for error).

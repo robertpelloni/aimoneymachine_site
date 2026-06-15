@@ -49,12 +49,16 @@
 - [x] **Self-optimizing prompts** — ROI-driven prompt mutation loop (v1.0.0-alpha.87)
 - [x] **Real-world Execution** — Binance and SMTP delivery integration (v1.0.0-alpha.88)
 - [x] **Micro-SaaS Pivot** — Autonomous generation of utility tools (v1.0.0-alpha.88)
+- [x] **Social Engagement Loop** — Autonomous Search & Reply for growth (v1.0.0-alpha.89)
+- [x] **Confluence 2.0** — Technical + Sentiment-aware trading (v1.0.0-alpha.89)
+- [x] **Multi-Exchange Scaling** — Binance and Kraken support (v1.0.0-alpha.89)
+- [x] **Arbitrage Scanner** — Cross-exchange price gap detection (v1.0.0-alpha.90)
+- [x] **Federated Identity** — Ed25519 DID for secure mesh sync (v1.0.0-alpha.90)
+- [x] **Adaptive Sync** — ROI-driven swarm reconciliation (v1.0.0-alpha.90)
 
 ## Phase 5: Advanced Autonomy (v1.0.0-beta.11 – v1.0.0-rc.1) 📋 PLANNED
-- [ ] **Multi-exchange trading** — Kraken, Coinbase exchange plugins
+- [ ] **Multi-exchange trading** — Coinbase, Gemini exchange plugins
 
 ## Phase 6: Federation & Scale (v1.0.0-rc.2 – v1.0.0) 📋 PLANNED
 - [ ] **Multi-node cluster testing** — 10+ peers with real mesh sync
 - [ ] **Global profit leaderboard** — mesh-wide ranking via A2A topic
-- [ ] **Decentralized identity** — DID for peer verification
-- [ ] **Adaptive sync intervals** — sync more during volatility, less during calm

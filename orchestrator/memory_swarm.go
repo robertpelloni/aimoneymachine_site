@@ -25,13 +25,19 @@ func NewMemorySwarm(orch *Orchestrator, broker *A2ABroker) *MemorySwarm {
 func (s *MemorySwarm) Sync() {
 	fmt.Println("[Swarm] Initiating automated delta-sync with peers...")
 
+	payload := "hustle://swarm?action=sync_request"
+	if s.Orchestrator.Identity != nil {
+		sig := s.Orchestrator.Identity.Sign(payload)
+		payload += fmt.Sprintf("&did=%s&sig=%s", s.Orchestrator.Identity.GetDID(), sig)
+	}
+
 	// Step 1: Broadcast sync intention
 	msg := Message{
 		ID:        fmt.Sprintf("sync-%d", time.Now().Unix()),
 		Source:    "local-node",
 		Type:      Event,
 		Topic:     "swarm_sync",
-		Payload:   "hustle://swarm?action=sync_request",
+		Payload:   payload,
 		Timestamp: time.Now(),
 	}
 
@@ -41,6 +47,7 @@ func (s *MemorySwarm) Sync() {
 // HandleSyncRequest is called when a peer asks for reconciliation
 func (s *MemorySwarm) HandleSyncRequest(peerID string) {
 	fmt.Printf("[Swarm] Handling sync request from %s. Sending Index...\n", peerID)
+	// In production, we would verify the DID and SIG here.
 	s.ProvideIndex(peerID)
 }
 
@@ -169,6 +176,15 @@ func (s *MemorySwarm) HandleStatusResponse(peerID, data string) {
 	if err := json.Unmarshal([]byte(data), &status); err != nil {
 		fmt.Printf("[Swarm] Failed to parse status from %s: %v\n", peerID, err)
 		return
+	}
+
+	// Adaptive Sync: Trigger immediate delta-sync if remote profit is high (Alpha detected)
+	if p, ok := status["profit"].(float64); ok && p > 1000 {
+		fmt.Printf("[Swarm] High-profit peer detected (%s: $%.2f). Accelerating sync.\n", peerID, p)
+		go func() {
+			time.Sleep(2 * time.Second)
+			s.Sync()
+		}()
 	}
 
 	content := fmt.Sprintf("Mesh Peer %s Status: %v, PROFIT: $%.2f", peerID, status["status"], status["profit"])

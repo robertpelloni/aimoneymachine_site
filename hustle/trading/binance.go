@@ -22,6 +22,24 @@ type BinanceExecutor struct {
 	Client    *http.Client
 }
 
+func (b *BinanceExecutor) GetPrice(symbol string) (float64, error) {
+	url := fmt.Sprintf("%s/api/v3/ticker/price?symbol=%s", b.BaseURL, symbol)
+	resp, err := b.Client.Get(url)
+	if err != nil {
+		return 0, err
+	}
+	defer resp.Body.Close()
+
+	var result struct {
+		Price string `json:"price"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return 0, err
+	}
+
+	return strconv.ParseFloat(result.Price, 64)
+}
+
 func NewBinanceExecutor() *BinanceExecutor {
 	return &BinanceExecutor{
 		APIKey:    os.Getenv("BINANCE_API_KEY"),
