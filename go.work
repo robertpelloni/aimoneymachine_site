@@ -5,7 +5,9 @@ use (
 	./hustle/curation
 	./hustle/devagency
 	./hustle/ecommerce
+	./hustle/localization
 	./hustle/publisher
+	./hustle/qa
 	./hustle/research
 	./hustle/social
 	./hustle/support

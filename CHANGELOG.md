@@ -1,3 +1,11 @@
+## [1.0.0-alpha.97] - 2026-06-25
+
+### Added
+- **Translation & Localization**: New `localization` module for autonomous content translation and language-specific SEO.
+- **QA & Testing Module**: New `qa` module for autonomous module testing and system-wide health checks.
+- **Collaborative QA Healing**: Integrated QA failures with the swarm healing topic for federated bug fixes.
+- **Enhanced Vault UI**: PWA dashboard now displays recent discoveries from the L2 memory vault.
+
 ## [1.0.0-alpha.96] - 2026-06-24
 
 ### Added

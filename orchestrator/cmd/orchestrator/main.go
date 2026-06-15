@@ -16,7 +16,9 @@ import (
 	"github.com/robertpelloni/hustle/hustle/curation"
 	"github.com/robertpelloni/hustle/hustle/devagency"
 	"github.com/robertpelloni/hustle/hustle/ecommerce"
+	"github.com/robertpelloni/hustle/hustle/localization"
 	"github.com/robertpelloni/hustle/hustle/publisher"
+	"github.com/robertpelloni/hustle/hustle/qa"
 	"github.com/robertpelloni/hustle/hustle/research"
 	"github.com/robertpelloni/hustle/hustle/social"
 	"github.com/robertpelloni/hustle/hustle/support"
@@ -286,6 +288,46 @@ func main() {
 		}
 
 		social.SchedulePost(orch, provider, platform, topic)
+		return nil
+	})
+
+	protocol.Register("qa", func(p url.Values) error {
+		action := p.Get("action")
+		module := p.Get("module")
+
+		q := qa.NewQAModule(orch, broker)
+
+		if action == "test" {
+			if module == "" { module = "./orchestrator/..." }
+			res, err := q.RunTests(module)
+			if err != nil { return err }
+			fmt.Printf("[QA] Test results for %s:\n%s\n", module, res)
+		} else if action == "check" {
+			return q.VerifyStability()
+		}
+		return nil
+	})
+
+	protocol.Register("localization", func(p url.Values) error {
+		action := p.Get("action")
+		target := p.Get("lang")
+		if target == "" { target = "Spanish" }
+
+		loc := localization.NewLocalizationModule(orch, broker)
+
+		if action == "translate" {
+			text := p.Get("text")
+			if text == "" { text = "AI is changing the world." }
+			translated, err := loc.TranslateContent(text, target)
+			if err != nil { return err }
+			fmt.Printf("[Localization] %s -> %s:\n%s\n", text, target, translated)
+		} else if action == "seo" {
+			niche := p.Get("niche")
+			if niche == "" { niche = "tech" }
+			keywords, err := loc.LocalizeSEO(niche, target)
+			if err != nil { return err }
+			fmt.Printf("[Localization] SEO Keywords (%s/%s): %v\n", niche, target, keywords)
+		}
 		return nil
 	})
 

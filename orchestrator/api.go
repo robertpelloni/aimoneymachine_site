@@ -181,8 +181,10 @@ func (a *API) handleContent(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *API) handleStrategy(w http.ResponseWriter, r *http.Request) {
-	strategies := a.Orchestrator.L1.Search("collective_strategy")
-	json.NewEncoder(w).Encode(strategies)
+	// Return both L1 strategies and L2 discoveries
+	entries := a.Orchestrator.L1.Search("collective_strategy")
+	entries = append(entries, a.Orchestrator.L2.Entries...)
+	json.NewEncoder(w).Encode(entries)
 }
 
 func (a *API) handleHealer(w http.ResponseWriter, r *http.Request) {
