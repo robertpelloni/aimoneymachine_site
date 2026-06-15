@@ -20,6 +20,8 @@ const (
 	SEOArticle  ContentType = "seo"
 	SocialThread ContentType = "thread"
 	MicroTool   ContentType = "tool"
+	VideoScript ContentType = "video"
+	ReelScript  ContentType = "reel"
 )
 
 // ContentRequest specifies what content to generate
@@ -206,6 +208,33 @@ Requirements:
 - Tone: thought-provoking, insider perspective, no fluff
 
 Format: Number each tweet like 1/ 2/ etc.`, req.Topic, req.Niche)
+
+	case VideoScript:
+		return fmt.Sprintf(`Write a high-retention YouTube video script for: "%s".
+
+Requirements:
+- Niche: %s
+- Structure: Hook (0-15s) → Intro → Core Content (3-5 points) → Summary → CTA
+- Include visual cues in [brackets] for the editor
+- Include timestamps for a 8-10 minute video
+- Write an SEO-optimized title, description (with timestamps), and tags
+- Tone: engaging, educational, energetic
+
+Format: Markdown with sections for Title, Script, Description, and Tags.`, req.Topic, req.Niche)
+
+	case ReelScript:
+		return fmt.Sprintf(`Write a high-impact TikTok/Reel script for: "%s".
+
+Requirements:
+- Niche: %s
+- Duration: 30-60 seconds
+- Structure: Immediate Hook → 3 quick tips/points → Call to action
+- Include on-screen text overlays instructions
+- Include music/SFX suggestions
+- Write a catchy caption with trending hashtags
+- Tone: fast-paced, entertaining, relatable
+
+Format: Markdown with sections for Hook, On-Screen Text, SFX, Caption.`, req.Topic, req.Niche)
 
 	case MicroTool:
 		return fmt.Sprintf(`Generate a self-contained, single-file HTML/JavaScript utility tool for: "%s".

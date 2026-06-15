@@ -38,6 +38,10 @@ func (a *API) Start(port string) error {
 	http.HandleFunc("/strategy", a.handleStrategy)
 	http.HandleFunc("/healer", a.handleHealer)
 
+	// Serve the mobile-friendly dashboard
+	fs := http.FileServer(http.Dir("orchestrator/static"))
+	http.Handle("/", fs)
+
 	fmt.Printf("[API] Orchestrator listening on port %s\n", port)
 	return http.ListenAndServe(":"+port, nil)
 }

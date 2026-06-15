@@ -123,6 +123,9 @@ func main() {
 	} else if os.Getenv("KRAKEN_API_KEY") != "" {
 		fmt.Println("[Trading] Real execution enabled via Kraken.")
 		executor = trading.NewKrakenExecutor()
+	} else if os.Getenv("COINBASE_API_KEY") != "" {
+		fmt.Println("[Trading] Real execution enabled via Coinbase.")
+		executor = trading.NewCoinbaseExecutor()
 	}
 
 	traderModule := &trading.TradingModule{
@@ -778,6 +781,8 @@ func runInteractiveMenu(orch *orchestrator.Orchestrator, protocol *orchestrator.
 		fmt.Println("12. 🆕 Generate Newsletter")
 		fmt.Println("13. 🆕 Generate SEO Article")
 		fmt.Println("14. 🆕 Generate Social Thread")
+		fmt.Println(" v. 🆕 Generate Video Script")
+		fmt.Println(" r. 🆕 Generate Reel Script")
 		fmt.Println("15. 🆕 Brainstorm Content Topics")
 		fmt.Println("16. 🆕 Start Agent Loop (10 iterations)")
 		fmt.Println("17. 🆕 Auto-Plan Hustles (LLM strategy)")
@@ -870,6 +875,22 @@ func runInteractiveMenu(orch *orchestrator.Orchestrator, protocol *orchestrator.
 				topic = "How AI agents are replacing SaaS"
 			}
 			protocol.HandleURI(fmt.Sprintf("hustle://content?topic=%s&type=thread", url.QueryEscape(topic)))
+		case "v":
+			fmt.Print("Video topic (default: The Future of Autonomous Agents): ")
+			topic, _ := reader.ReadString('\n')
+			topic = strings.TrimSpace(topic)
+			if topic == "" {
+				topic = "The Future of Autonomous Agents"
+			}
+			protocol.HandleURI(fmt.Sprintf("hustle://content?topic=%s&type=video", url.QueryEscape(topic)))
+		case "r":
+			fmt.Print("Reel topic (default: 3 AI tools to 10x your productivity): ")
+			topic, _ := reader.ReadString('\n')
+			topic = strings.TrimSpace(topic)
+			if topic == "" {
+				topic = "3 AI tools to 10x your productivity"
+			}
+			protocol.HandleURI(fmt.Sprintf("hustle://content?topic=%s&type=reel", url.QueryEscape(topic)))
 		case "15":
 			fmt.Print("Niche (default: AI & automation): ")
 			niche, _ := reader.ReadString('\n')

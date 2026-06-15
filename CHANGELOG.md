@@ -1,3 +1,11 @@
+## [1.0.0-alpha.93] - 2026-06-21
+
+### Added
+- **Multimedia Content Engine**: Integrated script generation for YouTube Videos and TikTok/Reels with hooks, visual cues, and SEO metadata.
+- **Mobile-Friendly Web Dashboard**: Responsive dark-themed dashboard served directly by the orchestrator for remote management.
+- **Coinbase Advanced Trade Support**: New `CoinbaseExecutor` for diversified real-world trading on the Coinbase exchange.
+- **Interactive UI Expansion**: New hotkeys 'v' and 'r' for manual script generation in the terminal menu.
+
 ## [1.0.0-alpha.92] - 2026-06-20
 
 ### Added

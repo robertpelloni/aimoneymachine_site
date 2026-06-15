@@ -1,6 +1,6 @@
 {
   "version": "",
-  "dry_run": true,
+  "dry_run": false,
   "stealth_mode": false,
   "rss_feeds": null,
   "wealth_goal": 10000,
