@@ -12,11 +12,14 @@ import (
 	"strings"
 	"time"
 
+	"github.com/robertpelloni/hustle/hustle/careers"
 	"github.com/robertpelloni/hustle/hustle/content"
 	"github.com/robertpelloni/hustle/hustle/curation"
 	"github.com/robertpelloni/hustle/hustle/devagency"
 	"github.com/robertpelloni/hustle/hustle/ecommerce"
 	"github.com/robertpelloni/hustle/hustle/localization"
+	"github.com/robertpelloni/hustle/hustle/media"
+	"github.com/robertpelloni/hustle/hustle/pod"
 	"github.com/robertpelloni/hustle/hustle/publisher"
 	"github.com/robertpelloni/hustle/hustle/qa"
 	"github.com/robertpelloni/hustle/hustle/research"
@@ -288,6 +291,69 @@ func main() {
 		}
 
 		social.SchedulePost(orch, provider, platform, topic)
+		return nil
+	})
+
+	protocol.Register("careers", func(p url.Values) error {
+		action := p.Get("action")
+		title := p.Get("title")
+		if title == "" { title = "Software Engineer" }
+		loc := p.Get("location")
+		if loc == "" { loc = "Remote" }
+
+		cModule := careers.NewCareerModule(orch, broker)
+
+		if action == "search" {
+			results, err := cModule.SearchJobs(title, loc)
+			if err != nil { return err }
+			fmt.Printf("[Careers] Job Search Results:\n%s\n", results)
+		} else if action == "tailor" {
+			resume := p.Get("resume")
+			if resume == "" { resume = "Experience: 5 years of Go development." }
+			job := p.Get("job")
+			if job == "" { job = "Role: Senior backend engineer. Need expert Go skills." }
+			tailored, err := cModule.TailorResume(resume, job)
+			if err != nil { return err }
+			fmt.Printf("[Careers] Tailored Resume:\n%s\n", tailored)
+		}
+		return nil
+	})
+
+	protocol.Register("media", func(p url.Values) error {
+		action := p.Get("action")
+		title := p.Get("title")
+		if title == "" { title = "The Future of AI" }
+		mType := p.Get("type")
+		if mType == "" { mType = "video" }
+
+		mModule := media.NewMediaModule(orch, broker)
+
+		if action == "plan" {
+			plan, err := mModule.PlanProduction(title, mType)
+			if err != nil { return err }
+			fmt.Printf("[Media] Production Plan for %s:\n%s\n", title, plan)
+		}
+		return nil
+	})
+
+	protocol.Register("pod", func(p url.Values) error {
+		action := p.Get("action")
+		niche := p.Get("niche")
+		if niche == "" { niche = "funny cat quotes" }
+
+		podModule := pod.NewPODModule(orch, broker)
+
+		if action == "plan" {
+			plan, err := podModule.PlanDesigns(niche)
+			if err != nil { return err }
+			fmt.Printf("[POD] Design Plan for %s:\n%s\n", niche, plan)
+		} else if action == "listing" {
+			design := p.Get("design")
+			if design == "" { design = "Coffee Cat" }
+			listing, err := podModule.OptimizeListing(design, niche)
+			if err != nil { return err }
+			fmt.Printf("[POD] Listing for %s:\n%s\n", design, listing)
+		}
 		return nil
 	})
 

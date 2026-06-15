@@ -1,3 +1,12 @@
+## [1.0.0-alpha.98] - 2026-06-26
+
+### Added
+- **Print-on-Demand (POD) Module**: Autonomous design planning and listing optimization for Etsy/Redbubble.
+- **Media Production Module**: Script-to-asset list conversion for faceless YouTube/TikTok channels.
+- **Career Services Module**: Autonomous job discovery and LLM-driven professional resume tailoring.
+- **Hyper-Diverse Metrics**: Integrated POD, Media, and Career activity tracking into all dashboards.
+- **Cross-Domain Hustle Protocol**: Expanded the URI router to handle a total of 12 distinct hustle modules.
+
 ## [1.0.0-alpha.97] - 2026-06-25
 
 ### Added

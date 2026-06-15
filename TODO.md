@@ -23,6 +23,8 @@
 ## 🟡 Medium Priority
 - [x] **Shopify Integration** (v1.0.0-alpha.96) — Automated product listing publishing.
 - [x] **Service Hustles** (v1.0.0-alpha.96) — Dev Agency and Support modules.
+- [x] **Creative Hustles** (v1.0.0-alpha.98) — POD and Media Production modules.
+- [x] **Career Services** (v1.0.0-alpha.98) — Automated job application assistance.
 - [x] **Dashboard Styling** (v1.0.0-alpha.78) — Add color codes to the terminal UI (green for profit, red for error).
 - [x] **Task History** (v1.0.0-alpha.78) — Log task execution times and durations to SQLite.
 

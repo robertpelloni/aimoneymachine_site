@@ -2,10 +2,13 @@ go 1.24.0
 
 use (
 	./hustle/content
+	./hustle/careers
 	./hustle/curation
 	./hustle/devagency
 	./hustle/ecommerce
 	./hustle/localization
+	./hustle/media
+	./hustle/pod
 	./hustle/publisher
 	./hustle/qa
 	./hustle/research

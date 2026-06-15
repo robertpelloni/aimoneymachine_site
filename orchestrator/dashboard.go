@@ -36,14 +36,18 @@ func ShowDashboard(orch *Orchestrator) {
 		fmt.Printf(" [SCHEDULER]      Next: %s\n", strings.Join(orch.TaskQueue, " | "))
 	}
 
-	// Extended Hustle Metrics
+	// Hyper-Diverse Hustle Metrics
 	contentCount := len(orch.L1.Search("content"))
 	productCount := len(orch.L1.Search("ecommerce"))
 	auditCount := len(orch.L1.Search("devagency"))
 	ticketCount := len(orch.L1.Search("support"))
-	if contentCount > 0 || productCount > 0 || auditCount > 0 || ticketCount > 0 {
-		fmt.Printf(" [HUSTLE METRICS] Content:%d | Product:%d | Agency:%d | Support:%d\n",
-			contentCount, productCount, auditCount, ticketCount)
+	podCount := len(orch.L1.Search("pod"))
+	mediaCount := len(orch.L1.Search("media"))
+	careerCount := len(orch.L1.Search("careers"))
+
+	if contentCount > 0 || productCount > 0 || auditCount > 0 || ticketCount > 0 || podCount > 0 || mediaCount > 0 || careerCount > 0 {
+		fmt.Printf(" [HUSTLE METRICS] Content:%d | Product:%d | Agency:%d | Support:%d | POD:%d | Media:%d | Careers:%d\n",
+			contentCount, productCount, auditCount, ticketCount, podCount, mediaCount, careerCount)
 	}
 
 	// Agent Observability
