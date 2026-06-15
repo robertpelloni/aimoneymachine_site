@@ -57,6 +57,8 @@
 - [x] **Adaptive Sync** — ROI-driven swarm reconciliation (v1.0.0-alpha.90)
 
 ## Phase 6: Expansion & Full Scale (v1.0.0-rc.1 – v1.0.0) 📋 PLANNED
-- [ ] **Multi-exchange trading expansion** — Coinbase, Gemini exchange plugins
+- [x] **Multi-exchange trading expansion** — Coinbase, Gemini exchange plugins (v1.0.0-alpha.94)
+- [ ] **E-commerce Autonomy** — Automated Shopify publishing (v1.0.0-alpha.96)
+- [ ] **Service Autonomy** — Dev Agency and Support modules (v1.0.0-alpha.96)
 - [ ] **Multi-node cluster testing** — 100+ peers with real mesh sync
 - [ ] **Global profit leaderboard** — Real-time mesh-wide ranking via A2A topic

@@ -1,3 +1,12 @@
+## [1.0.0-alpha.96] - 2026-06-24
+
+### Added
+- **Shopify Integration**: Automated product listing creation via `ShopifyPublisher` in the publisher module.
+- **Dev Agency Module**: New `devagency` module for autonomous code audits and professional project proposals.
+- **Customer Support Module**: New `support` module for automated ticket resolution using L3 archive memory for technical context.
+- **Service Autonomy Protocols**: Registered `hustle://devagency` and `hustle://support` in the central orchestrator.
+- **Enhanced PWA Dashboard**: Added quick-action buttons for Ecommerce, Dev Agency, and Support modules.
+
 ## [1.0.0-alpha.95] - 2026-06-23
 
 ### Added

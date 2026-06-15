@@ -14,10 +14,12 @@ import (
 
 	"github.com/robertpelloni/hustle/hustle/content"
 	"github.com/robertpelloni/hustle/hustle/curation"
+	"github.com/robertpelloni/hustle/hustle/devagency"
 	"github.com/robertpelloni/hustle/hustle/ecommerce"
 	"github.com/robertpelloni/hustle/hustle/publisher"
 	"github.com/robertpelloni/hustle/hustle/research"
 	"github.com/robertpelloni/hustle/hustle/social"
+	"github.com/robertpelloni/hustle/hustle/support"
 	"github.com/robertpelloni/hustle/hustle/trading"
 	"github.com/robertpelloni/hustle/orchestrator"
 )
@@ -287,6 +289,46 @@ func main() {
 		return nil
 	})
 
+	protocol.Register("support", func(p url.Values) error {
+		action := p.Get("action")
+		sup := support.NewSupportModule(orch, broker)
+
+		if action == "resolve" {
+			customer := p.Get("customer")
+			if customer == "" { customer = "Anonymous" }
+			issue := p.Get("issue")
+			if issue == "" { issue = "How do I start the orchestrator?" }
+
+			reply, err := sup.ResolveTicket(customer, issue)
+			if err != nil { return err }
+			fmt.Printf("[Support] Resolution for %s:\n%s\n", customer, reply)
+		} else if action == "faq" {
+			return sup.GenerateFAQ()
+		}
+		return nil
+	})
+
+	protocol.Register("devagency", func(p url.Values) error {
+		action := p.Get("action")
+		path := p.Get("path")
+		if path == "" { path = "." }
+
+		agency := devagency.NewDevAgencyModule(orch, broker)
+
+		if action == "audit" {
+			report, err := agency.AuditCode(path)
+			if err != nil { return err }
+			fmt.Printf("[DevAgency] Audit Report for %s:\n%s\n", path, report)
+		} else if action == "propose" {
+			desc := p.Get("desc")
+			if desc == "" { desc = "Build a modern Go backend for an AI SaaS" }
+			proposal, err := agency.ProposeService(desc)
+			if err != nil { return err }
+			fmt.Printf("[DevAgency] Service Proposal:\n%s\n", proposal)
+		}
+		return nil
+	})
+
 	protocol.Register("ecommerce", func(p url.Values) error {
 		action := p.Get("action")
 		niche := p.Get("niche")
@@ -307,7 +349,23 @@ func main() {
 				listing, err := eModule.GenerateListing(products[0])
 				if err == nil {
 					fmt.Printf("[Ecommerce] Generated listing for: %s\n", products[0].Name)
-					_ = listing // In a real app, we'd save this or post to Shopify
+
+					// Handle automatic publishing to Shopify if requested
+					if p.Get("publish") == "true" {
+						shop := publisher.NewShopifyPublisher()
+						if *dryRun { shop.DryRun = true }
+						if shop.IsConfigured() || shop.DryRun {
+							_, err := shop.CreateProduct(publisher.ShopifyProduct{
+								Title:    products[0].Name,
+								BodyHTML: listing,
+								Vendor:   "AI Hustle Machine",
+								Status:   "draft",
+							})
+							if err != nil {
+								fmt.Printf("[Ecommerce] ⚠️ Shopify publish failed: %v\n", err)
+							}
+						}
+					}
 				}
 			}
 		}
