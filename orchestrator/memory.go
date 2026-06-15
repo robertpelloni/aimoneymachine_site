@@ -215,6 +215,7 @@ type Orchestrator struct {
 	LLM        LLMProvider       `json:"-"`
 	Embedder   EmbeddingProvider `json:"-"`
 	DB         *SQLiteStore      `json:"-"`
+	Broker     *A2ABroker        `json:"-"`
 }
 
 func NewOrchestrator() *Orchestrator {

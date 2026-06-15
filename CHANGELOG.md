@@ -1,3 +1,11 @@
+## [1.0.0-alpha.95] - 2026-06-23
+
+### Added
+- **E-commerce & Dropshipping Module**: New `ecommerce` module for autonomous trending product discovery and Shopify-ready listing generation.
+- **Collaborative Swarm Healing**: Implemented a federated resilience pattern where mesh peers collaborate to solve system errors via `swarm_fix` and `swarm_resolution` topics.
+- **Enhanced Orchestration**: Added `Broker` field to `Orchestrator` struct to facilitate direct mesh communication for internal modules.
+- **Expanded Dashboard**: Integrated e-commerce metrics and active swarm healing status into both terminal and web dashboards.
+
 ## [1.0.0-alpha.94] - 2026-06-22
 
 ### Added

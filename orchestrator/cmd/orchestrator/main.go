@@ -14,6 +14,7 @@ import (
 
 	"github.com/robertpelloni/hustle/hustle/content"
 	"github.com/robertpelloni/hustle/hustle/curation"
+	"github.com/robertpelloni/hustle/hustle/ecommerce"
 	"github.com/robertpelloni/hustle/hustle/publisher"
 	"github.com/robertpelloni/hustle/hustle/research"
 	"github.com/robertpelloni/hustle/hustle/social"
@@ -99,6 +100,7 @@ func main() {
 	chainManager.LoadState("chains.json")
 	discoverer := orchestrator.NewChainDiscoverer(orch, chainManager)
 	broker := orchestrator.NewA2ABroker(orch)
+	orch.Broker = broker
 	swarm := orchestrator.NewMemorySwarm(orch, broker)
 	multiAgent := orchestrator.NewMultiAgentOrchestrator(orch, protocol, broker)
 
@@ -142,6 +144,39 @@ func main() {
 	contentModule := content.NewContentModule(orch, "output/content")
 
 	// ── Mesh Event Listeners ──
+	fixCh := broker.SubscribeTopic("swarm_fix")
+	go func() {
+		for msg := range fixCh {
+			fmt.Printf("[Mesh] Received Swarm Fix Request: %s\n", msg.Payload)
+			// Nodes attempt to solve the issue
+			h := orchestrator.NewHealer(orch)
+			diagnosis := h.Diagnose(msg.Payload)
+
+			// If a fix is found, broadcast it back as a resolution
+			prompt := fmt.Sprintf("Solve this system error for a mesh peer: %s. Provide a step-by-step verified fix.", diagnosis)
+			fix, err := orch.LLM.Generate(prompt)
+			if err == nil {
+				broker.Publish(orchestrator.Message{
+					ID:        fmt.Sprintf("fix-res-%d", time.Now().Unix()),
+					Source:    "healer-module",
+					Type:      orchestrator.Event,
+					Topic:     "swarm_resolution",
+					Payload:   fix,
+					Timestamp: time.Now(),
+				})
+			}
+		}
+	}()
+
+	resCh := broker.SubscribeTopic("swarm_resolution")
+	go func() {
+		for msg := range resCh {
+			fmt.Printf("[Mesh] Received Swarm Resolution Patch: %s\n", msg.Payload)
+			h := orchestrator.NewHealer(orch)
+			h.ApplyPatch(msg.Payload)
+		}
+	}()
+
 	alphaCh := broker.SubscribeTopic("alpha_discovery")
 	go func() {
 		for msg := range alphaCh {
@@ -249,6 +284,33 @@ func main() {
 		}
 
 		social.SchedulePost(orch, provider, platform, topic)
+		return nil
+	})
+
+	protocol.Register("ecommerce", func(p url.Values) error {
+		action := p.Get("action")
+		niche := p.Get("niche")
+		if niche == "" {
+			niche = "tech gadgets"
+		}
+		eModule := ecommerce.NewEcommerceModule(orch, broker)
+
+		if action == "discover" {
+			products, err := eModule.DiscoverProducts(niche)
+			if err != nil {
+				return err
+			}
+			fmt.Printf("[Ecommerce] ✅ Discovered %d trending products for %s\n", len(products), niche)
+
+			// Generate listing for the best one
+			if len(products) > 0 {
+				listing, err := eModule.GenerateListing(products[0])
+				if err == nil {
+					fmt.Printf("[Ecommerce] Generated listing for: %s\n", products[0].Name)
+					_ = listing // In a real app, we'd save this or post to Shopify
+				}
+			}
+		}
 		return nil
 	})
 

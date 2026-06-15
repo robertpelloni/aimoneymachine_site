@@ -36,12 +36,11 @@ func ShowDashboard(orch *Orchestrator) {
 		fmt.Printf(" [SCHEDULER]      Next: %s\n", strings.Join(orch.TaskQueue, " | "))
 	}
 
-	// Content Metrics
-	contentCount := 0
-	contentEntries := orch.L1.Search("content")
-	contentCount = len(contentEntries)
-	if contentCount > 0 {
-		fmt.Printf(" [CONTENT HUB]    Generated: %d pieces\n", contentCount)
+	// Content & E-commerce Metrics
+	contentCount := len(orch.L1.Search("content"))
+	productCount := len(orch.L1.Search("ecommerce"))
+	if contentCount > 0 || productCount > 0 {
+		fmt.Printf(" [HUSTLE METRICS] Content: %d | Products: %d\n", contentCount, productCount)
 	}
 
 	// Agent Observability
@@ -207,6 +206,14 @@ func ShowDashboard(orch *Orchestrator) {
 	if len(strategies) > 0 {
 		latest := strategies[len(strategies)-1]
 		fmt.Printf("  COLLECTIVE ALPHA: %s\n", latest.Content)
+	}
+
+	fmt.Printf("%s--------------------------------------------------%s\n", colorCyan, colorReset)
+	// Active Swarm Fixes
+	swarmFixes := orch.L1.Search("swarm_fix")
+	if len(swarmFixes) > 0 {
+		latest := swarmFixes[len(swarmFixes)-1]
+		fmt.Printf(" [SWARM HEALING]  Active Fix: %s\n", latest.Content)
 	}
 
 	fmt.Printf("%s--------------------------------------------------%s\n", colorCyan, colorReset)

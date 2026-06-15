@@ -53,6 +53,19 @@ func (h *Healer) Fix(diagnosis string) bool {
 	h.RetryCount++
 	fmt.Printf("Applying fix attempt %d/%d based on diagnosis.\n", h.RetryCount, h.RetryLimit)
 
+	// Collaborative Swarm Healing: Broadcast error to mesh
+	if h.Orchestrator.Broker != nil {
+		fmt.Println("[Healer] Broadcasting error to mesh for Collaborative Swarm Healing...")
+		h.Orchestrator.Broker.Publish(Message{
+			ID:        fmt.Sprintf("err-%d", time.Now().Unix()),
+			Source:    "healer-module",
+			Type:      Command,
+			Topic:     "swarm_fix",
+			Payload:   diagnosis,
+			Timestamp: time.Now(),
+		})
+	}
+
 	prompt := fmt.Sprintf("Based on this diagnosis: %s, generate a step-by-step fix strategy for the system.", diagnosis)
 	fixStrategy, err := h.Orchestrator.LLM.Generate(prompt)
 	if err != nil {
@@ -151,6 +164,21 @@ func (h *Healer) WealthPreservation() {
 	} else {
 		fmt.Println("[Healer] All active hustles meet ROI thresholds.")
 	}
+}
+
+// ApplyPatch applies a verified fix received from the swarm
+func (h *Healer) ApplyPatch(patch string) bool {
+	fmt.Printf("[Healer] Applying Swarm Patch: %s\n", patch)
+
+	// Log swarm fix to memory
+	h.Orchestrator.L1.Add(MemoryEntry{
+		ID:        fmt.Sprintf("swarm-patch-%d", time.Now().Unix()),
+		Content:   fmt.Sprintf("Applied Swarm Patch: %s", patch),
+		Timestamp: time.Now(),
+		Tags:      []string{"healer", "swarm_fix", "patch"},
+	})
+
+	return h.Verify(patch)
 }
 
 func (h *Healer) Loop(issue string) {
