@@ -1,3 +1,11 @@
+## [1.0.0-alpha.94] - 2026-06-22
+
+### Added
+- **Gemini Exchange Support**: Implemented `GeminiExecutor` with HMAC-SHA384 base64 signing for diversified trade execution.
+- **PWA Dashboard**: Enhanced the web dashboard with `manifest.json` and service worker for mobile installability and offline support.
+- **Dynamic Niche Arbitrage**: Automated sentiment spike detection in research results to trigger SEO content production for viral trends.
+- **Autonomous Feedback Loop**: Integrated niche arbitrage commands into the A2A broker for zero-touch content reaction.
+
 ## [1.0.0-alpha.93] - 2026-06-21
 
 ### Added

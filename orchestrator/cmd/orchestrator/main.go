@@ -126,6 +126,9 @@ func main() {
 	} else if os.Getenv("COINBASE_API_KEY") != "" {
 		fmt.Println("[Trading] Real execution enabled via Coinbase.")
 		executor = trading.NewCoinbaseExecutor()
+	} else if os.Getenv("GEMINI_API_KEY") != "" {
+		fmt.Println("[Trading] Real execution enabled via Gemini.")
+		executor = trading.NewGeminiExecutor()
 	}
 
 	traderModule := &trading.TradingModule{
