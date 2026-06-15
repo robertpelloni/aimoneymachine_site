@@ -5,14 +5,19 @@ use (
 	./hustle/careers
 	./hustle/curation
 	./hustle/devagency
+	./hustle/domains
 	./hustle/ecommerce
 	./hustle/localization
 	./hustle/media
 	./hustle/pod
 	./hustle/publisher
+	./hustle/publishing
 	./hustle/qa
+	./hustle/realestate
+	./hustle/retail
 	./hustle/research
 	./hustle/social
+	./hustle/stocks
 	./hustle/support
 	./hustle/trading
 	./orchestrator

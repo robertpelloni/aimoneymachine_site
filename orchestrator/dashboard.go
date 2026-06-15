@@ -202,7 +202,7 @@ func ShowDashboard(orch *Orchestrator) {
 	sort.Slice(leaderboard, func(i, j int) bool {
 		return leaderboard[i].profit > leaderboard[j].profit
 	})
-	for i := 0; i < len(leaderboard) && i < 5; i++ {
+	for i := 0; i < len(leaderboard) && i < 10; i++ {
 		rankColor := colorReset
 		if i == 0 { rankColor = colorYellow }
 		fmt.Printf("  %s#%-14d %-15s $%-10.2f%s\n", rankColor, i+1, leaderboard[i].id, leaderboard[i].profit, colorReset)

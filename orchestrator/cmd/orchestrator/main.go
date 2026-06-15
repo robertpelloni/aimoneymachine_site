@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/url"
 	"os"
+	"strconv"
 	"os/exec"
 	"os/signal"
 	"syscall"
@@ -16,14 +17,19 @@ import (
 	"github.com/robertpelloni/hustle/hustle/content"
 	"github.com/robertpelloni/hustle/hustle/curation"
 	"github.com/robertpelloni/hustle/hustle/devagency"
+	"github.com/robertpelloni/hustle/hustle/domains"
 	"github.com/robertpelloni/hustle/hustle/ecommerce"
 	"github.com/robertpelloni/hustle/hustle/localization"
 	"github.com/robertpelloni/hustle/hustle/media"
 	"github.com/robertpelloni/hustle/hustle/pod"
 	"github.com/robertpelloni/hustle/hustle/publisher"
+	"github.com/robertpelloni/hustle/hustle/publishing"
 	"github.com/robertpelloni/hustle/hustle/qa"
+	"github.com/robertpelloni/hustle/hustle/realestate"
 	"github.com/robertpelloni/hustle/hustle/research"
+	"github.com/robertpelloni/hustle/hustle/retail"
 	"github.com/robertpelloni/hustle/hustle/social"
+	"github.com/robertpelloni/hustle/hustle/stocks"
 	"github.com/robertpelloni/hustle/hustle/support"
 	"github.com/robertpelloni/hustle/hustle/trading"
 	"github.com/robertpelloni/hustle/orchestrator"
@@ -200,6 +206,14 @@ func main() {
 		}
 	}()
 
+	leaderCh := broker.SubscribeTopic("leaderboard_sync")
+	go func() {
+		for msg := range leaderCh {
+			fmt.Printf("[Mesh] Leaderboard update from %s\n", msg.Source)
+			protocol.HandleURI(msg.Payload)
+		}
+	}()
+
 	agentCh := broker.Subscribe("local-node")
 	go func() {
 		for msg := range agentCh {
@@ -291,6 +305,33 @@ func main() {
 		}
 
 		social.SchedulePost(orch, provider, platform, topic)
+		return nil
+	})
+
+	protocol.Register("stocks", func(p url.Values) error {
+		action := p.Get("action")
+		symbol := p.Get("symbol")
+		if symbol == "" { symbol = "AAPL" }
+
+		sModule := stocks.NewStockModule(orch, broker)
+
+		if action == "analyze" {
+			analysis, err := sModule.AnalyzeStock(symbol)
+			if err != nil { return err }
+			fmt.Printf("[Stocks] Analysis for %s:\n%s\n", symbol, analysis)
+		} else if action == "trade" {
+			side := p.Get("side")
+			if side == "" { side = "buy" }
+			qty, _ := strconv.ParseFloat(p.Get("qty"), 64)
+			if qty == 0 { qty = 1.0 }
+
+			executor := stocks.NewAlpacaExecutor()
+			if *dryRun {
+				fmt.Printf("[Stocks] DRY RUN: Would execute %s %s for %f\n", side, symbol, qty)
+			} else {
+				return executor.ExecuteOrder(symbol, side, qty)
+			}
+		}
 		return nil
 	})
 
@@ -686,6 +727,58 @@ func main() {
 			}
 		}
 
+		return nil
+	})
+
+	protocol.Register("kdp", func(p url.Values) error {
+		action := p.Get("action")
+		niche := p.Get("niche")
+		if niche == "" { niche = "gratitude journal" }
+
+		kModule := publishing.NewKDPModule(orch, broker)
+
+		if action == "plan" {
+			plan, err := kModule.PlanInterior(niche)
+			if err != nil { return err }
+			fmt.Printf("[KDP] Interior Plan for %s:\n%s\n", niche, plan)
+		}
+		return nil
+	})
+
+	protocol.Register("retail", func(p url.Values) error {
+		buyPrice, _ := strconv.ParseFloat(p.Get("buy"), 64)
+		sellPrice, _ := strconv.ParseFloat(p.Get("sell"), 64)
+		cat := p.Get("cat")
+		if cat == "" { cat = "electronics" }
+
+		rModule := retail.NewRetailModule(orch, broker)
+		_, assessment, err := rModule.CalculateArbitrageROI(buyPrice, sellPrice, cat)
+		if err != nil { return err }
+		fmt.Printf("[Retail] Arb Assessment: %s\n", assessment)
+		return nil
+	})
+
+	protocol.Register("domains", func(p url.Values) error {
+		name := p.Get("name")
+		if name == "" { name = "aimoney.site" }
+
+		dModule := domains.NewDomainModule(orch, broker)
+		_, analysis, err := dModule.EvaluateDomain(name)
+		if err != nil { return err }
+		fmt.Printf("[Domains] Evaluation for %s:\n%s\n", name, analysis)
+		return nil
+	})
+
+	protocol.Register("realestate", func(p url.Values) error {
+		rent, _ := strconv.ParseFloat(p.Get("rent"), 64)
+		rate, _ := strconv.ParseFloat(p.Get("rate"), 64)
+		loc := p.Get("loc")
+		if loc == "" { loc = "Miami, FL" }
+
+		reModule := realestate.NewRealEstateModule(orch, broker)
+		_, assessment, err := reModule.CalculateSTRProfit(rent, rate, loc)
+		if err != nil { return err }
+		fmt.Printf("[RealEstate] STR Assessment for %s:\n%s\n", loc, assessment)
 		return nil
 	})
 

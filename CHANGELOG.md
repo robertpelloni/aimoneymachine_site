@@ -1,3 +1,12 @@
+## [1.0.0-alpha.99] - 2026-06-27
+
+### Added
+- **KDP & Retail Arbitrage**: New modules for low-content book publishing and Amazon FBA ROI scanning.
+- **Domain & STR Arbitrage**: Autonomous domain valuation and Airbnb arbitrage profitability analysis.
+- **Stock & Options Trading**: Integrated Alpaca executor for quantitative stock trading.
+- **Global Mesh Leaderboard**: Real-time aggregate profit tracking for the Top 10 mesh performers via `leaderboard_sync`.
+- **Hyper-Diverse Expansion**: The machine now supports 17 distinct automated money-making domains.
+
 ## [1.0.0-alpha.98] - 2026-06-26
 
 ### Added
