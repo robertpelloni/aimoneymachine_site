@@ -29,8 +29,10 @@ A globally distributed, self-healing mesh of thousands of nodes, each running lo
 - **Research** trending opportunities across markets and social media
 - **Discover Leads** identify specific companies and niches for high-value outreach
 - **Create** monetizable content (blogs, newsletters, SEO articles, social threads)
+- **Monetize** automatically via affiliate injection and disclosure management
 - **Trade** crypto assets with advanced technical confluence and real-time sentiment analysis
 - **Engage** autonomously with social media audiences to grow reach and authority
+- **Outreach** via automated SMTP personalized pitches to discovered leads
 - **Curate** intelligence into actionable reports and newsletters
 - **Post** optimized social content to grow audience and influence
 - **Discover** new high-ROI workflow chains and self-schedule them

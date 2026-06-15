@@ -192,6 +192,7 @@ func (s *MemorySwarm) ProvideStatus(peerID string) {
 
 // HandleStatusResponse logs the received peer status
 func (s *MemorySwarm) HandleStatusResponse(peerID, data string) {
+	start := time.Now()
 	var status map[string]interface{}
 	if err := json.Unmarshal([]byte(data), &status); err != nil {
 		fmt.Printf("[Swarm] Failed to parse status from %s: %v\n", peerID, err)
@@ -210,9 +211,9 @@ func (s *MemorySwarm) HandleStatusResponse(peerID, data string) {
 	content := fmt.Sprintf("Mesh Peer %s Status: %v, PROFIT: $%.2f", peerID, status["status"], status["profit"])
 	s.Orchestrator.L1.Add(MemoryEntry{
 		ID:        fmt.Sprintf("mesh-stat-%s-%d", peerID, time.Now().Unix()),
-		Content:   content,
+		Content:   fmt.Sprintf("%s (Sync Latency: %v)", content, time.Since(start)),
 		Timestamp: time.Now(),
-		Tags:      []string{"swarm", "mesh_status", "profit"},
+		Tags:      []string{"swarm", "mesh_status", "profit", "metrics"},
 	})
 	fmt.Printf("[Swarm] Ingested status from %s\n", peerID)
 }

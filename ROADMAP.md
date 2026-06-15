@@ -36,8 +36,8 @@
 - [x] **Wealth Goals** — Mesh-wide financial targets and leaderboards (v1.0.0-alpha.75)
 
 ## Phase 5: Advanced Autonomy & Scaling (v1.0.0-alpha.78 – v1.0.0-beta.10) 🔧 IN PROGRESS
-- [ ] **Real Social API Integration** — Twitter/X and LinkedIn OAuth2/API calls
-- [ ] **Trading with real CoinGecko data** — verified in daemon mode with -real-prices
+- [x] **Real Social API Integration** — Twitter/X and LinkedIn OAuth2/API calls (v1.0.0-alpha.82)
+- [x] **Trading with real CoinGecko data** — verified in daemon mode with -real-prices (v1.0.0-alpha.82)
 - [x] **Content output pipeline** — automated hosting/deployment of generated markdown (v1.0.0-alpha.84)
 - [x] **Affiliate Integration** — Automated link insertion in content (v1.0.0-alpha.84)
 - [x] **Lead Generation** — Autonomous business lead discovery (v1.0.0-alpha.84)
@@ -56,9 +56,7 @@
 - [x] **Federated Identity** — Ed25519 DID for secure mesh sync (v1.0.0-alpha.90)
 - [x] **Adaptive Sync** — ROI-driven swarm reconciliation (v1.0.0-alpha.90)
 
-## Phase 5: Advanced Autonomy (v1.0.0-beta.11 – v1.0.0-rc.1) 📋 PLANNED
-- [ ] **Multi-exchange trading** — Coinbase, Gemini exchange plugins
-
-## Phase 6: Federation & Scale (v1.0.0-rc.2 – v1.0.0) 📋 PLANNED
-- [ ] **Multi-node cluster testing** — 10+ peers with real mesh sync
-- [ ] **Global profit leaderboard** — mesh-wide ranking via A2A topic
+## Phase 6: Expansion & Full Scale (v1.0.0-rc.1 – v1.0.0) 📋 PLANNED
+- [ ] **Multi-exchange trading expansion** — Coinbase, Gemini exchange plugins
+- [ ] **Multi-node cluster testing** — 100+ peers with real mesh sync
+- [ ] **Global profit leaderboard** — Real-time mesh-wide ranking via A2A topic

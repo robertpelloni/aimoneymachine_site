@@ -20,16 +20,15 @@
 - **Autonomous Evolution:** The system should generate its own tasks and code improvements.
 
 ## Discovered Optimizations
-- **LLM Sentiment Confluence:** Filtering signals through LLM-extracted sentiment reduces noise.
-- **Mesh Aggregation:** Centralizing status in L1 memory allows the Dashboard to remain stateless.
-- **Content Generation is Highest-ROI:** Zero marginal compute cost for directly monetizable output.
-- **Automated Affiliate Inflow:** Every generated asset is a monetization vector via integrated affiliate insertion.
-- **Lead Discovery Loop:** Research now feeds directly into lead generation, creating high-value business intelligence.
-- **Engagement-Driven Growth:** Social module now includes a Search & Reply loop to autonomously grow audience reach.
-- **Confluence 2.0:** Trading decisions are now gated by both technical indicators (Bollinger/MACD) and real-time market sentiment analysis.
-- **Multi-Exchange Execution:** Abstracted trade execution allows for real-world capital growth on Binance and Kraken.
+- **LLM Response Caching**: Content-addressable SQLite cache significantly reduces redundant API calls and costs.
+- **LLM Sentiment Confluence**: Filtering signals through LLM-extracted sentiment reduces noise.
+- **Mesh Aggregation**: Centralizing status in L1 memory allows the Dashboard to remain stateless.
+- **Content Generation is Highest-ROI**: Zero marginal compute cost for directly monetizable output.
+- **Automated Affiliate Inflow**: Every generated asset is a monetization vector via integrated affiliate insertion.
+- **Lead Discovery Loop**: Research now feeds directly into lead generation, creating high-value business intelligence.
+- **Engagement-Driven Growth**: Social module now includes a Search & Reply loop to autonomously grow audience reach.
+- **Confluence 2.0**: Trading decisions are now gated by both technical indicators (Bollinger/MACD) and real-time market sentiment analysis.
+- **Multi-Exchange Execution**: Abstracted trade execution allows for real-world capital growth on Binance and Kraken.
 
 ## Known Technical Debt
-- `go-sqlite3` requires CGO — consider migration to `modernc.org/sqlite` for Windows compatibility.
 - Social posting providers (Twitter, LinkedIn) have retry logic but still require full OAuth2 flow verification in production environments.
-- Rollback handler `Execute()` is a stub with no real git revert logic.

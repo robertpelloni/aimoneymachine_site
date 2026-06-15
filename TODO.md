@@ -25,9 +25,10 @@
 - [x] **Task History** (v1.0.0-alpha.78) — Log task execution times and durations to SQLite.
 
 ## 🟢 Lower Priority
-- [ ] **Multi-exchange support** — Binance, Kraken plugins.
+- [ ] **Mobile Dashboard** — PWA or Terminal-over-SSH mobile view.
 
 ## ✅ Completed
+- [x] **Multi-exchange support** (v1.0.0-alpha.89) — Binance and Kraken support.
 - [x] **Dynamic RSS Management** (v1.0.0-alpha.74)
 - [x] **Scheduler Observability** (v1.0.0-alpha.74)
 - [x] **Real Research API** (v1.0.0-alpha.68)

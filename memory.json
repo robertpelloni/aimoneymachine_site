@@ -1,7 +1,35 @@
 {
   "version": "",
+  "dry_run": true,
+  "stealth_mode": false,
+  "rss_feeds": null,
+  "wealth_goal": 10000,
+  "task_queue": null,
   "l1": {
-    "entries": []
+    "entries": [
+      {
+        "id": "msg-idx-1781515566",
+        "content": "A2A Response: local-node -\u003e local-node | hustle://swarm?action=provide_index\u0026peer_id=local-node\u0026data=",
+        "base_score": 0,
+        "timestamp": "2026-06-15T09:26:06.035794135Z",
+        "tags": [
+          "a2a",
+          "local-node",
+          "local-node"
+        ]
+      },
+      {
+        "id": "msg-idx-1781515567",
+        "content": "A2A Response: local-node -\u003e local-node | hustle://swarm?action=provide_index\u0026peer_id=local-node\u0026data=",
+        "base_score": 0,
+        "timestamp": "2026-06-15T09:26:07.032804033Z",
+        "tags": [
+          "a2a",
+          "local-node",
+          "local-node"
+        ]
+      }
+    ]
   },
   "l2": {
     "entries": []

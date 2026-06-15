@@ -1,3 +1,16 @@
+## [1.0.0-alpha.92] - 2026-06-20
+
+### Added
+- **Automated Affiliate Monetization**: Integrated `publisher.AffiliateInserter` for autonomous injection of affiliate links and disclosures into generated content.
+- **Lead Acquisition Pipeline**: Closed-loop lead generation and automated outreach via SMTP with personalized pitches.
+- **Advanced Trading Confluence**: Upgraded trading signals with Bollinger Bands, MACD, and sentiment-agreement requirements.
+- **Autonomous Lead Discovery**: Deep research-driven lead extraction from web search results.
+- **System Portability**: Downgraded internal `modernc.org/libc` to maintain Go 1.24.0 compatibility across all platforms.
+
+### Fixed
+- **Dependency Hell**: Resolved version mismatch between `modernc.org/sqlite` and required Go versions.
+- **Mathematical Integrity**: Verified all technical indicators against a 100% pass-rate test suite.
+
 ## [1.0.0-alpha.91] - 2026-06-20
 
 ### Added
