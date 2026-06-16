@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# bobtrader stub – simply logs allocation changes
+if [[ "$1" == "set-allocation" && -n "$2" ]]; then
+    echo "[bobtrader] Setting allocation to $2"
+    exit 0
+else
+    echo "[bobtrader] Unknown command: $*"
+    exit 1
+fi
