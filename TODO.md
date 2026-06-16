@@ -29,10 +29,12 @@
 - [x] **Task History** (v1.0.0-alpha.78) — Log task execution times and durations to SQLite.
 
 ## 🟢 Lower Priority
-- [ ] **Mobile Dashboard** — PWA or Terminal-over-SSH mobile view.
+- [ ] **Native Mobile App** — Flutter-based dashboard for iOS/Android.
 
 ## ✅ Completed
-- [x] **Multi-exchange support** (v1.0.0-alpha.89) — Binance and Kraken support.
+- [x] **17-Domain Hustle Swarm** (v1.0.0-alpha.99) — Integrated automation for Content, Trading, Ecommerce, POD, Media, Careers, KDP, Retail, RealEstate, Domains, Agency, and Support.
+- [x] **Mobile Dashboard** (v1.0.0-alpha.93) — PWA web UI.
+- [x] **Multi-exchange support** (v1.0.0-alpha.94) — Binance, Kraken, Coinbase, Gemini, and Alpaca.
 - [x] **Dynamic RSS Management** (v1.0.0-alpha.74)
 - [x] **Scheduler Observability** (v1.0.0-alpha.74)
 - [x] **Real Research API** (v1.0.0-alpha.68)

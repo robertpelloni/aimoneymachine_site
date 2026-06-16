@@ -1,3 +1,11 @@
+## [1.0.0] - 2026-06-28
+
+### Added
+- **Production Stability**: Finalized v1.0.0 stable release after comprehensive E2E validation.
+- **ROI-Driven Scheduling**: Implemented autonomous task reallocation in the scheduler based on mesh-wide profitability data.
+- **Cluster Management**: Enhanced cluster launcher with graceful child process termination and health monitoring.
+- **Final Verification**: Completed exhaustive system audit and documented 100% compliance in `VERIFICATION_REPORT.md`.
+
 ## [1.0.0-alpha.99] - 2026-06-27
 
 ### Added

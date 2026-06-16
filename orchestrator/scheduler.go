@@ -149,6 +149,9 @@ func (s *Scheduler) ReevaluateStrategy(recommendation string) {
 func (s *Scheduler) Start() {
 	fmt.Println("Starting Task Scheduler...")
 	for {
+		// Autonomous Strategy Optimization
+		s.autonomousOptimization()
+
 		// Check for ROI corrections in memory
 		s.checkROICorrections()
 
@@ -219,6 +222,21 @@ func (s *Scheduler) updateMetadata() {
 		queue = append(queue, fmt.Sprintf("%s (%v)", sorted[i].name, sorted[i].remaining.Round(time.Second)))
 	}
 	s.Orchestrator.TaskQueue = queue
+}
+
+func (s *Scheduler) autonomousOptimization() {
+	// Look for Leaderboard insights in L1
+	leaderboard := s.Orchestrator.L1.Search("leaderboard")
+	if len(leaderboard) == 0 { return }
+
+	// Identify highest profit peer strategies
+	strategies := s.Orchestrator.L1.Search("collective_strategy")
+	for _, st := range strategies {
+		if strings.Contains(st.Content, "COLLECTIVE_ALPHA") {
+			// Recommendation format: "COLLECTIVE_ALPHA: Recommendation: Focus on [TaskName] ..."
+			s.ReevaluateStrategy(st.Content)
+		}
+	}
 }
 
 func (s *Scheduler) checkROICorrections() {

@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"os/signal"
 	"strconv"
+	"syscall"
 	"time"
 )
 
@@ -60,6 +62,21 @@ func main() {
 		time.Sleep(1 * time.Second) // Staggered startup
 	}
 
-	fmt.Println("\n[Cluster] All nodes launched. Press Ctrl+C to terminate all (manual cleanup needed for now).")
-	select {}
+	fmt.Println("\n[Cluster] All nodes launched. Press Ctrl+C to terminate all.")
+
+	// Graceful cleanup on exit
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
+
+	<-sigChan
+	fmt.Println("\n[Cluster] Shutting down all nodes...")
+
+	// Find and kill all child orchestrator processes
+	// Since they were started with cmd.Start(), they are in our process group
+	// but simpler to just kill based on parent PID or name for this utility
+	exec.Command("pkill", "-P", strconv.Itoa(os.Getpid())).Run()
+
+	fmt.Println("[Cluster] Nodes terminated. Cleaning up lock files...")
+	os.RemoveAll("*.db-journal")
+	fmt.Println("[Cluster] Shutdown complete.")
 }

@@ -1,8 +1,8 @@
-go 1.24.0
+go 1.24.3
 
 use (
-	./hustle/content
 	./hustle/careers
+	./hustle/content
 	./hustle/curation
 	./hustle/devagency
 	./hustle/domains
@@ -10,12 +10,13 @@ use (
 	./hustle/localization
 	./hustle/media
 	./hustle/pod
+	./hustle/production/cmd/cluster
 	./hustle/publisher
 	./hustle/publishing
 	./hustle/qa
 	./hustle/realestate
-	./hustle/retail
 	./hustle/research
+	./hustle/retail
 	./hustle/social
 	./hustle/stocks
 	./hustle/support
