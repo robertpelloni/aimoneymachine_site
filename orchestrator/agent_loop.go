@@ -165,6 +165,22 @@ Available modules and their parameters:
 - hustle://chain?name=CHAIN_NAME — Execute a multi-step workflow chain
 - hustle://chain?action=discover — Discover and create new high-ROI workflow chains
 - hustle://healer?issue=DESCRIPTION — Diagnose and fix a problem
+- hustle://ecommerce?action=ads&platform=TikTok — Generate social ads for products
+- hustle://ecommerce?action=fulfill — Fulfill pending dropshipping orders
+- hustle://saas?action=ideate — Generate new micro-SaaS MVPs
+- hustle://automation?action=build — Architect business process workflows
+- hustle://finance?action=classify — Automate client bookkeeping
+- hustle://bi?action=report — Generate strategic business intelligence
+- hustle://legal?action=generate — Generate compliance documents
+- hustle://crm?action=update — Manage lead lifecycles
+- hustle://pod?action=plan — Plan Print-on-Demand designs
+- hustle://media?action=plan — Plan multimedia video production
+- hustle://careers?action=search — Discover job/contract opportunities
+- hustle://kdp?action=plan — Plan book interiors for Amazon KDP
+- hustle://retail?buy=PRICE&sell=PRICE — Scan Amazon FBA arbitrage ROI
+- hustle://domains?name=DOMAIN — Valuate domain names for flipping
+- hustle://realestate_manage — Manage guest comms for STR/Airbnb
+- hustle://stocks?action=analyze&symbol=TICKER — Quantitative stock analysis
 - hustle://swarm?action=sync — Synchronize memory with mesh peers
 - hustle://swarm?action=aggregate — Aggregate mesh-wide status
 
@@ -427,8 +443,11 @@ Generate plans from these categories:
 2. LeadGen — Automated lead discovery for business opportunities
 3. Curation — Content aggregation and newsletter generation
 4. Social — Automated content posting for audience growth
-5. Trading — Crypto trading with real execution on Binance
-6. Content — Blog/article/SEO/Newsletter/Utility-Tool generation and publishing
+5. Trading — Crypto and Stock trading with real execution
+6. Content — Blog/SEO/Newsletter/Script/Tool generation
+7. Ecommerce — Dropshipping, Ads, and Fulfillment
+8. Services — DevAgency, Support, Automation, Finance, Legal, CRM
+9. Physical/RealEstate — POD, KDP, Retail Arb, STR Management, Domains
 
 Respond with a JSON array of exactly 5 objects:
 [

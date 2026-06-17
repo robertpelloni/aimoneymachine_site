@@ -32,7 +32,9 @@
 - [ ] **Native Mobile App** — Flutter-based dashboard for iOS/Android.
 
 ## ✅ Completed
-- [x] **17-Domain Hustle Swarm** (v1.0.0-alpha.99) — Integrated automation for Content, Trading, Ecommerce, POD, Media, Careers, KDP, Retail, RealEstate, Domains, Agency, and Support.
+- [x] **24-Domain Autonomous Conglomerate** (v1.1.3) — Reached diversity peak including SaaS, BI, Legal, CRM, Automation, Design, and Localization.
+- [x] **Borg Skill Marketplace** (v1.1.0) — Mesh-wide chain exchange.
+- [x] **Operational Autonomy** (v1.1.4) — Dropshipping fulfillment and STR management.
 - [x] **Mobile Dashboard** (v1.0.0-alpha.93) — PWA web UI.
 - [x] **Multi-exchange support** (v1.0.0-alpha.94) — Binance, Kraken, Coinbase, Gemini, and Alpaca.
 - [x] **Dynamic RSS Management** (v1.0.0-alpha.74)

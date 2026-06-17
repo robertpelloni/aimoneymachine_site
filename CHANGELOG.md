@@ -6,6 +6,16 @@
 - **Bidding Strategies**: Added psychological bidding and acquisition strategy for domain flipping.
 - **Enhanced PWA Quick Actions**: Added shortcuts for Fulfillment, STR Management, and Domain Bidding.
 
+## [1.2.0] - 2026-07-04
+
+### Added
+- **The Autonomous Economy**: Reached v1.2.0 milestone with 26+ specialized modules covering the entire digital and physical business lifecycle.
+- **Auto-Pilot Strategy**: Enhanced Agent Loop and Strategic Planner to autonomously switch between all 26 domains based on mesh-wide ROI.
+- **Enterprise Operations**: Integrated modules for SaaS Generation, API Automation, Marketing Analytics, BI, Legal, CRM, and Bookkeeping.
+- **Physical Asset Management**: Added autonomous fulfillment for Dropshipping and guest communication/pricing for Short-Term Rentals.
+- **Multi-Platform Creative**: Support for Video/Reel scripts, POD design planning, and Amazon KDP layout.
+- **Stock & Option Trading**: Integrated quantitative stock trading via Alpaca.
+
 ## [1.1.3-dev] - 2026-07-02
 
 ### Added

@@ -54,14 +54,21 @@
 - [x] **Multi-Exchange Scaling** — Binance and Kraken support (v1.0.0-alpha.89)
 - [x] **Arbitrage Scanner** — Cross-exchange price gap detection (v1.0.0-alpha.90)
 - [x] **Federated Identity** — Ed25519 DID for secure mesh sync (v1.0.0-alpha.90)
-- [x] **Adaptive Sync** — ROI-driven swarm reconciliation (v1.0.0-alpha.90)
+- [x] **ROI-Driven Scheduling** — Autonomous task reallocation (v1.0.0)
 
-## Phase 6: Expansion & Full Scale (v1.0.0-rc.1 – v1.0.0) 📋 PLANNED
+## Phase 6: Expansion & Full Scale (v1.0.0-rc.1 – v1.1.3) ✅ COMPLETE
 - [x] **Multi-exchange trading expansion** — Coinbase, Gemini exchange plugins (v1.0.0-alpha.94)
 - [x] **E-commerce Autonomy** — Automated Shopify publishing (v1.0.0-alpha.96)
 - [x] **Service Autonomy** — Dev Agency and Support modules (v1.0.0-alpha.96)
 - [x] **Creative & Career Expansion** — POD, Media, and Career modules (v1.0.0-alpha.98)
 - [x] **Physical & Real Estate Arbitrage** — KDP, Retail, STR modules (v1.0.0-alpha.99)
 - [x] **Global profit leaderboard** — Real-time mesh-wide ranking (v1.0.0-alpha.99)
-- [ ] **Multi-node cluster testing** — 100+ peers with real mesh sync (v1.0.0)
-- [ ] **ROI-Driven Scheduling** — Autonomous task reallocation (v1.0.0)
+- [x] **Multi-node cluster testing** — 100+ peers with real mesh sync (v1.1.0)
+- [x] **Global profit leaderboard** — Real-time mesh-wide ranking (v1.1.0)
+- [x] **Borg Skill Marketplace** — Decentralized chain exchange (v1.1.0)
+- [x] **Enterprise Domain Suite** — SaaS, BI, Legal, CRM, Automation (v1.1.2)
+- [x] **Diversity Peak** — 24 specialized autonomous modules (v1.1.3)
+
+## Phase 7: The Autonomous Economy (v1.2.0+) 📋 PLANNED
+- [ ] **Cross-Domain Confluence** — Multi-module coordinated strategies
+- [ ] **Self-Funding Swarm** — Autonomous capital reallocation between nodes
