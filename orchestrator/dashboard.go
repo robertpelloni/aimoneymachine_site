@@ -46,10 +46,11 @@ func ShowDashboard(orch *Orchestrator) {
 	careerCount := len(orch.L1.Search("careers"))
 	financeCount := len(orch.L1.Search("finance"))
 	biCount := len(orch.L1.Search("bi"))
+	designCount := len(orch.L1.Search("design"))
 
-	if contentCount > 0 || productCount > 0 || auditCount > 0 || ticketCount > 0 || podCount > 0 || mediaCount > 0 || careerCount > 0 || financeCount > 0 || biCount > 0 {
-		fmt.Printf(" [HUSTLE METRICS] Content:%d | Product:%d | Agency:%d | Support:%d | POD:%d | Media:%d | Careers:%d | Fin:%d | BI:%d\n",
-			contentCount, productCount, auditCount, ticketCount, podCount, mediaCount, careerCount, financeCount, biCount)
+	if contentCount > 0 || productCount > 0 || auditCount > 0 || ticketCount > 0 || podCount > 0 || mediaCount > 0 || careerCount > 0 || financeCount > 0 || biCount > 0 || designCount > 0 {
+		fmt.Printf(" [HUSTLE METRICS] Content:%d | Product:%d | Agency:%d | Support:%d | POD:%d | Media:%d | Careers:%d | Fin:%d | BI:%d | Design:%d\n",
+			contentCount, productCount, auditCount, ticketCount, podCount, mediaCount, careerCount, financeCount, biCount, designCount)
 	}
 
 	// Agent Observability

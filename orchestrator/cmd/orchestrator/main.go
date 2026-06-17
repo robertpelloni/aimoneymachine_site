@@ -17,6 +17,7 @@ import (
 	"github.com/robertpelloni/hustle/hustle/careers"
 	"github.com/robertpelloni/hustle/hustle/content"
 	"github.com/robertpelloni/hustle/hustle/crm"
+	"github.com/robertpelloni/hustle/hustle/design"
 	"github.com/robertpelloni/hustle/hustle/curation"
 	"github.com/robertpelloni/hustle/hustle/devagency"
 	"github.com/robertpelloni/hustle/hustle/domains"
@@ -321,6 +322,23 @@ func main() {
 		}
 
 		social.SchedulePost(orch, provider, platform, topic)
+		return nil
+	})
+
+	protocol.Register("design", func(p url.Values) error {
+		action := p.Get("action")
+		name := p.Get("name")
+		if name == "" { name = "AI Hustle Machine" }
+		niche := p.Get("niche")
+		if niche == "" { niche = "automation technology" }
+
+		dModule := design.NewDesignModule(orch, broker)
+
+		if action == "brand" {
+			strategy, err := dModule.IdeateBrand(name, niche)
+			if err != nil { return err }
+			fmt.Printf("[Design] Brand Strategy for %s:\n%s\n", name, strategy)
+		}
 		return nil
 	})
 

@@ -1,3 +1,10 @@
+## [1.1.3-dev] - 2026-07-02
+
+### Added
+- **Design Services**: New `design` module for autonomous brand strategy, logo ideation, and visual direction.
+- **Borg Suite Expansion**: Reached 24 specialized autonomous modules across the monorepo.
+- **PWA Quick Actions**: Added branding and design shortcuts to the mobile dashboard.
+
 ## [1.1.2-dev] - 2026-07-01
 
 ### Added
