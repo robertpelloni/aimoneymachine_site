@@ -6,6 +6,14 @@
 - **Bidding Strategies**: Added psychological bidding and acquisition strategy for domain flipping.
 - **Enhanced PWA Quick Actions**: Added shortcuts for Fulfillment, STR Management, and Domain Bidding.
 
+## [1.2.1-dev] - 2026-07-05
+
+### Added
+- **Cross-Domain Confluence**: New `confluence` module for executing synergistic multi-domain "Business Recipes" (e.g., `saas_growth`, `dropship_loop`).
+- **Self-Funding Swarm**: Autonomous mesh-wide capital reallocation where profitable nodes fund peers in deficit.
+- **Synergistic Dashboards**: Added metrics for Confluence campaigns to terminal and web dashboards.
+- **Capital Transfer Protocol**: Added `TransferCapital` logic to the Ledger and corresponding swarm topic handlers.
+
 ## [1.2.0] - 2026-07-04
 
 ### Added
