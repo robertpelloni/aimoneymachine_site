@@ -199,8 +199,10 @@ func (s *MemorySwarm) HandleStatusResponse(peerID, data string) {
 		return
 	}
 
+	p, _ := status["profit"].(float64)
+
 	// Adaptive Sync: Trigger immediate delta-sync if remote profit is high (Alpha detected)
-	if p, ok := status["profit"].(float64); ok && p > 1000 {
+	if p > 1000 {
 		fmt.Printf("[Swarm] High-profit peer detected (%s: $%.2f). Accelerating sync.\n", peerID, p)
 		go func() {
 			time.Sleep(2 * time.Second)

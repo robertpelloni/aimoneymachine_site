@@ -6,3 +6,6 @@ token_*.json
 output/
 *.exe
 .env
+node.key
+node.pub
+*.test
