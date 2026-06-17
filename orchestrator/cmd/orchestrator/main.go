@@ -16,10 +16,13 @@ import (
 
 	"github.com/robertpelloni/hustle/hustle/careers"
 	"github.com/robertpelloni/hustle/hustle/content"
+	"github.com/robertpelloni/hustle/hustle/crm"
 	"github.com/robertpelloni/hustle/hustle/curation"
 	"github.com/robertpelloni/hustle/hustle/devagency"
 	"github.com/robertpelloni/hustle/hustle/domains"
+	"github.com/robertpelloni/hustle/hustle/bi"
 	"github.com/robertpelloni/hustle/hustle/finance"
+	"github.com/robertpelloni/hustle/hustle/legal"
 	"github.com/robertpelloni/hustle/hustle/ecommerce"
 	"github.com/robertpelloni/hustle/hustle/localization"
 	"github.com/robertpelloni/hustle/hustle/media"
@@ -318,6 +321,51 @@ func main() {
 		}
 
 		social.SchedulePost(orch, provider, platform, topic)
+		return nil
+	})
+
+	protocol.Register("crm", func(p url.Values) error {
+		action := p.Get("action")
+		email := p.Get("email")
+		if email == "" { email = "client@example.com" }
+
+		cModule := crm.NewCRMModule(orch, broker)
+
+		if action == "update" {
+			status := p.Get("status")
+			if status == "" { status = "contacted" }
+			return cModule.UpdateLeadStatus(email, crm.LeadStatus(status))
+		}
+		return nil
+	})
+
+	protocol.Register("legal", func(p url.Values) error {
+		action := p.Get("action")
+		docType := p.Get("type")
+		if docType == "" { docType = "Privacy Policy" }
+		name := p.Get("name")
+		if name == "" { name = "AI Hustle Machine" }
+
+		lModule := legal.NewLegalModule(orch, broker)
+
+		if action == "generate" {
+			doc, err := lModule.GenerateDocument(docType, name)
+			if err != nil { return err }
+			fmt.Printf("[Legal] Document Generated (%s):\n%s\n", docType, doc)
+		}
+		return nil
+	})
+
+	protocol.Register("bi", func(p url.Values) error {
+		action := p.Get("action")
+
+		biModule := bi.NewBIModule(orch, broker)
+
+		if action == "report" {
+			insights, err := biModule.GenerateInsights()
+			if err != nil { return err }
+			fmt.Printf("[BI] Strategic Insights:\n%s\n", insights)
+		}
 		return nil
 	})
 

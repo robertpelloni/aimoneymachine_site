@@ -2,13 +2,16 @@ go 1.24.3
 
 use (
 	./hustle/automation
+	./hustle/bi
 	./hustle/careers
 	./hustle/content
 	./hustle/curation
+	./hustle/crm
 	./hustle/devagency
 	./hustle/domains
 	./hustle/ecommerce
 	./hustle/finance
+	./hustle/legal
 	./hustle/localization
 	./hustle/marketing
 	./hustle/media

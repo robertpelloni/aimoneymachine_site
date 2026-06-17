@@ -1,3 +1,11 @@
+## [1.1.2-dev] - 2026-07-01
+
+### Added
+- **Business Intelligence (BI)**: New `bi` module for autonomous memory pattern analysis and strategic opportunity reporting.
+- **Legal & Compliance**: New `legal` module for autonomous generation of privacy policies, TOS, and AI-liability documents.
+- **CRM & Client Relations**: New `crm` module to manage lead touchpoints and generate personalized follow-up sequences.
+- **Enhanced PWA Actions**: Added quick-action buttons for BI, Legal, and CRM modules.
+
 ## [1.1.0-dev] - 2026-06-29
 
 ### Added
