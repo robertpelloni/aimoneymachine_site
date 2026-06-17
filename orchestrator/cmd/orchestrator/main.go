@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"net/url"
@@ -18,6 +19,7 @@ import (
 	"github.com/robertpelloni/hustle/hustle/curation"
 	"github.com/robertpelloni/hustle/hustle/devagency"
 	"github.com/robertpelloni/hustle/hustle/domains"
+	"github.com/robertpelloni/hustle/hustle/finance"
 	"github.com/robertpelloni/hustle/hustle/ecommerce"
 	"github.com/robertpelloni/hustle/hustle/localization"
 	"github.com/robertpelloni/hustle/hustle/media"
@@ -198,6 +200,17 @@ func main() {
 		}
 	}()
 
+	skillCh := broker.SubscribeTopic("skill_discovery")
+	go func() {
+		for msg := range skillCh {
+			fmt.Printf("[Mesh] Received Skill Discovery from %s\n", msg.Source)
+			var chain orchestrator.Chain
+			if err := json.Unmarshal([]byte(msg.Payload), &chain); err == nil {
+				chainManager.Register(&chain)
+			}
+		}
+	}()
+
 	syncCh := broker.SubscribeTopic("swarm_sync")
 	go func() {
 		for msg := range syncCh {
@@ -305,6 +318,24 @@ func main() {
 		}
 
 		social.SchedulePost(orch, provider, platform, topic)
+		return nil
+	})
+
+	protocol.Register("finance", func(p url.Values) error {
+		action := p.Get("action")
+
+		fModule := finance.NewFinanceModule(orch, broker)
+
+		if action == "classify" {
+			data := p.Get("data")
+			if data == "" { data = "2026-01-01,Shopify Subscription,29.00\n2026-01-05,Facebook Ads,500.00" }
+			txs, err := fModule.ClassifyTransactions(data)
+			if err != nil { return err }
+			fmt.Printf("[Finance] Classified %d transactions.\n", len(txs))
+
+			summary, _ := fModule.GenerateTaxSummary(txs)
+			fmt.Printf("[Finance] Tax Summary:\n%s\n", summary)
+		}
 		return nil
 	})
 
@@ -516,6 +547,18 @@ func main() {
 						}
 					}
 				}
+			}
+		} else if action == "ads" {
+			platform := p.Get("platform")
+			if platform == "" { platform = "TikTok" }
+
+			// Use the first discovered product in L2 if none specified
+			products := orch.L2.Search("ecommerce")
+			if len(products) > 0 {
+				pData := ProductFromMemory(products[len(products)-1])
+				ad, err := eModule.GenerateAds(pData, platform)
+				if err != nil { return err }
+				fmt.Printf("[Ecommerce] %s Ad Creative:\n%s\n", platform, ad)
 			}
 		}
 		return nil
@@ -1296,6 +1339,11 @@ func runInteractiveMenu(orch *orchestrator.Orchestrator, protocol *orchestrator.
 			fmt.Println("Invalid option, please try again.")
 		}
 	}
+}
+
+// ProductFromMemory is a wrapper for reconstruction logic
+func ProductFromMemory(e orchestrator.MemoryEntry) ecommerce.Product {
+	return ecommerce.ProductFromMemory(e)
 }
 
 // mapBool returns a if cond is true, b if false.

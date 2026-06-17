@@ -104,3 +104,25 @@ Format: HTML-ready Markdown.`, p.Name, p.Description, p.Niche, p.PriceRange, str
 
 	return e.Orch.LLM.Generate(prompt)
 }
+
+// GenerateAds creates social media ad copy and creative direction
+func (e *EcommerceModule) GenerateAds(p Product, platform string) (string, error) {
+	fmt.Printf("[Ecommerce] Generating %s ad for: %s\n", platform, p.Name)
+
+	prompt := fmt.Sprintf(`Act as a performance marketing expert. Generate a high-converting %s ad for: "%s".
+
+Product: %s
+Niche: %s
+Keywords: %v
+
+Requirements:
+- Pattern-interrupting scroll-stopper headline
+- Benefit-focused body copy
+- Strong psychological Call to Action (CTA)
+- Creative direction for the visual/video (0-5s, 5-15s, 15-30s)
+- Suggested audience interests for targeting
+
+Format: Professional Markdown.`, platform, p.Name, p.Description, p.Niche, p.Keywords)
+
+	return e.Orch.LLM.Generate(prompt)
+}

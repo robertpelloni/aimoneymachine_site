@@ -1,3 +1,11 @@
+## [1.1.0-dev] - 2026-06-29
+
+### Added
+- **Borg Skill Marketplace**: Nodes now autonomously broadcast and register custom `Chains` as discoverable "Skills" across the mesh.
+- **Autonomous Ad Management**: E-commerce module now generates high-converting social media ad creative (TikTok, Facebook) for trending products.
+- **Finance & Bookkeeping**: New `finance` module for autonomous client transaction classification and tax summary generation.
+- **Borg Singularity Cycle**: Initiated v1.1.x development cycle focused on autonomous skill exchange and multi-domain financial services.
+
 ## [1.0.0] - 2026-06-28
 
 ### Added
