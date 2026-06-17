@@ -1,6 +1,7 @@
 go 1.24.3
 
 use (
+	./hustle/automation
 	./hustle/careers
 	./hustle/content
 	./hustle/curation
@@ -9,6 +10,7 @@ use (
 	./hustle/ecommerce
 	./hustle/finance
 	./hustle/localization
+	./hustle/marketing
 	./hustle/media
 	./hustle/pod
 	./hustle/production/cmd/cluster
@@ -18,6 +20,7 @@ use (
 	./hustle/realestate
 	./hustle/research
 	./hustle/retail
+	./hustle/saas
 	./hustle/social
 	./hustle/stocks
 	./hustle/support
