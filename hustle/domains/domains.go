@@ -57,3 +57,19 @@ Respond ONLY with valid JSON.`, domain)
 
 	return result.Value, result.Analysis, nil
 }
+
+// AuctionBid generates a bidding strategy for a domain auction
+func (d *DomainModule) AuctionBid(domain string, currentBid float64) (string, error) {
+	fmt.Printf("[Domains] Analyzing auction for: %s\n", domain)
+
+	prompt := fmt.Sprintf(`Act as a domain auction strategist. Analyze the auction for domain: "%s" with a current bid of $%.2f.
+
+Requirements:
+- Recommend next bid amount
+- Set a maximum walk-away price
+- Propose a psychological bidding strategy (e.g. sniping vs early dominance)
+
+Format: Professional Markdown.`, domain, currentBid)
+
+	return d.Orch.LLM.Generate(prompt)
+}

@@ -49,3 +49,23 @@ Provide a 1-sentence risk assessment regarding seasonal demand and local regulat
 
 	return profit, assessment, nil
 }
+
+// ManageListing handles guest communication and dynamic pricing for a property
+func (r *RealEstateModule) ManageListing(location, guestMessage string) (string, error) {
+	fmt.Printf("[RealEstate] Managing STR for %s\n", location)
+
+	prompt := fmt.Sprintf(`Act as an automated Airbnb property manager for a listing in: "%s".
+
+GUEST MESSAGE:
+%s
+
+Requirements:
+- Empathetic and helpful response to the guest
+- Provide check-in/out instructions placeholder
+- Recommend a dynamic price adjustment (increase/decrease/hold) based on "high demand" context
+- Professional and welcoming tone
+
+Format: Professional Markdown reply.`, location, guestMessage)
+
+	return r.Orch.LLM.Generate(prompt)
+}

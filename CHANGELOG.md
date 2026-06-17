@@ -1,3 +1,11 @@
+## [1.1.4-dev] - 2026-07-03
+
+### Added
+- **Autonomous Fulfillment**: Added dropshipping order processing to the E-commerce module.
+- **Automated Property Management**: Added guest communication and dynamic pricing for Short-Term Rentals.
+- **Bidding Strategies**: Added psychological bidding and acquisition strategy for domain flipping.
+- **Enhanced PWA Quick Actions**: Added shortcuts for Fulfillment, STR Management, and Domain Bidding.
+
 ## [1.1.3-dev] - 2026-07-02
 
 ### Added

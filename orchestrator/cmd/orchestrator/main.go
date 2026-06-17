@@ -626,6 +626,15 @@ func main() {
 				if err != nil { return err }
 				fmt.Printf("[Ecommerce] %s Ad Creative:\n%s\n", platform, ad)
 			}
+		} else if action == "fulfill" {
+			orderID := p.Get("order_id")
+			if orderID == "" { orderID = "ORD-123" }
+			productID := p.Get("product_id")
+			if productID == "" { productID = "PROD-456" }
+
+			confirmation, err := eModule.FulfillOrder(orderID, productID)
+			if err != nil { return err }
+			fmt.Printf("[Ecommerce] Fulfillment Confirmation for %s:\n%s\n", orderID, confirmation)
 		}
 		return nil
 	})
@@ -878,6 +887,19 @@ func main() {
 		return nil
 	})
 
+	protocol.Register("domains_bid", func(p url.Values) error {
+		name := p.Get("name")
+		if name == "" { name = "aimoney.site" }
+		bid, _ := strconv.ParseFloat(p.Get("bid"), 64)
+		if bid == 0 { bid = 100.0 }
+
+		dModule := domains.NewDomainModule(orch, broker)
+		strategy, err := dModule.AuctionBid(name, bid)
+		if err != nil { return err }
+		fmt.Printf("[Domains] Bidding Strategy for %s:\n%s\n", name, strategy)
+		return nil
+	})
+
 	protocol.Register("realestate", func(p url.Values) error {
 		rent, _ := strconv.ParseFloat(p.Get("rent"), 64)
 		rate, _ := strconv.ParseFloat(p.Get("rate"), 64)
@@ -888,6 +910,19 @@ func main() {
 		_, assessment, err := reModule.CalculateSTRProfit(rent, rate, loc)
 		if err != nil { return err }
 		fmt.Printf("[RealEstate] STR Assessment for %s:\n%s\n", loc, assessment)
+		return nil
+	})
+
+	protocol.Register("realestate_manage", func(p url.Values) error {
+		loc := p.Get("loc")
+		if loc == "" { loc = "Miami, FL" }
+		msg := p.Get("msg")
+		if msg == "" { msg = "How do I access the parking?" }
+
+		reModule := realestate.NewRealEstateModule(orch, broker)
+		response, err := reModule.ManageListing(loc, msg)
+		if err != nil { return err }
+		fmt.Printf("[RealEstate] Management Response for %s:\n%s\n", loc, response)
 		return nil
 	})
 

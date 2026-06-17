@@ -105,6 +105,24 @@ Format: HTML-ready Markdown.`, p.Name, p.Description, p.Niche, p.PriceRange, str
 	return e.Orch.LLM.Generate(prompt)
 }
 
+// FulfillOrder automates the ordering process from a supplier
+func (e *EcommerceModule) FulfillOrder(orderID, productID string) (string, error) {
+	fmt.Printf("[Ecommerce] Fulfilling order %s for product: %s\n", orderID, productID)
+
+	prompt := fmt.Sprintf(`Act as an automated fulfillment agent. Generate a step-by-step automation script or API request to fulfill order ID: "%s" from the supplier for product: "%s".
+
+Requirements:
+- Extract shipping details from order
+- Select correct product variant
+- Choose fastest/cheapest shipping
+- Handle payment placeholder
+- Provide order confirmation JSON
+
+Respond with ONLY the fulfillment steps or JSON payload.`, orderID, productID)
+
+	return e.Orch.LLM.Generate(prompt)
+}
+
 // GenerateAds creates social media ad copy and creative direction
 func (e *EcommerceModule) GenerateAds(p Product, platform string) (string, error) {
 	fmt.Printf("[Ecommerce] Generating %s ad for: %s\n", platform, p.Name)
