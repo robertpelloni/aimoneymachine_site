@@ -4,6 +4,7 @@ use (
 	./hustle/automation
 	./hustle/bi
 	./hustle/careers
+	./hustle/confluence
 	./hustle/content
 	./hustle/curation
 	./hustle/crm

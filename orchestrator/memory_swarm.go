@@ -216,4 +216,44 @@ func (s *MemorySwarm) HandleStatusResponse(peerID, data string) {
 		Tags:      []string{"swarm", "mesh_status", "profit", "metrics"},
 	})
 	fmt.Printf("[Swarm] Ingested status from %s\n", peerID)
+
+	// Self-Funding Swarm: If we are profitable and peer is in deficit, offer funding
+	if s.Orchestrator.Ledger.Profit() > 1000 && p < -500 {
+		fmt.Printf("[Swarm] Peer %s is in distress ($%.2f). Offering autonomous funding...\n", peerID, p)
+		s.RequestFundingAudit(peerID)
+	}
+}
+
+func (s *MemorySwarm) RequestFundingAudit(peerID string) {
+	msg := Message{
+		ID:        fmt.Sprintf("audit-%d", time.Now().Unix()),
+		Source:    "local-node",
+		Target:    peerID,
+		Type:      Query,
+		Payload:   "hustle://swarm?action=request_funding_audit&peer_id=local-node",
+		Timestamp: time.Now(),
+	}
+	s.Broker.Route(msg)
+}
+
+func (s *MemorySwarm) HandleFundingRequest(peerID string, amount float64) {
+	fmt.Printf("[Swarm] Processing funding request from %s for $%.2f\n", peerID, amount)
+	// Autonomous Approval: If we have > 2x the request in profit, approve
+	if s.Orchestrator.Ledger.Profit() > amount*2 {
+		s.Orchestrator.Ledger.TransferCapital(amount, peerID, "Autonomous Mesh Support")
+		msg := Message{
+			ID:        fmt.Sprintf("grant-%d", time.Now().Unix()),
+			Source:    "local-node",
+			Target:    peerID,
+			Type:      Event,
+			Payload:   fmt.Sprintf("hustle://swarm?action=grant_funding&amount=%.2f&source_id=local-node", amount),
+			Timestamp: time.Now(),
+		}
+		s.Broker.Route(msg)
+	}
+}
+
+func (s *MemorySwarm) HandleFundingGrant(sourceID string, amount float64) {
+	s.Orchestrator.Ledger.ReceiveCapital(amount, sourceID, "Mesh Liquidity Injection")
+	fmt.Printf("[Swarm] Wallet updated via mesh funding. Current Profit: $%.2f\n", s.Orchestrator.Ledger.Profit())
 }

@@ -22,6 +22,7 @@ import (
 	"github.com/robertpelloni/hustle/hustle/devagency"
 	"github.com/robertpelloni/hustle/hustle/domains"
 	"github.com/robertpelloni/hustle/hustle/bi"
+	"github.com/robertpelloni/hustle/hustle/confluence"
 	"github.com/robertpelloni/hustle/hustle/finance"
 	"github.com/robertpelloni/hustle/hustle/legal"
 	"github.com/robertpelloni/hustle/hustle/ecommerce"
@@ -768,8 +769,37 @@ func main() {
 				orch.WealthGoal = amount
 				fmt.Printf("[Swarm] Unified Collective Wealth Goal set to $%.2f\n", amount)
 			}
+		case "request_funding_audit":
+			// A peer is offering us funding. If we are in deficit, request it.
+			if orch.Ledger.Profit() < -500 {
+				fmt.Printf("[Swarm] Deficit detected ($%.2f). Requesting $1000 liquidity from %s\n", orch.Ledger.Profit(), peerID)
+				broker.Route(orchestrator.Message{
+					ID:        fmt.Sprintf("funding-req-%d", time.Now().Unix()),
+					Source:    "local-node",
+					Target:    peerID,
+					Type:      orchestrator.Query,
+					Payload:   "hustle://swarm?action=request_funding&amount=1000.00&peer_id=local-node",
+					Timestamp: time.Now(),
+				})
+			}
+		case "request_funding":
+			amount, _ := strconv.ParseFloat(p.Get("amount"), 64)
+			swarm.HandleFundingRequest(peerID, amount)
+		case "grant_funding":
+			amount, _ := strconv.ParseFloat(p.Get("amount"), 64)
+			sourceID := p.Get("source_id")
+			swarm.HandleFundingGrant(sourceID, amount)
 		}
 		return nil
+	})
+
+	protocol.Register("confluence", func(p url.Values) error {
+		recipe := p.Get("recipe")
+		if recipe == "" {
+			recipe = "saas_growth"
+		}
+		engine := confluence.NewConfluenceEngine(orch, broker)
+		return engine.ExecuteRecipe(confluence.Recipe(recipe))
 	})
 
 	protocol.Register("chain", func(p url.Values) error {
