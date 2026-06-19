@@ -150,7 +150,10 @@ func ShowDashboard(orch *Orchestrator) {
 	barWidth := 20
 	filled := int((progress / 100) * float64(barWidth))
 	if filled > barWidth { filled = barWidth }
-	bar := strings.Repeat("█", filled) + strings.Repeat("░", barWidth-filled)
+	if filled < 0 { filled = 0 }
+	empty := barWidth - filled
+	if empty < 0 { empty = 0 }
+	bar := strings.Repeat("█", filled) + strings.Repeat("░", empty)
 
 	fmt.Printf("  GOAL PROGRESS:  [%s] %s%.1f%%%s\n", bar, colorCyan, progress, colorReset)
 	fmt.Printf("  TARGET WEALTH:  $%.2f\n", meshGoal)
