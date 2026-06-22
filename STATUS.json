@@ -1,20 +1,9 @@
 {
-<<<<<<< HEAD
-  "version": "1.2.1-dev",
-  "timestamp": "2026-07-05T10:00:00.000000000Z",
+  "version": "1.0.0-alpha.89",
+  "timestamp": "2026-06-22T16:45:00.000000000Z",
   "status": "Active",
-  "message": "Cross-Domain Confluence and Self-Funding Swarm operational. Synergistic scaling initiated.",
-  "revenue": 178,
-  "expenses": 1005.1899999999998,
-  "profit": -827.1899999999998
-}
-=======
-  "version": "1.0.0-alpha.67",
-  "timestamp": "2026-06-14T13:24:49.883887097Z",
-  "status": "Active",
-  "message": "Scheduler Heartbeat",
+  "message": "AI Hustle Machine running on Hetzner. All services operational.",
   "revenue": 180,
-  "expenses": 1005.3599999999998,
-  "profit": -825.3599999999998
+  "expenses": 1005.19,
+  "profit": -825.19
 }
->>>>>>> origin/main

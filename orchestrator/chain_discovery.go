@@ -61,7 +61,11 @@ func (d *ChainDiscoverer) Discover() (*DiscoveredChain, error) {
 		return nil, fmt.Errorf("failed to unmarshal discovered chain: %v", err)
 	}
 
-	// 5. Register the discovery
+	// 5. Register the discovery (skip if already exists)
+	if _, exists := d.Manager.Chains[discovered.Name]; exists {
+		fmt.Printf("[ChainDiscoverer] Chain '%s' already exists, skipping duplicate\n", discovered.Name)
+		return nil, fmt.Errorf("chain '%s' already exists", discovered.Name)
+	}
 	d.Manager.Register(&discovered.Chain)
 
 	// Log to L2 Vault

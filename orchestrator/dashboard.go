@@ -3,11 +3,8 @@ package orchestrator
 import (
 	"fmt"
 	"os"
-<<<<<<< HEAD
-=======
 	"sort"
 	"strings"
->>>>>>> origin/main
 	"time"
 )
 
@@ -65,8 +62,12 @@ func ShowDashboard(orch *Orchestrator) {
 		activeAgents := make(map[string]bool)
 		for _, e := range agentEntries {
 			for _, t := range e.Tags {
-				if t == "success" { successCount++ }
-				if t == "failure" { failCount++ }
+				if t == "success" {
+					successCount++
+				}
+				if t == "failure" {
+					failCount++
+				}
 				if !strings.HasPrefix(t, "agent_loop") && t != "success" && t != "failure" {
 					activeAgents[t] = true
 				}
@@ -74,7 +75,9 @@ func ShowDashboard(orch *Orchestrator) {
 		}
 
 		var agentList []string
-		for a := range activeAgents { agentList = append(agentList, a) }
+		for a := range activeAgents {
+			agentList = append(agentList, a)
+		}
 		fmt.Printf(" [ACTIVE AGENTS]  %s\n", strings.Join(agentList, ", "))
 		fmt.Printf(" [AGENT METRICS]  Success: %d | Errors: %d\n", successCount, failCount)
 
@@ -84,11 +87,22 @@ func ShowDashboard(orch *Orchestrator) {
 			eType := 0
 			for _, e := range agentEntries {
 				hasType := false
-				for _, t := range e.Tags { if t == aType { hasType = true; break } }
-				if !hasType { continue }
 				for _, t := range e.Tags {
-					if t == "success" { sType++ }
-					if t == "failure" { eType++ }
+					if t == aType {
+						hasType = true
+						break
+					}
+				}
+				if !hasType {
+					continue
+				}
+				for _, t := range e.Tags {
+					if t == "success" {
+						sType++
+					}
+					if t == "failure" {
+						eType++
+					}
 				}
 			}
 			fmt.Printf("   - %s: %d OK, %d ERR\n", aType, sType, eType)
@@ -98,25 +112,6 @@ func ShowDashboard(orch *Orchestrator) {
 		fmt.Printf(" [LAST ACTION]    %s\n", lastAgent.Content)
 	}
 
-<<<<<<< HEAD
-	fmt.Println("--------------------------------------------------")
-	fmt.Println(" [SOCIAL PROVIDERS]")
-
-	twitterStatus := "[✗ OFFLINE]"
-	if os.Getenv("TWITTER_API_KEY") != "" && os.Getenv("TWITTER_ACCESS_TOKEN") != "" {
-		twitterStatus = "[✓ ONLINE]"
-	}
-	fmt.Printf("  Twitter:        %s\n", twitterStatus)
-
-	linkedInStatus := "[✗ OFFLINE]"
-	if os.Getenv("LINKEDIN_ACCESS_TOKEN") != "" && os.Getenv("LINKEDIN_AUTHOR_URN") != "" {
-		linkedInStatus = "[✓ ONLINE]"
-	}
-	fmt.Printf("  LinkedIn:       %s\n", linkedInStatus)
-
-	fmt.Println("--------------------------------------------------")
-	fmt.Println(" [FINANCIAL PERFORMANCE]")
-=======
 	fmt.Printf("%s--------------------------------------------------%s\n", colorCyan, colorReset)
 	fmt.Printf(" [SOCIAL PROVIDERS]\n")
 
@@ -134,7 +129,6 @@ func ShowDashboard(orch *Orchestrator) {
 
 	fmt.Printf("%s--------------------------------------------------%s\n", colorCyan, colorReset)
 	fmt.Printf(" [%sFINANCIAL PERFORMANCE%s]\n", colorBold, colorReset)
->>>>>>> origin/main
 	fmt.Printf("  Revenue:        $%.2f\n", orch.Ledger.TotalRevenue())
 	fmt.Printf("  Expenses:       $%.2f\n", orch.Ledger.TotalExpenses())
 
@@ -181,16 +175,26 @@ func ShowDashboard(orch *Orchestrator) {
 		currentGoal = 10000 // Default goal for display if not set
 	}
 	progress := (collectiveProfit / currentGoal) * 100
-	if progress < 0 { progress = 0 }
+	if progress < 0 {
+		progress = 0
+	}
 
 	// ASCII Progress Bar
 	barWidth := 20
 	filled := int((progress / 100) * float64(barWidth))
-	if filled < 0 { filled = 0 }
-	if filled > barWidth { filled = barWidth }
-	if filled < 0 { filled = 0 }
+	if filled < 0 {
+		filled = 0
+	}
+	if filled > barWidth {
+		filled = barWidth
+	}
+	if filled < 0 {
+		filled = 0
+	}
 	empty := barWidth - filled
-	if empty < 0 { empty = 0 }
+	if empty < 0 {
+		empty = 0
+	}
 	bar := strings.Repeat("█", filled) + strings.Repeat("░", empty)
 
 	fmt.Printf("  GOAL PROGRESS:  [%s] %s%.1f%%%s\n", bar, colorCyan, progress, colorReset)
@@ -234,7 +238,9 @@ func ShowDashboard(orch *Orchestrator) {
 	})
 	for i := 0; i < len(leaderboard) && i < 10; i++ {
 		rankColor := colorReset
-		if i == 0 { rankColor = colorYellow }
+		if i == 0 {
+			rankColor = colorYellow
+		}
 		fmt.Printf("  %s#%-14d %-15s $%-10.2f%s\n", rankColor, i+1, leaderboard[i].id, leaderboard[i].profit, colorReset)
 	}
 
@@ -268,7 +274,9 @@ func ShowDashboard(orch *Orchestrator) {
 			status = strings.TrimSuffix(status, ",")
 
 			healthColor := colorGreen
-			if status != "Active" { healthColor = colorRed }
+			if status != "Active" {
+				healthColor = colorRed
+			}
 
 			fmt.Printf("  %-20s %s%-15s%s %-10s\n", peerID, healthColor, status, colorReset, "v1.0.0")
 		}
@@ -325,7 +333,9 @@ func ShowDashboard(orch *Orchestrator) {
 				break
 			}
 		}
-		if isMesh { continue }
+		if isMesh {
+			continue
+		}
 
 		fmt.Printf("  (%s) %s\n", orch.L1.Entries[i].Timestamp.Format("15:04"), orch.L1.Entries[i].Content)
 		count++

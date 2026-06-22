@@ -7,25 +7,25 @@ import (
 	"fmt"
 	"net/url"
 	"os"
-	"strconv"
 	"os/exec"
 	"os/signal"
-	"syscall"
+	"strconv"
 	"strings"
+	"syscall"
 	"time"
 
+	"github.com/robertpelloni/hustle/hustle/bi"
 	"github.com/robertpelloni/hustle/hustle/careers"
+	"github.com/robertpelloni/hustle/hustle/confluence"
 	"github.com/robertpelloni/hustle/hustle/content"
 	"github.com/robertpelloni/hustle/hustle/crm"
-	"github.com/robertpelloni/hustle/hustle/design"
 	"github.com/robertpelloni/hustle/hustle/curation"
+	"github.com/robertpelloni/hustle/hustle/design"
 	"github.com/robertpelloni/hustle/hustle/devagency"
 	"github.com/robertpelloni/hustle/hustle/domains"
-	"github.com/robertpelloni/hustle/hustle/bi"
-	"github.com/robertpelloni/hustle/hustle/confluence"
+	"github.com/robertpelloni/hustle/hustle/ecommerce"
 	"github.com/robertpelloni/hustle/hustle/finance"
 	"github.com/robertpelloni/hustle/hustle/legal"
-	"github.com/robertpelloni/hustle/hustle/ecommerce"
 	"github.com/robertpelloni/hustle/hustle/localization"
 	"github.com/robertpelloni/hustle/hustle/media"
 	"github.com/robertpelloni/hustle/hustle/pod"
@@ -76,6 +76,7 @@ func main() {
 
 	// ── Initialize Orchestrator with REAL LLM ──
 	orch := orchestrator.NewOrchestrator()
+	orch.Version = version
 	orch.Load("memory.json")
 
 	// Initialize Identity (DID)
@@ -116,6 +117,7 @@ func main() {
 	}
 
 	protocol := orchestrator.NewHustleProtocol()
+	orch.Protocol = protocol
 	chainManager := orchestrator.NewChainManager(orch, protocol)
 	chainManager.LoadState("chains.json")
 	discoverer := orchestrator.NewChainDiscoverer(orch, chainManager)
@@ -211,7 +213,12 @@ func main() {
 			fmt.Printf("[Mesh] Received Skill Discovery from %s\n", msg.Source)
 			var chain orchestrator.Chain
 			if err := json.Unmarshal([]byte(msg.Payload), &chain); err == nil {
-				chainManager.Register(&chain)
+				// Only register if not already known — prevents feedback loop
+				if _, exists := chainManager.Chains[chain.Name]; !exists {
+					chainManager.Register(&chain)
+				} else {
+					fmt.Printf("[Mesh] Chain '%s' already registered, skipping\n", chain.Name)
+				}
 			}
 		}
 	}()
@@ -294,13 +301,10 @@ func main() {
 				os.Getenv("TWITTER_ACCESS_TOKEN"),
 				os.Getenv("TWITTER_ACCESS_SECRET"),
 			)
-<<<<<<< HEAD
-=======
 		}
 
 		if *dryRun {
 			provider.SetDryRun(true)
->>>>>>> origin/main
 		}
 
 		if contentStr != "" {
@@ -332,15 +336,21 @@ func main() {
 	protocol.Register("design", func(p url.Values) error {
 		action := p.Get("action")
 		name := p.Get("name")
-		if name == "" { name = "AI Hustle Machine" }
+		if name == "" {
+			name = "AI Hustle Machine"
+		}
 		niche := p.Get("niche")
-		if niche == "" { niche = "automation technology" }
+		if niche == "" {
+			niche = "automation technology"
+		}
 
 		dModule := design.NewDesignModule(orch, broker)
 
 		if action == "brand" {
 			strategy, err := dModule.IdeateBrand(name, niche)
-			if err != nil { return err }
+			if err != nil {
+				return err
+			}
 			fmt.Printf("[Design] Brand Strategy for %s:\n%s\n", name, strategy)
 		}
 		return nil
@@ -349,13 +359,17 @@ func main() {
 	protocol.Register("crm", func(p url.Values) error {
 		action := p.Get("action")
 		email := p.Get("email")
-		if email == "" { email = "client@example.com" }
+		if email == "" {
+			email = "client@example.com"
+		}
 
 		cModule := crm.NewCRMModule(orch, broker)
 
 		if action == "update" {
 			status := p.Get("status")
-			if status == "" { status = "contacted" }
+			if status == "" {
+				status = "contacted"
+			}
 			return cModule.UpdateLeadStatus(email, crm.LeadStatus(status))
 		}
 		return nil
@@ -364,15 +378,21 @@ func main() {
 	protocol.Register("legal", func(p url.Values) error {
 		action := p.Get("action")
 		docType := p.Get("type")
-		if docType == "" { docType = "Privacy Policy" }
+		if docType == "" {
+			docType = "Privacy Policy"
+		}
 		name := p.Get("name")
-		if name == "" { name = "AI Hustle Machine" }
+		if name == "" {
+			name = "AI Hustle Machine"
+		}
 
 		lModule := legal.NewLegalModule(orch, broker)
 
 		if action == "generate" {
 			doc, err := lModule.GenerateDocument(docType, name)
-			if err != nil { return err }
+			if err != nil {
+				return err
+			}
 			fmt.Printf("[Legal] Document Generated (%s):\n%s\n", docType, doc)
 		}
 		return nil
@@ -385,7 +405,9 @@ func main() {
 
 		if action == "report" {
 			insights, err := biModule.GenerateInsights()
-			if err != nil { return err }
+			if err != nil {
+				return err
+			}
 			fmt.Printf("[BI] Strategic Insights:\n%s\n", insights)
 		}
 		return nil
@@ -398,9 +420,13 @@ func main() {
 
 		if action == "classify" {
 			data := p.Get("data")
-			if data == "" { data = "2026-01-01,Shopify Subscription,29.00\n2026-01-05,Facebook Ads,500.00" }
+			if data == "" {
+				data = "2026-01-01,Shopify Subscription,29.00\n2026-01-05,Facebook Ads,500.00"
+			}
 			txs, err := fModule.ClassifyTransactions(data)
-			if err != nil { return err }
+			if err != nil {
+				return err
+			}
 			fmt.Printf("[Finance] Classified %d transactions.\n", len(txs))
 
 			summary, _ := fModule.GenerateTaxSummary(txs)
@@ -412,19 +438,27 @@ func main() {
 	protocol.Register("stocks", func(p url.Values) error {
 		action := p.Get("action")
 		symbol := p.Get("symbol")
-		if symbol == "" { symbol = "AAPL" }
+		if symbol == "" {
+			symbol = "AAPL"
+		}
 
 		sModule := stocks.NewStockModule(orch, broker)
 
 		if action == "analyze" {
 			analysis, err := sModule.AnalyzeStock(symbol)
-			if err != nil { return err }
+			if err != nil {
+				return err
+			}
 			fmt.Printf("[Stocks] Analysis for %s:\n%s\n", symbol, analysis)
 		} else if action == "trade" {
 			side := p.Get("side")
-			if side == "" { side = "buy" }
+			if side == "" {
+				side = "buy"
+			}
 			qty, _ := strconv.ParseFloat(p.Get("qty"), 64)
-			if qty == 0 { qty = 1.0 }
+			if qty == 0 {
+				qty = 1.0
+			}
 
 			executor := stocks.NewAlpacaExecutor()
 			if *dryRun {
@@ -439,23 +473,35 @@ func main() {
 	protocol.Register("careers", func(p url.Values) error {
 		action := p.Get("action")
 		title := p.Get("title")
-		if title == "" { title = "Software Engineer" }
+		if title == "" {
+			title = "Software Engineer"
+		}
 		loc := p.Get("location")
-		if loc == "" { loc = "Remote" }
+		if loc == "" {
+			loc = "Remote"
+		}
 
 		cModule := careers.NewCareerModule(orch, broker)
 
 		if action == "search" {
 			results, err := cModule.SearchJobs(title, loc)
-			if err != nil { return err }
+			if err != nil {
+				return err
+			}
 			fmt.Printf("[Careers] Job Search Results:\n%s\n", results)
 		} else if action == "tailor" {
 			resume := p.Get("resume")
-			if resume == "" { resume = "Experience: 5 years of Go development." }
+			if resume == "" {
+				resume = "Experience: 5 years of Go development."
+			}
 			job := p.Get("job")
-			if job == "" { job = "Role: Senior backend engineer. Need expert Go skills." }
+			if job == "" {
+				job = "Role: Senior backend engineer. Need expert Go skills."
+			}
 			tailored, err := cModule.TailorResume(resume, job)
-			if err != nil { return err }
+			if err != nil {
+				return err
+			}
 			fmt.Printf("[Careers] Tailored Resume:\n%s\n", tailored)
 		}
 		return nil
@@ -464,15 +510,21 @@ func main() {
 	protocol.Register("media", func(p url.Values) error {
 		action := p.Get("action")
 		title := p.Get("title")
-		if title == "" { title = "The Future of AI" }
+		if title == "" {
+			title = "The Future of AI"
+		}
 		mType := p.Get("type")
-		if mType == "" { mType = "video" }
+		if mType == "" {
+			mType = "video"
+		}
 
 		mModule := media.NewMediaModule(orch, broker)
 
 		if action == "plan" {
 			plan, err := mModule.PlanProduction(title, mType)
-			if err != nil { return err }
+			if err != nil {
+				return err
+			}
 			fmt.Printf("[Media] Production Plan for %s:\n%s\n", title, plan)
 		}
 		return nil
@@ -481,19 +533,27 @@ func main() {
 	protocol.Register("pod", func(p url.Values) error {
 		action := p.Get("action")
 		niche := p.Get("niche")
-		if niche == "" { niche = "funny cat quotes" }
+		if niche == "" {
+			niche = "funny cat quotes"
+		}
 
 		podModule := pod.NewPODModule(orch, broker)
 
 		if action == "plan" {
 			plan, err := podModule.PlanDesigns(niche)
-			if err != nil { return err }
+			if err != nil {
+				return err
+			}
 			fmt.Printf("[POD] Design Plan for %s:\n%s\n", niche, plan)
 		} else if action == "listing" {
 			design := p.Get("design")
-			if design == "" { design = "Coffee Cat" }
+			if design == "" {
+				design = "Coffee Cat"
+			}
 			listing, err := podModule.OptimizeListing(design, niche)
-			if err != nil { return err }
+			if err != nil {
+				return err
+			}
 			fmt.Printf("[POD] Listing for %s:\n%s\n", design, listing)
 		}
 		return nil
@@ -506,9 +566,13 @@ func main() {
 		q := qa.NewQAModule(orch, broker)
 
 		if action == "test" {
-			if module == "" { module = "./orchestrator/..." }
+			if module == "" {
+				module = "./orchestrator/..."
+			}
 			res, err := q.RunTests(module)
-			if err != nil { return err }
+			if err != nil {
+				return err
+			}
 			fmt.Printf("[QA] Test results for %s:\n%s\n", module, res)
 		} else if action == "check" {
 			return q.VerifyStability()
@@ -519,21 +583,31 @@ func main() {
 	protocol.Register("localization", func(p url.Values) error {
 		action := p.Get("action")
 		target := p.Get("lang")
-		if target == "" { target = "Spanish" }
+		if target == "" {
+			target = "Spanish"
+		}
 
 		loc := localization.NewLocalizationModule(orch, broker)
 
 		if action == "translate" {
 			text := p.Get("text")
-			if text == "" { text = "AI is changing the world." }
+			if text == "" {
+				text = "AI is changing the world."
+			}
 			translated, err := loc.TranslateContent(text, target)
-			if err != nil { return err }
+			if err != nil {
+				return err
+			}
 			fmt.Printf("[Localization] %s -> %s:\n%s\n", text, target, translated)
 		} else if action == "seo" {
 			niche := p.Get("niche")
-			if niche == "" { niche = "tech" }
+			if niche == "" {
+				niche = "tech"
+			}
 			keywords, err := loc.LocalizeSEO(niche, target)
-			if err != nil { return err }
+			if err != nil {
+				return err
+			}
 			fmt.Printf("[Localization] SEO Keywords (%s/%s): %v\n", niche, target, keywords)
 		}
 		return nil
@@ -545,12 +619,18 @@ func main() {
 
 		if action == "resolve" {
 			customer := p.Get("customer")
-			if customer == "" { customer = "Anonymous" }
+			if customer == "" {
+				customer = "Anonymous"
+			}
 			issue := p.Get("issue")
-			if issue == "" { issue = "How do I start the orchestrator?" }
+			if issue == "" {
+				issue = "How do I start the orchestrator?"
+			}
 
 			reply, err := sup.ResolveTicket(customer, issue)
-			if err != nil { return err }
+			if err != nil {
+				return err
+			}
 			fmt.Printf("[Support] Resolution for %s:\n%s\n", customer, reply)
 		} else if action == "faq" {
 			return sup.GenerateFAQ()
@@ -561,19 +641,27 @@ func main() {
 	protocol.Register("devagency", func(p url.Values) error {
 		action := p.Get("action")
 		path := p.Get("path")
-		if path == "" { path = "." }
+		if path == "" {
+			path = "."
+		}
 
 		agency := devagency.NewDevAgencyModule(orch, broker)
 
 		if action == "audit" {
 			report, err := agency.AuditCode(path)
-			if err != nil { return err }
+			if err != nil {
+				return err
+			}
 			fmt.Printf("[DevAgency] Audit Report for %s:\n%s\n", path, report)
 		} else if action == "propose" {
 			desc := p.Get("desc")
-			if desc == "" { desc = "Build a modern Go backend for an AI SaaS" }
+			if desc == "" {
+				desc = "Build a modern Go backend for an AI SaaS"
+			}
 			proposal, err := agency.ProposeService(desc)
-			if err != nil { return err }
+			if err != nil {
+				return err
+			}
 			fmt.Printf("[DevAgency] Service Proposal:\n%s\n", proposal)
 		}
 		return nil
@@ -603,7 +691,9 @@ func main() {
 					// Handle automatic publishing to Shopify if requested
 					if p.Get("publish") == "true" {
 						shop := publisher.NewShopifyPublisher()
-						if *dryRun { shop.DryRun = true }
+						if *dryRun {
+							shop.DryRun = true
+						}
 						if shop.IsConfigured() || shop.DryRun {
 							_, err := shop.CreateProduct(publisher.ShopifyProduct{
 								Title:    products[0].Name,
@@ -620,24 +710,34 @@ func main() {
 			}
 		} else if action == "ads" {
 			platform := p.Get("platform")
-			if platform == "" { platform = "TikTok" }
+			if platform == "" {
+				platform = "TikTok"
+			}
 
 			// Use the first discovered product in L2 if none specified
 			products := orch.L2.Search("ecommerce")
 			if len(products) > 0 {
 				pData := ProductFromMemory(products[len(products)-1])
 				ad, err := eModule.GenerateAds(pData, platform)
-				if err != nil { return err }
+				if err != nil {
+					return err
+				}
 				fmt.Printf("[Ecommerce] %s Ad Creative:\n%s\n", platform, ad)
 			}
 		} else if action == "fulfill" {
 			orderID := p.Get("order_id")
-			if orderID == "" { orderID = "ORD-123" }
+			if orderID == "" {
+				orderID = "ORD-123"
+			}
 			productID := p.Get("product_id")
-			if productID == "" { productID = "PROD-456" }
+			if productID == "" {
+				productID = "PROD-456"
+			}
 
 			confirmation, err := eModule.FulfillOrder(orderID, productID)
-			if err != nil { return err }
+			if err != nil {
+				return err
+			}
 			fmt.Printf("[Ecommerce] Fulfillment Confirmation for %s:\n%s\n", orderID, confirmation)
 		}
 		return nil
@@ -884,13 +984,17 @@ func main() {
 	protocol.Register("kdp", func(p url.Values) error {
 		action := p.Get("action")
 		niche := p.Get("niche")
-		if niche == "" { niche = "gratitude journal" }
+		if niche == "" {
+			niche = "gratitude journal"
+		}
 
 		kModule := publishing.NewKDPModule(orch, broker)
 
 		if action == "plan" {
 			plan, err := kModule.PlanInterior(niche)
-			if err != nil { return err }
+			if err != nil {
+				return err
+			}
 			fmt.Printf("[KDP] Interior Plan for %s:\n%s\n", niche, plan)
 		}
 		return nil
@@ -900,35 +1004,49 @@ func main() {
 		buyPrice, _ := strconv.ParseFloat(p.Get("buy"), 64)
 		sellPrice, _ := strconv.ParseFloat(p.Get("sell"), 64)
 		cat := p.Get("cat")
-		if cat == "" { cat = "electronics" }
+		if cat == "" {
+			cat = "electronics"
+		}
 
 		rModule := retail.NewRetailModule(orch, broker)
 		_, assessment, err := rModule.CalculateArbitrageROI(buyPrice, sellPrice, cat)
-		if err != nil { return err }
+		if err != nil {
+			return err
+		}
 		fmt.Printf("[Retail] Arb Assessment: %s\n", assessment)
 		return nil
 	})
 
 	protocol.Register("domains", func(p url.Values) error {
 		name := p.Get("name")
-		if name == "" { name = "aimoney.site" }
+		if name == "" {
+			name = "aimoney.site"
+		}
 
 		dModule := domains.NewDomainModule(orch, broker)
 		_, analysis, err := dModule.EvaluateDomain(name)
-		if err != nil { return err }
+		if err != nil {
+			return err
+		}
 		fmt.Printf("[Domains] Evaluation for %s:\n%s\n", name, analysis)
 		return nil
 	})
 
 	protocol.Register("domains_bid", func(p url.Values) error {
 		name := p.Get("name")
-		if name == "" { name = "aimoney.site" }
+		if name == "" {
+			name = "aimoney.site"
+		}
 		bid, _ := strconv.ParseFloat(p.Get("bid"), 64)
-		if bid == 0 { bid = 100.0 }
+		if bid == 0 {
+			bid = 100.0
+		}
 
 		dModule := domains.NewDomainModule(orch, broker)
 		strategy, err := dModule.AuctionBid(name, bid)
-		if err != nil { return err }
+		if err != nil {
+			return err
+		}
 		fmt.Printf("[Domains] Bidding Strategy for %s:\n%s\n", name, strategy)
 		return nil
 	})
@@ -937,24 +1055,34 @@ func main() {
 		rent, _ := strconv.ParseFloat(p.Get("rent"), 64)
 		rate, _ := strconv.ParseFloat(p.Get("rate"), 64)
 		loc := p.Get("loc")
-		if loc == "" { loc = "Miami, FL" }
+		if loc == "" {
+			loc = "Miami, FL"
+		}
 
 		reModule := realestate.NewRealEstateModule(orch, broker)
 		_, assessment, err := reModule.CalculateSTRProfit(rent, rate, loc)
-		if err != nil { return err }
+		if err != nil {
+			return err
+		}
 		fmt.Printf("[RealEstate] STR Assessment for %s:\n%s\n", loc, assessment)
 		return nil
 	})
 
 	protocol.Register("realestate_manage", func(p url.Values) error {
 		loc := p.Get("loc")
-		if loc == "" { loc = "Miami, FL" }
+		if loc == "" {
+			loc = "Miami, FL"
+		}
 		msg := p.Get("msg")
-		if msg == "" { msg = "How do I access the parking?" }
+		if msg == "" {
+			msg = "How do I access the parking?"
+		}
 
 		reModule := realestate.NewRealEstateModule(orch, broker)
 		response, err := reModule.ManageListing(loc, msg)
-		if err != nil { return err }
+		if err != nil {
+			return err
+		}
 		fmt.Printf("[RealEstate] Management Response for %s:\n%s\n", loc, response)
 		return nil
 	})
@@ -1061,9 +1189,15 @@ func main() {
 		scheduler.Register("CurationChain", 2*time.Hour, func(o *orchestrator.Orchestrator) error {
 			return protocol.HandleURI("hustle://chain")
 		})
-		scheduler.Register("Trading", 30*time.Minute, func(o *orchestrator.Orchestrator) error {
-			return protocol.HandleURI("hustle://trading?symbol=BTC")
-		})
+		// Per-symbol trading bots (staggered intervals to avoid rate limits)
+		symbols := []string{"BTC", "ETH", "SOL", "DOGE", "XRP", "ADA", "LINK"}
+		for i, sym := range symbols {
+			interval := time.Duration(i+1) * time.Minute
+			s := sym // capture
+			scheduler.Register("Trading"+s, interval, func(o *orchestrator.Orchestrator) error {
+				return protocol.HandleURI("hustle://trading?symbol=" + s)
+			})
+		}
 		scheduler.Register("ContentGeneration", 3*time.Hour, func(o *orchestrator.Orchestrator) error {
 			return protocol.HandleURI("hustle://content?topic=AI+automation+trends&type=blog")
 		})

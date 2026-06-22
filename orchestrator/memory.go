@@ -46,7 +46,9 @@ func (m *L1Memory) Add(entry MemoryEntry) {
 
 func (m *L1Memory) Get(id string) (MemoryEntry, bool) {
 	for _, e := range m.Entries {
-		if e.ID == id { return e, true }
+		if e.ID == id {
+			return e, true
+		}
 	}
 	return MemoryEntry{}, false
 }
@@ -101,7 +103,9 @@ func (m *L2Memory) Add(entry MemoryEntry) {
 
 func (m *L2Memory) Get(id string) (MemoryEntry, bool) {
 	for _, e := range m.Entries {
-		if e.ID == id { return e, true }
+		if e.ID == id {
+			return e, true
+		}
 	}
 	return MemoryEntry{}, false
 }
@@ -155,7 +159,9 @@ func (m *L3Memory) Add(entry MemoryEntry) {
 
 func (m *L3Memory) Get(id string) (MemoryEntry, bool) {
 	for _, e := range m.Entries {
-		if e.ID == id { return e, true }
+		if e.ID == id {
+			return e, true
+		}
 	}
 	return MemoryEntry{}, false
 }
@@ -200,22 +206,23 @@ func (m *L3Memory) Checksum() string {
 
 // Orchestrator handles tiered memory orchestration, financial tracking, and LLM access
 type Orchestrator struct {
-	Version    string            `json:"version"`
-	DryRun     bool              `json:"dry_run"`
-	StealthMode bool             `json:"stealth_mode"`
-	RSSFeeds   []string          `json:"rss_feeds"`
-	Calendar   interface{}       `json:"-"` // publisher.ContentCalendar (interface{} to avoid circular dependency)
-	Identity   *Identity         `json:"-"`
-	WealthGoal float64           `json:"wealth_goal"`
-	TaskQueue  []string          `json:"task_queue"`
-	L1         L1Memory          `json:"l1"`
-	L2         L2Memory          `json:"l2"`
-	L3         L3Memory          `json:"l3"`
-	Ledger     Ledger            `json:"ledger"`
-	LLM        LLMProvider       `json:"-"`
-	Embedder   EmbeddingProvider `json:"-"`
-	DB         *SQLiteStore      `json:"-"`
-	Broker     *A2ABroker        `json:"-"`
+	Version     string            `json:"version"`
+	DryRun      bool              `json:"dry_run"`
+	StealthMode bool              `json:"stealth_mode"`
+	RSSFeeds    []string          `json:"rss_feeds"`
+	Calendar    interface{}       `json:"-"` // publisher.ContentCalendar (interface{} to avoid circular dependency)
+	Identity    *Identity         `json:"-"`
+	WealthGoal  float64           `json:"wealth_goal"`
+	TaskQueue   []string          `json:"task_queue"`
+	L1          L1Memory          `json:"l1"`
+	L2          L2Memory          `json:"l2"`
+	L3          L3Memory          `json:"l3"`
+	Ledger      Ledger            `json:"ledger"`
+	LLM         LLMProvider       `json:"-"`
+	Embedder    EmbeddingProvider `json:"-"`
+	DB          *SQLiteStore      `json:"-"`
+	Broker      *A2ABroker        `json:"-"`
+	Protocol    *HustleProtocol   `json:"-"`
 }
 
 func NewOrchestrator() *Orchestrator {
@@ -237,9 +244,15 @@ func NewOrchestrator() *Orchestrator {
 
 func (o *Orchestrator) Save(filepath string) error {
 	if o.DB != nil {
-		for _, e := range o.L1.Entries { o.DB.SaveMemory("L1", e) }
-		for _, e := range o.L2.Entries { o.DB.SaveMemory("L2", e) }
-		for _, e := range o.L3.Entries { o.DB.SaveMemory("L3", e) }
+		for _, e := range o.L1.Entries {
+			o.DB.SaveMemory("L1", e)
+		}
+		for _, e := range o.L2.Entries {
+			o.DB.SaveMemory("L2", e)
+		}
+		for _, e := range o.L3.Entries {
+			o.DB.SaveMemory("L3", e)
+		}
 	}
 
 	// Also persist ledger separately for modularity

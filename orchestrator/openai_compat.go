@@ -22,10 +22,10 @@ type OpenAICompatProvider struct {
 }
 
 type chatRequest struct {
-	Model       string          `json:"model"`
-	Messages    []chatMessage   `json:"messages"`
-	MaxTokens   int             `json:"max_tokens"`
-	Temperature float64         `json:"temperature"`
+	Model       string        `json:"model"`
+	Messages    []chatMessage `json:"messages"`
+	MaxTokens   int           `json:"max_tokens"`
+	Temperature float64       `json:"temperature"`
 }
 
 type chatMessage struct {
@@ -81,7 +81,7 @@ func NewOpenAICompatProvider() *OpenAICompatProvider {
 		Model:     model,
 		MaxTokens: 2048,
 		HTTPClient: &http.Client{
-			Timeout: 120 * time.Second, // Local models can be slow
+			Timeout: 600 * time.Second, // FreeLLM proxy can be slow (10min max)
 		},
 	}
 }
@@ -94,7 +94,7 @@ func NewOllamaProvider(model string) *OpenAICompatProvider {
 		Model:     model,
 		MaxTokens: 2048,
 		HTTPClient: &http.Client{
-			Timeout: 120 * time.Second,
+			Timeout: 600 * time.Second, // FreeLLM proxy can be slow
 		},
 	}
 }
@@ -245,7 +245,7 @@ func NewOpenAICompatEmbedder() *OpenAICompatEmbedder {
 		BaseURL:    strings.TrimRight(baseURL, "/"),
 		APIKey:     apiKey,
 		Model:      model,
-		HTTPClient: &http.Client{Timeout: 30 * time.Second},
+		HTTPClient: &http.Client{Timeout: 600 * time.Second},
 	}
 }
 

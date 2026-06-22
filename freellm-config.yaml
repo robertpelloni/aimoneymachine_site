@@ -1,0 +1,11 @@
+port: 4000
+router_settings:
+  min_params_filter: 0
+proxy_settings:
+  request_timeout: 120
+  stream_timeout: 300
+compression_settings:
+  enable_tokdiet: false
+  enable_rtk: false
+  enable_headroom: false
+  enable_llmlingua: false
