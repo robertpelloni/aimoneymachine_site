@@ -42,11 +42,11 @@
 - [ ] **Windows CGO build fix** — Migrate to `modernc.org/sqlite`
 
 ## Phase 5: Advanced Autonomy (v1.0.0-beta.11 – v1.0.0-rc.1) 📋 PLANNED
-- [ ] **Self-optimizing prompts** — A/B test prompt variations, track win rates
+- [x] **Self-optimizing prompts** — A/B test prompt variations, track win rates
 - [ ] **Advanced trading indicators** — MACD, Bollinger Bands, volume analysis
 - [ ] **Multi-exchange trading** — Binance, Kraken exchange plugins
 - [ ] **Cross-hustle feedback** — research discoveries feed content topics, content feeds social
-- [ ] **LLM response cache** — content-addressable cache for identical prompts
+- [x] **LLM response cache** — content-addressable cache for identical prompts
 
 ## Phase 6: Federation & Scale (v1.0.0-rc.2 – v1.0.0) 📋 PLANNED
 - [ ] **Multi-node cluster testing** — 10+ peers with real mesh sync

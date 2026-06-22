@@ -10,7 +10,7 @@
 - **Test Coverage**: Unit tests (`post_test.go`) and integration tests (`post_integration_test.go`) for social providers.
 
 ### Changed
-- **Version Increment**: Bumped to v1.0.0-alpha.82.
+- **Version Increment**: Bumped to 1.0.0-alpha.83.
 - **Unified State**: Confirmed monorepo consistency across all modules.
 
 ## [1.0.0-alpha.81] - 2026-06-09
