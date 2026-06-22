@@ -227,6 +227,21 @@
 - **Swarm Protocol Expansion**: New `set_goal` action enables mesh-wide synchronization of financial targets.
 - **Robust Peer Data Parsing**: Enhanced the dashboard extraction logic to more reliably process peer status and profit data from mesh communication logs.
 
+## [1.0.0-alpha.89] - 2026-06-13
+
+### Added
+- **Interactive Input Forms**: User queries/topics/symbols for hustle modules.
+- **Memory UI**: Semantic and keyword search within the interactive menu.
+- **System Maintenance**: Manual gallery refresh and self-healing triggers.
+
+## [1.0.0-alpha.88] - 2026-06-12
+
+### Added
+- **Multi-Agent Control UI**: Interactive menu for spawning Research, Trading, Content, or Social agents with configurable iterations.
+- **AI Council Debate UI**: Real-time sentiment analysis and synthesis tool for any topic.
+- **Enhanced Social Selection**: User-selectable platforms (Twitter/LinkedIn) and custom topics for social hustles.
+- **On-Demand Workflow Discovery**: UI trigger for the ChainDiscoverer to evolve 'Luxury Chains' manually.
+
 ## [1.0.0-alpha.78] - 2026-06-09
 
 ### Added
