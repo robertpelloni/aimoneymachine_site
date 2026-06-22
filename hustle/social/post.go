@@ -2,10 +2,18 @@ package social
 
 import (
 	"bytes"
+<<<<<<< HEAD
+	"encoding/json"
+	"errors"
+	"fmt"
+	"net/http"
+	"os"
+=======
 	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
+>>>>>>> origin/main
 	"time"
 
 	"github.com/dghubble/oauth1"
@@ -27,6 +35,10 @@ type Provider interface {
 }
 
 type TwitterProvider struct {
+<<<<<<< HEAD
+	DryRun bool
+	APIURL string
+=======
 	DryRun       bool
 	APIKey       string
 	APISecret    string
@@ -37,6 +49,7 @@ type TwitterProvider struct {
 
 func (p *TwitterProvider) SetDryRun(enabled bool) {
 	p.DryRun = enabled
+>>>>>>> origin/main
 }
 
 type twitterPostRequest struct {
@@ -49,6 +62,20 @@ func (p *TwitterProvider) Post(orch *orchestrator.Orchestrator, platform, conten
 		return nil
 	}
 
+<<<<<<< HEAD
+	consumerKey := os.Getenv("TWITTER_CONSUMER_KEY")
+	consumerSecret := os.Getenv("TWITTER_CONSUMER_SECRET")
+	accessToken := os.Getenv("TWITTER_ACCESS_TOKEN")
+	accessSecret := os.Getenv("TWITTER_ACCESS_SECRET")
+
+	if consumerKey == "" || consumerSecret == "" || accessToken == "" || accessSecret == "" {
+		return errors.New("missing Twitter OAuth environment variables")
+	}
+
+	config := oauth1.NewConfig(consumerKey, consumerSecret)
+	token := oauth1.NewToken(accessToken, accessSecret)
+	httpClient := config.Client(oauth1.NoContext, token)
+=======
 	if p.APIKey == "" || p.APISecret == "" || p.AccessToken == "" || p.AccessSecret == "" {
 		return fmt.Errorf("missing Twitter OAuth environment variables")
 	}
@@ -56,6 +83,7 @@ func (p *TwitterProvider) Post(orch *orchestrator.Orchestrator, platform, conten
 	config := oauth1.NewConfig(p.APIKey, p.APISecret)
 	token := oauth1.NewToken(p.AccessToken, p.AccessSecret)
 	httpClient := config.Client(context.Background(), token)
+>>>>>>> origin/main
 
 	reqBody, err := json.Marshal(twitterPostRequest{Text: content})
 	if err != nil {
@@ -64,10 +92,23 @@ func (p *TwitterProvider) Post(orch *orchestrator.Orchestrator, platform, conten
 
 	apiURL := p.APIURL
 	if apiURL == "" {
+<<<<<<< HEAD
+		apiURL = "https://api.twitter.com/2/tweets"
+	}
+
+	req, err := http.NewRequest("POST", apiURL, bytes.NewBuffer(reqBody))
+	if err != nil {
+		return fmt.Errorf("failed to create request: %w", err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := httpClient.Do(req)
+=======
 		apiURL = twitterAPIEndpoint
 	}
 
 	resp, err := httpClient.Post(apiURL, "application/json", bytes.NewBuffer(reqBody))
+>>>>>>> origin/main
 	if err != nil {
 		return fmt.Errorf("failed to send request to Twitter API: %w", err)
 	}
@@ -81,6 +122,12 @@ func (p *TwitterProvider) Post(orch *orchestrator.Orchestrator, platform, conten
 	return nil
 }
 
+<<<<<<< HEAD
+func NewTwitterProvider() *TwitterProvider {
+	return &TwitterProvider{
+		DryRun: os.Getenv("TWITTER_DRY_RUN") == "true" || os.Getenv("DRY_RUN") == "true",
+		APIURL: "https://api.twitter.com/2/tweets",
+=======
 func NewTwitterProvider(apiKey, apiSecret, accessToken, accessSecret string) *TwitterProvider {
 	return &TwitterProvider{
 		APIKey:       apiKey,
@@ -88,6 +135,7 @@ func NewTwitterProvider(apiKey, apiSecret, accessToken, accessSecret string) *Tw
 		AccessToken:  accessToken,
 		AccessSecret: accessSecret,
 		APIURL:       twitterAPIEndpoint,
+>>>>>>> origin/main
 	}
 }
 

@@ -8,6 +8,10 @@ require (
 )
 
 require (
+<<<<<<< HEAD
+	github.com/dghubble/oauth1 v0.7.3 // indirect
+	github.com/mattn/go-sqlite3 v1.14.44 // indirect
+=======
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/hashicorp/golang-lru/v2 v2.0.7 // indirect
@@ -26,6 +30,7 @@ require (
 
 require (
 	github.com/dghubble/oauth1 v0.7.3
+>>>>>>> origin/main
 	golang.org/x/time v0.10.0 // indirect
 )
 
