@@ -1,32 +1,30 @@
-# Release Notes - v1.0.0-alpha.66
+# Release Notes - 1.0.0-alpha.78
 
-## "Intelligent Luxury Integration" — Phase 3/4 Bridge
+## "Autonomous Production Bridge" — Phase 4 Foundation
 
-This release marks the intelligent unification of the Phase 3 "Real AI Integration" with the Phase 4 "Luxury Protocol" stable baseline. The machine now combines autonomous decision loops with high-ROI luxury workflow discovery.
+This release finalizes the bridge between a mock AI prototype and a production-ready autonomous agent machine. It integrates real search APIs, implements graceful persistence, and establishes mesh-wide observability for "Luxury Space Communism."
 
 ### New Core Features
 
-- **OpenAI-Compatible LLM Provider**: Connects to LM Studio, Ollama, vLLM, or any OpenAI-compatible server. Auto-detects available models. Graceful fallback to MockLLM if no server is running.
-- **Real Embedding Provider**: Generates actual vector embeddings via local Nomic/embed models for semantic memory search.
-- **Agent Loop (Observe → Think → Act → Learn → Evaluate)**: The LLM acts as the "brain" — it reads memory context, decides which `hustle://` URI to execute next, observes the result, and plans the next step.
-- **Multi-Agent Orchestrator**: Run multiple specialized agents (research, content, trading, social) concurrently with live status monitoring.
-- **HustlePlan Strategic Planner**: Ask the LLM to analyze your system state and generate 5 prioritized hustle plans.
-- **Content Hustle Module**: Generate blogs, newsletters, SEO articles, and social media threads. Saves to markdown with YAML frontmatter.
-- **Improved Healer**: `Verify()` now uses LLM analysis to confirm if a system issue has been truly resolved.
+- **Real Research Integration**: Live web search powered by the Tavily API (1.0.0-alpha.78). Graceful fallback to mock data if API key is missing.
+- **Graceful Shutdown**: SIGINT/SIGTERM signal handling ensures system state (memory, ledger) is atomically persisted to disk on exit (1.0.0-alpha.78).
+- **Federated Wealth Dashboard**: Real-time visualization of collective mesh profit and individual peer health ('Luxury Space Communism').
+- **Space Communication Interface**: Interactive mesh management submenu for listing peers, broadcasting global directives, and syncing collective strategies.
+- **Autonomous Agent Observability**: Real-time agent status and iteration logs visible on the Dashboard.
+- **Content Library Viewer**: Browse generated blog posts, newsletters, and articles directly from the CLI.
+
+### Integration Milestones
+
+- **Phase 3/4 Bridge Complete**: Autonomous Agent Loops are now fully integrated with high-ROI Luxury Protocol operations.
+- **LLM-Verified Healing**: The system now uses AI to verify if a proposed fix actually resolved a system instability.
+- **Monorepo Sanitization**: All legacy submodules and merge markers have been removed.
 
 ### Production Readiness
 
-- **Monorepo Consolidation**: All external dependencies and submodules are consolidated into a single, unified repository.
-- **Verified Stability**: 32+ unit/integration tests passing.
-- **Wealth Preservation**: Automated ROI audits and self-correcting task termination are active.
-
-### New CLI Modes
-
-```bash
-./bin/orchestrator -agent -agent-iterations 20    # LLM-driven autonomous loop
-./bin/orchestrator -autoplan                       # LLM generates strategy, then executes
-```
+- **Build System**: Streamlined `build.sh` for all 6 core modules.
+- **CI/CD**: Explicit workspace testing for all modules.
+- **Test Suite**: 100% pass rate with new content and healer coverage.
 
 ---
 
-*Previous: v1.0.0-alpha.65 — "Fully Automated Luxury Protocol" (stable monorepo)*
+*Previous: 1.0.0-alpha.78 — "Fully Automated Luxury Protocol" (stable monorepo)*

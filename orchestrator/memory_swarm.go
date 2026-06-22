@@ -171,7 +171,7 @@ func (s *MemorySwarm) HandleStatusResponse(peerID, data string) {
 		return
 	}
 
-	content := fmt.Sprintf("Mesh Peer %s Status: %v, Profit: $%.2f", peerID, status["status"], status["profit"])
+	content := fmt.Sprintf("Mesh Peer %s Status: %v, PROFIT: $%.2f", peerID, status["status"], status["profit"])
 	s.Orchestrator.L1.Add(MemoryEntry{
 		ID:        fmt.Sprintf("mesh-stat-%s-%d", peerID, time.Now().Unix()),
 		Content:   content,

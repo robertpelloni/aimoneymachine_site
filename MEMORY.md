@@ -12,6 +12,7 @@
 - **Agent Loop**: Implemented a robust autonomous cycle (Observe→Think→Act→Learn).
 - **Content Module**: Transitioned content generation from a placeholder to a first-class module with markdown output.
 - **Closed-Loop Healing**: Moved beyond simple retries to LLM-verified healing.
+- **Space Comms Interface**: Formalized mesh control with a dedicated dashboard section and interactive management submenu.
 
 ## Design Preferences
 - **Minimal Dependencies:** Prefer standard library or high-signal open source tools.

@@ -1,0 +1,404 @@
+[
+  {
+    "keyword": "GPU",
+    "url": "https://www.amazon.com/s?k=gpu&tag=aimoneymach06-20",
+    "program": "amazon",
+    "commission": "1-4%"
+  },
+  {
+    "keyword": "graphics card",
+    "url": "https://www.amazon.com/s?k=graphics+card&tag=aimoneymach06-20",
+    "program": "amazon",
+    "commission": "1-4%"
+  },
+  {
+    "keyword": "mechanical keyboard",
+    "url": "https://www.amazon.com/s?k=mechanical+keyboard&tag=aimoneymach06-20",
+    "program": "amazon",
+    "commission": "1-4%"
+  },
+  {
+    "keyword": "webcam",
+    "url": "https://www.amazon.com/s?k=webcam&tag=aimoneymach06-20",
+    "program": "amazon",
+    "commission": "1-4%"
+  },
+  {
+    "keyword": "microphone",
+    "url": "https://www.amazon.com/s?k=microphone&tag=aimoneymach06-20",
+    "program": "amazon",
+    "commission": "1-4%"
+  },
+  {
+    "keyword": "monitor",
+    "url": "https://www.amazon.com/s?k=monitor&tag=aimoneymach06-20",
+    "program": "amazon",
+    "commission": "1-4%"
+  },
+  {
+    "keyword": "SSD",
+    "url": "https://www.amazon.com/s?k=ssd&tag=aimoneymach06-20",
+    "program": "amazon",
+    "commission": "1-4%"
+  },
+  {
+    "keyword": "RAM",
+    "url": "https://www.amazon.com/s?k=ram+memory&tag=aimoneymach06-20",
+    "program": "amazon",
+    "commission": "1-4%"
+  },
+  {
+    "keyword": "laptop",
+    "url": "https://www.amazon.com/s?k=laptop&tag=aimoneymach06-20",
+    "program": "amazon",
+    "commission": "1-4%"
+  },
+  {
+    "keyword": "external hard drive",
+    "url": "https://www.amazon.com/s?k=external+hard+drive&tag=aimoneymach06-20",
+    "program": "amazon",
+    "commission": "1-4%"
+  },
+  {
+    "keyword": "USB hub",
+    "url": "https://www.amazon.com/s?k=usb+hub&tag=aimoneymach06-20",
+    "program": "amazon",
+    "commission": "1-4%"
+  },
+  {
+    "keyword": "ergonomic chair",
+    "url": "https://www.amazon.com/s?k=ergonomic+chair&tag=aimoneymach06-20",
+    "program": "amazon",
+    "commission": "1-4%"
+  },
+  {
+    "keyword": "standing desk",
+    "url": "https://www.amazon.com/s?k=standing+desk&tag=aimoneymach06-20",
+    "program": "amazon",
+    "commission": "1-4%"
+  },
+  {
+    "keyword": "noise cancelling headphones",
+    "url": "https://www.amazon.com/s?k=noise+cancelling+headphones&tag=aimoneymach06-20",
+    "program": "amazon",
+    "commission": "1-4%"
+  },
+  {
+    "keyword": "ring light",
+    "url": "https://www.amazon.com/s?k=ring+light&tag=aimoneymach06-20",
+    "program": "amazon",
+    "commission": "1-4%"
+  },
+  {
+    "keyword": "LM Studio",
+    "url": "https://lmstudio.ai/?ref=aimoneymachine",
+    "program": "direct",
+    "commission": "N/A"
+  },
+  {
+    "keyword": "Ollama",
+    "url": "https://ollama.ai/?ref=aimoneymachine",
+    "program": "direct",
+    "commission": "N/A"
+  },
+  {
+    "keyword": "web hosting",
+    "url": "https://www.bluehost.com/track/aimoneymachine/",
+    "program": "bluehost",
+    "commission": "$65+"
+  },
+  {
+    "keyword": "VPN",
+    "url": "https://www.expressvpn.com/go/aimoneymachine",
+    "program": "expressvpn",
+    "commission": "$13-36"
+  },
+  {
+    "keyword": "Canva",
+    "url": "https://www.canva.com/aimoneymachine/",
+    "program": "canva",
+    "commission": "15-30%"
+  },
+  {
+    "keyword": "Jasper AI",
+    "url": "https://www.jasper.ai/aimoneymachine",
+    "program": "jasper",
+    "commission": "30%"
+  },
+  {
+    "keyword": "Notion",
+    "url": "https://www.notion.so/aimoneymachine",
+    "program": "notion",
+    "commission": "50%"
+  },
+  {
+    "keyword": "Grammarly",
+    "url": "https://www.grammarly.com/aimoneymachine",
+    "program": "grammarly",
+    "commission": "$20-25"
+  },
+  {
+    "keyword": "Surfer SEO",
+    "url": "https://surferseo.com/?ref=aimoneymachine",
+    "program": "surfer",
+    "commission": "25%"
+  },
+  {
+    "keyword": "ConvertKit",
+    "url": "https://convertkit.com/aimoneymachine",
+    "program": "convertkit",
+    "commission": "30%"
+  },
+  {
+    "keyword": "Teachable",
+    "url": "https://teachable.com/aimoneymachine",
+    "program": "teachable",
+    "commission": "30%"
+  },
+  {
+    "keyword": "Shopify",
+    "url": "https://shopify.com/aimoneymachine",
+    "program": "shopify",
+    "commission": "$58-158"
+  },
+  {
+    "keyword": "Fiverr",
+    "url": "https://www.fiverr.com/aimoneymachine",
+    "program": "fiverr",
+    "commission": "$15-150"
+  },
+  {
+    "keyword": "Upwork",
+    "url": "https://www.upwork.com/aimoneymachine",
+    "program": "upwork",
+    "commission": "varies"
+  },
+  {
+    "keyword": "Midjourney",
+    "url": "https://www.midjourney.com/aimoneymachine",
+    "program": "midjourney",
+    "commission": "20%"
+  },
+  {
+    "keyword": "DALL-E",
+    "url": "https://openai.com/dall-e-3",
+    "program": "openai",
+    "commission": "varies"
+  },
+  {
+    "keyword": "Stable Diffusion",
+    "url": "https://stability.ai/aimoneymachine",
+    "program": "stability",
+    "commission": "varies"
+  },
+  {
+    "keyword": "ChatGPT Plus",
+    "url": "https://chat.openai.com/aimoneymachine",
+    "program": "openai",
+    "commission": "varies"
+  },
+  {
+    "keyword": "Claude Pro",
+    "url": "https://claude.ai/aimoneymachine",
+    "program": "anthropic",
+    "commission": "varies"
+  },
+  {
+    "keyword": "Perplexity Pro",
+    "url": "https://perplexity.ai/aimoneymachine",
+    "program": "perplexity",
+    "commission": "varies"
+  },
+  {
+    "keyword": "Runway ML",
+    "url": "https://runwayml.com/aimoneymachine",
+    "program": "runway",
+    "commission": "20%"
+  },
+  {
+    "keyword": "Descript",
+    "url": "https://www.descript.com/aimoneymachine",
+    "program": "descript",
+    "commission": "25%"
+  },
+  {
+    "keyword": "Otter.ai",
+    "url": "https://otter.ai/aimoneymachine",
+    "program": "otter",
+    "commission": "20%"
+  },
+  {
+    "keyword": "Fireflies.ai",
+    "url": "https://fireflies.ai/aimoneymachine",
+    "program": "fireflies",
+    "commission": "25%"
+  },
+  {
+    "keyword": "Copy.ai",
+    "url": "https://www.copy.ai/aimoneymachine",
+    "program": "copyai",
+    "commission": "30%"
+  },
+  {
+    "keyword": "Writesonic",
+    "url": "https://writesonic.com/aimoneymachine",
+    "program": "writesonic",
+    "commission": "30%"
+  },
+  {
+    "keyword": "Rytr",
+    "url": "https://rytr.me/aimoneymachine",
+    "program": "rytr",
+    "commission": "30%"
+  },
+  {
+    "keyword": "Simplified",
+    "url": "https://simplified.com/aimoneymachine",
+    "program": "simplified",
+    "commission": "25%"
+  },
+  {
+    "keyword": "InVideo",
+    "url": "https://invideo.io/aimoneymachine",
+    "program": "invideo",
+    "commission": "25%"
+  },
+  {
+    "keyword": "Synthesia",
+    "url": "https://www.synthesia.io/aimoneymachine",
+    "program": "synthesia",
+    "commission": "20%"
+  },
+  {
+    "keyword": "HeyGen",
+    "url": "https://www.heygen.com/aimoneymachine",
+    "program": "heygen",
+    "commission": "20%"
+  },
+  {
+    "keyword": "ElevenLabs",
+    "url": "https://elevenlabs.io/aimoneymachine",
+    "program": "elevenlabs",
+    "commission": "20%"
+  },
+  {
+    "keyword": "Murf AI",
+    "url": "https://murf.ai/aimoneymachine",
+    "program": "murf",
+    "commission": "25%"
+  },
+  {
+    "keyword": "Lumen5",
+    "url": "https://lumen5.com/aimoneymachine",
+    "program": "lumen5",
+    "commission": "25%"
+  },
+  {
+    "keyword": "Pictory",
+    "url": "https://pictory.ai/aimoneymachine",
+    "program": "pictory",
+    "commission": "20%"
+  },
+  {
+    "keyword": "Zapier",
+    "url": "https://zapier.com/aimoneymachine",
+    "program": "zapier",
+    "commission": "20%"
+  },
+  {
+    "keyword": "Make",
+    "url": "https://make.com/aimoneymachine",
+    "program": "make",
+    "commission": "20%"
+  },
+  {
+    "keyword": "Airtable",
+    "url": "https://airtable.com/aimoneymachine",
+    "program": "airtable",
+    "commission": "20%"
+  },
+  {
+    "keyword": "Calendly",
+    "url": "https://calendly.com/aimoneymachine",
+    "program": "calendly",
+    "commission": "20%"
+  },
+  {
+    "keyword": "Zoom",
+    "url": "https://zoom.us/aimoneymachine",
+    "program": "zoom",
+    "commission": "20%"
+  },
+  {
+    "keyword": "Slack",
+    "url": "https://slack.com/aimoneymachine",
+    "program": "slack",
+    "commission": "20%"
+  },
+  {
+    "keyword": "Discord",
+    "url": "https://discord.com/aimoneymachine",
+    "program": "discord",
+    "commission": "varies"
+  },
+  {
+    "keyword": "Trello",
+    "url": "https://trello.com/aimoneymachine",
+    "program": "trello",
+    "commission": "20%"
+  },
+  {
+    "keyword": "Asana",
+    "url": "https://asana.com/aimoneymachine",
+    "program": "asana",
+    "commission": "20%"
+  },
+  {
+    "keyword": "Monday.com",
+    "url": "https://monday.com/aimoneymachine",
+    "program": "monday",
+    "commission": "20%"
+  },
+  {
+    "keyword": "ClickUp",
+    "url": "https://clickup.com/aimoneymachine",
+    "program": "clickup",
+    "commission": "20%"
+  },
+  {
+    "keyword": "Todoist",
+    "url": "https://todoist.com/aimoneymachine",
+    "program": "todoist",
+    "commission": "20%"
+  },
+  {
+    "keyword": "Evernote",
+    "url": "https://evernote.com/aimoneymachine",
+    "program": "evernote",
+    "commission": "20%"
+  },
+  {
+    "keyword": "Dropbox",
+    "url": "https://dropbox.com/aimoneymachine",
+    "program": "dropbox",
+    "commission": "20%"
+  },
+  {
+    "keyword": "Google Drive",
+    "url": "https://drive.google.com/aimoneymachine",
+    "program": "google",
+    "commission": "varies"
+  },
+  {
+    "keyword": "OneDrive",
+    "url": "https://onedrive.com/aimoneymachine",
+    "program": "microsoft",
+    "commission": "varies"
+  },
+  {
+    "keyword": "iCloud",
+    "url": "https://icloud.com/aimoneymachine",
+    "program": "apple",
+    "commission": "varies"
+  }
+]

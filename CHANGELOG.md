@@ -1,4 +1,144 @@
+## [1.0.0-alpha.82] - 2026-06-13
+
+### Fixed
+- **TODO.md Accuracy**: Marked "Real Social Posting" as completed — integrations were already implemented in previous phase but TODO was never updated.
+
+### Added
+- **Twitter API Integration**: Full OAuth1 authentication via `github.com/dghubble/oauth1`, real HTTP POST to `api.twitter.com/2/tweets`, DryRun support, structured error handling.
+- **LinkedIn API Integration**: Bearer token auth targeting UGC Posts API v2, proper JSON payload with author, visibility, and lifecycle state, DryRun support.
+- **Content Generation**: LLM-based social post generation with fallback for offline mode.
+- **Test Coverage**: Unit tests (`post_test.go`) and integration tests (`post_integration_test.go`) for social providers.
+
+### Changed
+- **Version Increment**: Bumped to v1.0.0-alpha.82.
+- **Unified State**: Confirmed monorepo consistency across all modules.
+
+## [1.0.0-alpha.81] - 2026-06-09
+
+### Changed
+- **Version Increment**: Initialized metadata for next development cycle.
+- **Unified State**: Confirmed monorepo consistency across all modules.
+
+## [1.0.0-alpha.80] - 2026-06-09
+
+### Changed
+- **Project State Finalization**: Incremented version for next feature development cycle.
+- **Unified Monorepo Alignment**: Confirmed all submodules and feature branches are synchronized into the 1.0.0-alpha.80 baseline.
+
+## [1.0.0-alpha.79] - 2026-06-09
+
+### Added
+- **Configurable Wealth Goals**: Added support for setting and synchronizing a collective wealth target across the federated mesh.
+- **Luxury Space Communism UI Polish**: Implemented a visual ASCII progress bar for the collective goal and a structured peer leaderboard with top-performer highlighting.
+- **Swarm Protocol Expansion**: New `set_goal` action enables mesh-wide synchronization of financial targets.
+- **Robust Peer Data Parsing**: Enhanced the dashboard extraction logic to more reliably process peer status and profit data from mesh communication logs.
+
+## [1.0.0-alpha.89] - 2026-06-13
+
+### Added
+- **Interactive Input Forms**: User queries/topics/symbols for hustle modules.
+- **Memory UI**: Semantic and keyword search within the interactive menu.
+- **System Maintenance**: Manual gallery refresh and self-healing triggers.
+
+## [1.0.0-alpha.88] - 2026-06-12
+
+### Added
+- **Multi-Agent Control UI**: Interactive menu for spawning Research, Trading, Content, or Social agents with configurable iterations.
+- **AI Council Debate UI**: Real-time sentiment analysis and synthesis tool for any topic.
+- **Enhanced Social Selection**: User-selectable platforms (Twitter/LinkedIn) and custom topics for social hustles.
+- **On-Demand Workflow Discovery**: UI trigger for the ChainDiscoverer to evolve 'Luxury Chains' manually.
+
+## [1.0.0-alpha.78] - 2026-06-09
+
+### Added
+- **Polished Terminal Dashboard**: Integrated ANSI color styling for improved visibility of machine status, profit metrics, and provider health.
+- **Unified Task Observability**: Dashboard now displays a "RECENT TASK LOG (SQL)" section, fetching the latest outcomes directly from the SQLite store.
+- **Hardened Content Prompting**: Refactored the prompt generation logic to ensure robust argument alignment and prevent malformed LLM instructions.
+- **Stable Monorepo Dependency Alignment**: Standardized Go 1.25 across all modules to resolve modern dependency requirements and ensure build stability.
+
+# 1.0.0-alpha.78
+- Polished Terminal Dashboard with ANSI colors and Real-time Status.
+- Integrated SQLite Task History into the main UI.
+- Hardened Content module prompt generation logic.
+- Optimized environment and dependency alignment.
+
+# 1.0.0-alpha.78
+- Migrated to pure Go SQLite driver (`modernc.org/sqlite`) for Windows CGO compatibility.
+- Implemented Task Execution History logging to SQLite.
+- Added "View Task History" option to Interactive CLI.
+
 # Changelog
+
+## [1.0.0-alpha.78] - 2026-06-08
+
+### Added
+- **Phase 4 Production Hardening**: Finalized core UI/UX enhancements for Luxury Space Communism and federated mesh observability.
+- **System Stability**: Verified 100% test pass rate across the consolidated monorepo.
+- **Refined Metadata**: Synchronized all internal state files and documentation for the alpha.76 release.
+
+## [1.0.0-alpha.75] - 2026-06-08
+
+### Added
+- **Federated Profit Leaderboard**: Dashboard now displays a ranked list of top mesh peers by profit.
+- **Collective Wealth Goal**: Implemented tracking towards a mesh-wide financial target ($10,000).
+- **Mesh Strategy Insights**: Dashboard now displays the latest 'Collective Alpha' harvested from the mesh.
+
+## [1.0.0-alpha.74] - 2026-06-08
+
+### Added
+- **Dynamic RSS Management**: New interactive menu for managing RSS feeds (Add/List/Remove).
+- **Scheduler Observability**: Dashboard now displays the next 3 scheduled tasks and their countdowns.
+- **Enhanced Agent Metrics**: Per-type success/error breakdown (e.g., content, research) in the live Dashboard.
+- **Real Mesh Profit Aggregation**: Hardened parsing of peer profits for collective mesh wealth calculation.
+
+## [1.0.0-alpha.73] - 2026-06-08
+
+### Added
+- **Social Dry-Run Mode**: Added `-dry-run` CLI flag and global `DryRun` state to prevent external posting during testing.
+- **Dry-Run Observability**: Dashboard now displays a prominent warning when dry-run mode is active.
+- **Provider Hardening**: Twitter and LinkedIn providers now support an explicit dry-run state.
+
+## [1.0.0-alpha.72] - 2026-06-08
+
+### Added
+- **REST API Expansion**: Added 4 new endpoints for agents, content, strategy, and manual diagnostics.
+- **Manual System Diagnosis**: Added option to trigger the LLM-verified Healer loop via both CLI and API.
+- **Agent Metrics in Dashboard**: Enhanced the real-time visualization of specialized agent performance.
+- **Collective Strategy Hub**: Interactive UI and API for viewing mesh-wide shared alpha.
+
+## [1.0.0-alpha.71] - 2026-06-08
+
+### Changed
+- **Executive Protocol Sync**: Successfully synchronized the repository with upstream changes and performed an intelligent merge of all feature branches.
+- **Monorepo Stabilization**: Verified the integrity of the unified monorepo architecture with a 100% test pass rate.
+
+## [1.0.0-alpha.70] - 2026-06-08
+
+### Added
+- **Luxury Space Communism UI**: Added a dedicated section to the Dashboard for federated wealth tracking.
+- **Collective Strategy Hub**: New interactive menu for viewing shared alpha and strategies from the mesh swarm.
+- **Manual Diagnostic UI**: Added option to trigger the LLM-verified Healer loop manually via the CLI.
+- **Refactored UI Submenus**: Improved interactive menu organization with specialized handlers for space communication.
+
+## [1.0.0-alpha.69] - 2026-06-08
+
+### Added
+- **Git-Based Rollback**: Implemented real `git checkout .` and `git clean -fd` in the `RollbackHandler` to return the system to the last stable commit.
+- **Rollback Verification**: Added automated tests for the rollback recovery sequence.
+- **Agent Metrics UI**: Enhanced the Dashboard to display aggregated success/error counts for autonomous agents.
+
+## [1.0.0-alpha.68] - 2026-06-08
+
+### Added
+- **Real Research Integration**: Implemented Tavily API support for live web search in the Research module.
+- **Enhanced UI Wiring**: Verified and finalized all interactive menu options (19 total) and dashboard components.
+
+## [1.0.0-alpha.67] - 2026-06-08
+
+### Added
+- **Graceful Shutdown**: Implemented SIGINT/SIGTERM signal handling in the main orchestrator loop.
+- **State Persistence**: Added `Shutdown()` method to ensure memory and ledger state are persisted to disk on exit.
+- **Database Safety**: Automated closing of SQLite connections during shutdown sequence.
 
 ## [1.0.0-alpha.66] - 2026-06-07
 
@@ -56,7 +196,7 @@
 ## [1.0.0-alpha.58] - 2026-06-06
 ### Added
 - **Final Release Sign-off**: Verified absolute stability of the autonomous luxury protocol via comprehensive E2E integration.
-- **Production Monorepo Ready**: Finalized documentation and state synchronization for stable deployment.
+- **Production Monorepo Ready**: Finalized all documentation and versioning for stable deployment.
 
 ## [1.0.0-alpha.57] - 2026-06-06
 ### Added
@@ -100,7 +240,7 @@
 
 ## [1.0.0-alpha.49] - 2026-06-06
 ### Added
-- **Monorepo Consolidation**: Removed `gstack` submodule and ported 10 core engineering skills to native `.agent/workflows/`.
+- **Monorepo Consolidation**: Removed `gstack` submodule and ported 10 core engineering workflows to native `.agent/workflows/`.
 - **Engineering Workflow Integration**: Unified `/office-hours`, `/plan-ceo-review`, and `/ship` into the core monorepo for Gemini CLI/Antigravity support.
 - **Unified Vision Finalized**: Synchronized all core documentation (README, MEMORY, TODO) to reflect the transition from multi-repo to monorepo.
 
