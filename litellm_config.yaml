@@ -1,0 +1,12 @@
+general_settings:
+  master_key: "sk-dummy-key"
+
+model_list:
+  - model_name: gpt-4o
+    litellm_params:
+      model: openai/gpt-4o
+      api_key: "sk-dummy-key"
+  - model_name: gpt-4o-mini
+    litellm_params:
+      model: openai/gpt-4o-mini
+      api_key: "sk-dummy-key"

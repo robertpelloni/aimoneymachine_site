@@ -1,0 +1,64 @@
+{
+  "version": "",
+  "l1": {
+    "entries": []
+  },
+  "l2": {
+    "entries": []
+  },
+  "l3": {
+    "entries": []
+  },
+  "ledger": {
+    "transactions": [
+      {
+        "id": "",
+        "amount": 1000,
+        "type": "Expense",
+        "hustle": "Initial Setup",
+        "note": "Hardware and environment prep",
+        "timestamp": "2026-06-01T12:00:00Z"
+      },
+      {
+        "id": "",
+        "amount": 50,
+        "type": "Revenue",
+        "hustle": "Curation",
+        "note": "Newsletter ad placement",
+        "timestamp": "2026-06-02T15:30:00Z"
+      },
+      {
+        "id": "",
+        "amount": 120.5,
+        "type": "Revenue",
+        "hustle": "Trading",
+        "note": "BTC/USD long exit",
+        "timestamp": "2026-06-03T09:15:00Z"
+      },
+      {
+        "id": "",
+        "amount": 5,
+        "type": "Expense",
+        "hustle": "Research",
+        "note": "Tavily API credits",
+        "timestamp": "2026-06-03T10:00:00Z"
+      },
+      {
+        "id": "",
+        "amount": 0.5,
+        "type": "Revenue",
+        "hustle": "ContentGeneration",
+        "note": "blog: Mock Title",
+        "timestamp": "2026-06-07T18:59:44Z"
+      },
+      {
+        "id": "",
+        "amount": 0.5,
+        "type": "Revenue",
+        "hustle": "ContentGeneration",
+        "note": "blog: Mock Title",
+        "timestamp": "2026-06-07T19:07:07Z"
+      }
+    ]
+  }
+}

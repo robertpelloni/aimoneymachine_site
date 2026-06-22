@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 )
 
 type API struct {
@@ -12,6 +13,7 @@ type API struct {
 	Broker       *A2ABroker
 	ChainManager *ChainManager
 	Discoverer   *ChainDiscoverer
+	MultiAgent   *MultiAgentOrchestrator
 }
 
 func NewAPI(orch *Orchestrator, protocol *HustleProtocol, broker *A2ABroker, chainMgr *ChainManager, disc *ChainDiscoverer) *API {
@@ -31,6 +33,10 @@ func (a *API) Start(port string) error {
 	http.HandleFunc("/register", a.handleRegister)
 	http.HandleFunc("/sync", a.handleSync)
 	http.HandleFunc("/chains", a.handleChains)
+	http.HandleFunc("/agents", a.handleAgents)
+	http.HandleFunc("/content", a.handleContent)
+	http.HandleFunc("/strategy", a.handleStrategy)
+	http.HandleFunc("/healer", a.handleHealer)
 
 	fmt.Printf("[API] Orchestrator listening on port %s\n", port)
 	return http.ListenAndServe(":"+port, nil)
@@ -144,4 +150,51 @@ func (a *API) handleChains(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	json.NewEncoder(w).Encode(a.ChainManager.Chains)
+}
+
+func (a *API) handleAgents(w http.ResponseWriter, r *http.Request) {
+	if a.MultiAgent != nil {
+		json.NewEncoder(w).Encode(a.MultiAgent.StatusReport())
+		return
+	}
+	agentEntries := a.Orchestrator.L1.Search("agent_loop")
+	json.NewEncoder(w).Encode(agentEntries)
+}
+
+func (a *API) handleContent(w http.ResponseWriter, r *http.Request) {
+	files, err := os.ReadDir("output/content")
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Error reading content: %v", err), http.StatusInternalServerError)
+		return
+	}
+	var fileList []string
+	for _, f := range files {
+		if !f.IsDir() {
+			fileList = append(fileList, f.Name())
+		}
+	}
+	json.NewEncoder(w).Encode(fileList)
+}
+
+func (a *API) handleStrategy(w http.ResponseWriter, r *http.Request) {
+	strategies := a.Orchestrator.L1.Search("collective_strategy")
+	json.NewEncoder(w).Encode(strategies)
+}
+
+func (a *API) handleHealer(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Only POST allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	var req struct {
+		Issue string `json:"issue"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+		return
+	}
+	h := NewHealer(a.Orchestrator)
+	go h.Loop(req.Issue)
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprint(w, "Healer loop initiated")
 }

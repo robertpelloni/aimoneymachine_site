@@ -3,60 +3,240 @@ package trading
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/robertpelloni/hustle/orchestrator"
+	"io"
+	"log"
 	"math/rand"
 	"net/http"
+	"os"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/robertpelloni/hustle/orchestrator"
 )
 
+// Defaults
+const (
+	defaultCoinGeckoURL = "https://api.coingecko.com/api/v3"
+	cacheTTL            = 60 * time.Second // cache prices for 60s
+	maxRetries          = 3
+	retryBackoff        = 2 * time.Second
+)
+
+// PriceFetcher defines the interface for fetching asset prices.
 type PriceFetcher interface {
 	GetPrice(symbol string) (float64, error)
 }
 
-type MockPriceFetcher struct{}
-
-func (m *MockPriceFetcher) GetPrice(symbol string) (float64, error) {
-	// Simple mock price generation
-	return 50000.0 + rand.Float64()*1000.0, nil
+// MockPriceFetcher generates realistic mock prices.
+type MockPriceFetcher struct {
+	basePrices map[string]float64
+	mu         sync.Mutex
 }
 
-type CoinGeckoFetcher struct{}
+func (m *MockPriceFetcher) GetPrice(symbol string) (float64, error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
 
-func (c *CoinGeckoFetcher) GetPrice(symbol string) (float64, error) {
-	// Map common symbols to CoinGecko IDs
-	ids := map[string]string{
-		"BTC":  "bitcoin",
-		"ETH":  "ethereum",
-		"SOL":  "solana",
-		"DOGE": "dogecoin",
+	if m.basePrices == nil {
+		m.basePrices = map[string]float64{
+			"BTC":  67500.0,
+			"ETH":  3450.0,
+			"SOL":  145.0,
+			"DOGE": 0.12,
+		}
 	}
 
-	id, ok := ids[strings.ToUpper(symbol)]
+	base, ok := m.basePrices[strings.ToUpper(symbol)]
 	if !ok {
+		base = 100.0
+	}
+
+	// Add realistic noise (±2%)
+	noise := 1.0 + (rand.Float64()-0.5)*0.04
+	return base * noise, nil
+}
+
+// CoinGeckoFetcher fetches live prices from the CoinGecko API with caching,
+// retry logic, and rate-limit awareness.
+type CoinGeckoFetcher struct {
+	apiKey  string
+	baseURL string
+	client  *http.Client
+	cache   map[string]cachedPrice
+	mu      sync.Mutex
+}
+
+type cachedPrice struct {
+	price     float64
+	expiresAt time.Time
+}
+
+// NewCoinGeckoFetcher creates a fetcher configured from environment variables.
+// Reads COINGECKO_API_KEY (optional, for higher rate limits) and
+// COINGECKO_API_URL (optional, defaults to api.coingecko.com).
+func NewCoinGeckoFetcher() *CoinGeckoFetcher {
+	return &CoinGeckoFetcher{
+		apiKey:  os.Getenv("COINGECKO_API_KEY"),
+		baseURL: getEnvDefault("COINGECKO_API_URL", defaultCoinGeckoURL),
+		client:  &http.Client{Timeout: 15 * time.Second},
+		cache:   make(map[string]cachedPrice),
+	}
+}
+
+func getEnvDefault(key, def string) string {
+	if v := os.Getenv(key); v != "" {
+		return v
+	}
+	return def
+}
+
+// symbolToCoinGeckoID maps common tickers to CoinGecko API IDs.
+var symbolToCoinGeckoID = map[string]string{
+	"BTC":  "bitcoin",
+	"ETH":  "ethereum",
+	"SOL":  "solana",
+	"DOGE": "dogecoin",
+	"XRP":  "ripple",
+	"ADA":  "cardano",
+	"DOT":  "polkadot",
+	"AVAX": "avalanche-2",
+	"LINK": "chainlink",
+	"MATIC": "matic-network",
+	"UNI":  "uniswap",
+	"ATOM": "cosmos",
+	"LTC":  "litecoin",
+	"BCH":  "bitcoin-cash",
+	"FIL":  "filecoin",
+	"APT":  "aptos",
+	"SUI":  "sui",
+	"ARB":  "arbitrum",
+	"OP":   "optimism",
+	"NEAR": "near",
+}
+
+// GetPrice fetches the current USD price for a symbol.
+// Uses an in-memory cache with 60s TTL to avoid hitting rate limits.
+// Retries up to 3 times with exponential backoff on transient errors.
+func (c *CoinGeckoFetcher) GetPrice(symbol string) (float64, error) {
+	symbol = strings.ToUpper(symbol)
+
+	// Check cache first
+	if price, ok := c.getFromCache(symbol); ok {
+		return price, nil
+	}
+
+	// Resolve CoinGecko ID
+	id := symbolToCoinGeckoID[symbol]
+	if id == "" {
 		id = strings.ToLower(symbol)
 	}
 
-	url := fmt.Sprintf("https://api.coingecko.com/api/v3/simple/price?ids=%s&vs_currencies=usd", id)
-	client := &http.Client{Timeout: 10 * time.Second}
-	resp, err := client.Get(url)
+	// Attempt fetch with retries
+	var lastErr error
+	for attempt := 0; attempt < maxRetries; attempt++ {
+		if attempt > 0 {
+			time.Sleep(retryBackoff * time.Duration(attempt))
+		}
+
+		price, err := c.fetchPrice(id)
+		if err == nil {
+			c.addToCache(symbol, price)
+			return price, nil
+		}
+		lastErr = err
+
+		// Don't retry on "not found" — it's permanent
+		if strings.Contains(err.Error(), "not found in response") {
+			break
+		}
+	}
+
+	log.Printf("[CoinGecko] All %d retries exhausted for %s: %v", maxRetries, symbol, lastErr)
+	return 0, fmt.Errorf("coingecko: %s after %d retries: %w", symbol, maxRetries, lastErr)
+}
+
+func (c *CoinGeckoFetcher) fetchPrice(id string) (float64, error) {
+	url := fmt.Sprintf("%s/simple/price?ids=%s&vs_currencies=usd", c.baseURL, id)
+
+	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		return 0, err
+		return 0, fmt.Errorf("creating request: %w", err)
+	}
+
+	// Add API key header if configured (for higher rate limits)
+	if c.apiKey != "" {
+		req.Header.Set("CG-API-Key", c.apiKey)
+	}
+
+	resp, err := c.client.Do(req)
+	if err != nil {
+		return 0, fmt.Errorf("http request: %w", err)
 	}
 	defer resp.Body.Close()
 
-	var result map[string]map[string]float64
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		return 0, err
+	// Check for rate limiting
+	if resp.StatusCode == http.StatusTooManyRequests {
+		log.Printf("[CoinGecko] Rate limited (429). Consider setting COINGECKO_API_KEY.")
+		return 0, fmt.Errorf("rate limited (429)")
 	}
 
-	price, ok := result[id]["usd"]
+	// Check for other non-200 status
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return 0, fmt.Errorf("API returned status %d: %s", resp.StatusCode, string(body[:min(len(body), 200)]))
+	}
+
+	var result map[string]map[string]float64
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return 0, fmt.Errorf("decoding response: %w", err)
+	}
+
+	priceMap, ok := result[id]
 	if !ok {
-		return 0, fmt.Errorf("price for %s not found in response", symbol)
+		return 0, fmt.Errorf("id %q not found in response", id)
+	}
+
+	price, ok := priceMap["usd"]
+	if !ok {
+		return 0, fmt.Errorf("usd price for %q not found in response", id)
 	}
 
 	return price, nil
+}
+
+func (c *CoinGeckoFetcher) getFromCache(symbol string) (float64, bool) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	entry, ok := c.cache[symbol]
+	if !ok || time.Now().After(entry.expiresAt) {
+		return 0, false
+	}
+	return entry.price, true
+}
+
+func (c *CoinGeckoFetcher) addToCache(symbol string, price float64) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.cache[symbol] = cachedPrice{
+		price:     price,
+		expiresAt: time.Now().Add(cacheTTL),
+	}
+}
+
+// ClearCache forces cache refresh on next call.
+func (c *CoinGeckoFetcher) ClearCache() {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.cache = make(map[string]cachedPrice)
+}
+
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
 }
 
 type TradingModule struct {
