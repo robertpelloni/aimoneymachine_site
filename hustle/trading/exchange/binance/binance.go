@@ -5,6 +5,7 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -26,27 +27,59 @@ const (
 	defaultRecvWindow = 5000 // milliseconds
 	httpTimeout       = 15 * time.Second
 	wsBaseURL         = "wss://stream.binance.com:9443/ws"
+
+	// Retry and rate-limit configuration
+	maxRetries        = 3
+	retryBackoff      = 1 * time.Second
+	tickerCacheTTL    = 5 * time.Second
+	orderBookCacheTTL = 2 * time.Second
 )
+
+// apiError carries the HTTP status code from Binance for retry decision-making.
+type apiError struct {
+	StatusCode int
+	Body       string
+}
+
+func (e *apiError) Error() string {
+	return fmt.Sprintf("binance API error (status %d): %s", e.StatusCode, e.Body)
+}
+
+// cachedTicker stores a ticker result with its expiration.
+type cachedTicker struct {
+	ticker    *exchange.Ticker
+	expiresAt time.Time
+}
+
+// cachedOrderBook stores an order book result with its expiration.
+type cachedOrderBook struct {
+	book      *exchange.OrderBook
+	expiresAt time.Time
+}
 
 // Provider implements exchange.ExchangeProvider for Binance.
 type Provider struct {
-	apiKey     string
-	secretKey  string
-	baseURL    string
-	client     *http.Client
-	dryRun     bool
-	mu         sync.Mutex
-	wsCancel   func()
+	apiKey         string
+	secretKey      string
+	baseURL        string
+	client         *http.Client
+	dryRun         bool
+	mu             sync.Mutex
+	wsCancel       func()
+	tickerCache    map[string]cachedTicker
+	orderBookCache map[string]cachedOrderBook
 }
 
 // NewProvider creates a Binance exchange provider from environment variables.
 // Reads BINANCE_API_KEY and BINANCE_SECRET_KEY.
 func NewProvider() *Provider {
 	return &Provider{
-		apiKey:    os.Getenv("BINANCE_API_KEY"),
-		secretKey: os.Getenv("BINANCE_SECRET_KEY"),
-		baseURL:   getEnvDefault("BINANCE_API_URL", defaultBaseURL),
-		client:    &http.Client{Timeout: httpTimeout},
+		apiKey:         os.Getenv("BINANCE_API_KEY"),
+		secretKey:      os.Getenv("BINANCE_SECRET_KEY"),
+		baseURL:        getEnvDefault("BINANCE_API_URL", defaultBaseURL),
+		client:         &http.Client{Timeout: httpTimeout},
+		tickerCache:    make(map[string]cachedTicker),
+		orderBookCache: make(map[string]cachedOrderBook),
 	}
 }
 
@@ -59,10 +92,12 @@ func NewProviderWithClient(apiKey, secretKey, baseURL string, client *http.Clien
 		client = &http.Client{Timeout: httpTimeout}
 	}
 	return &Provider{
-		apiKey:    apiKey,
-		secretKey: secretKey,
-		baseURL:   baseURL,
-		client:    client,
+		apiKey:         apiKey,
+		secretKey:      secretKey,
+		baseURL:        baseURL,
+		client:         client,
+		tickerCache:    make(map[string]cachedTicker),
+		orderBookCache: make(map[string]cachedOrderBook),
 	}
 }
 
@@ -125,13 +160,13 @@ func (p *Provider) publicRequest(endpoint string, params url.Values) ([]byte, er
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("binance API error (status %d): %s", resp.StatusCode, string(body))
+		return nil, &apiError{StatusCode: resp.StatusCode, Body: string(body)}
 	}
 
 	return body, nil
 }
 
-// signedRequest performs a SIGNED GET request with HMAC-SHA256 authentication.
+// signedRequest performs a SIGNED request with HMAC-SHA256 authentication.
 func (p *Provider) signedRequest(method, endpoint string, params url.Values) ([]byte, error) {
 	if p.apiKey == "" || p.secretKey == "" {
 		return nil, fmt.Errorf("binance: BINANCE_API_KEY and BINANCE_SECRET_KEY must be set")
@@ -169,20 +204,145 @@ func (p *Provider) signedRequest(method, endpoint string, params url.Values) ([]
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("binance API error (status %d): %s", resp.StatusCode, string(body))
+		return nil, &apiError{StatusCode: resp.StatusCode, Body: string(body)}
 	}
 
 	return body, nil
 }
 
+// ── Retry & Cache Helpers ──
+
+// isRetryable returns true if the error is a transient failure that can be retried.
+func (p *Provider) isRetryable(err error) bool {
+	if err == nil {
+		return false
+	}
+	// API errors with status codes
+	var apiErr *apiError
+	if errors.As(err, &apiErr) {
+		// 429 (rate limited) and 5xx (server errors) are retryable
+		return apiErr.StatusCode == http.StatusTooManyRequests || apiErr.StatusCode >= 500
+	}
+	// Configuration errors (missing credentials, etc.) have "binance: " prefix
+	if strings.HasPrefix(err.Error(), "binance: ") {
+		return false
+	}
+	// Network errors (connection refused, timeout, DNS failures) are retryable
+	return true
+}
+
+// doPublicWithRetry wraps publicRequest with retry logic and backoff.
+func (p *Provider) doPublicWithRetry(endpoint string, params url.Values) ([]byte, error) {
+	var lastErr error
+	for attempt := 0; attempt < maxRetries; attempt++ {
+		if attempt > 0 {
+			time.Sleep(retryBackoff * time.Duration(attempt))
+		}
+		body, err := p.publicRequest(endpoint, params)
+		if err == nil {
+			return body, nil
+		}
+		lastErr = err
+		if !p.isRetryable(err) {
+			log.Printf("[Binance] publicRequest %s: non-retryable error: %v", endpoint, err)
+			break
+		}
+		log.Printf("[Binance] publicRequest %s: retryable error (attempt %d/%d): %v", endpoint, attempt+1, maxRetries, err)
+	}
+	return nil, fmt.Errorf("binance: %s after %d retries: %w", endpoint, maxRetries, lastErr)
+}
+
+// doSignedWithRetry wraps signedRequest with retry logic for idempotent GET requests.
+func (p *Provider) doSignedWithRetry(method, endpoint string, params url.Values) ([]byte, error) {
+	// Only retry GET requests — POST/DELETE are not idempotent
+	if method != "GET" {
+		return p.signedRequest(method, endpoint, params)
+	}
+
+	var lastErr error
+	for attempt := 0; attempt < maxRetries; attempt++ {
+		if attempt > 0 {
+			time.Sleep(retryBackoff * time.Duration(attempt))
+		}
+		body, err := p.signedRequest(method, endpoint, params)
+		if err == nil {
+			return body, nil
+		}
+		lastErr = err
+		if !p.isRetryable(err) {
+			break
+		}
+		log.Printf("[Binance] signedRequest %s %s: retryable error (attempt %d/%d): %v", method, endpoint, attempt+1, maxRetries, err)
+	}
+	return nil, fmt.Errorf("binance: %s %s after %d retries: %w", method, endpoint, maxRetries, lastErr)
+}
+
+// getCachedTicker returns a cached ticker if valid.
+func (p *Provider) getCachedTicker(symbol string) (*exchange.Ticker, bool) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	entry, ok := p.tickerCache[symbol]
+	if !ok || time.Now().After(entry.expiresAt) {
+		return nil, false
+	}
+	return entry.ticker, true
+}
+
+// setCachedTicker stores a ticker in the cache.
+func (p *Provider) setCachedTicker(symbol string, ticker *exchange.Ticker) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	p.tickerCache[symbol] = cachedTicker{
+		ticker:    ticker,
+		expiresAt: time.Now().Add(tickerCacheTTL),
+	}
+}
+
+// getCachedOrderBook returns a cached order book if valid.
+func (p *Provider) getCachedOrderBook(key string) (*exchange.OrderBook, bool) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	entry, ok := p.orderBookCache[key]
+	if !ok || time.Now().After(entry.expiresAt) {
+		return nil, false
+	}
+	return entry.book, true
+}
+
+// setCachedOrderBook stores an order book in the cache.
+func (p *Provider) setCachedOrderBook(key string, book *exchange.OrderBook) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	p.orderBookCache[key] = cachedOrderBook{
+		book:      book,
+		expiresAt: time.Now().Add(orderBookCacheTTL),
+	}
+}
+
+// ClearCache clears all cached data (useful for testing or admin).
+func (p *Provider) ClearCache() {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	p.tickerCache = make(map[string]cachedTicker)
+	p.orderBookCache = make(map[string]cachedOrderBook)
+}
+
 // ── Interface Implementation ──
 
-// GetTicker fetches 24hr ticker for a symbol.
+// GetTicker fetches 24hr ticker for a symbol with caching and retry.
 func (p *Provider) GetTicker(symbol string) (*exchange.Ticker, error) {
-	params := url.Values{}
-	params.Set("symbol", strings.ToUpper(symbol))
+	symbolKey := strings.ToUpper(symbol)
 
-	body, err := p.publicRequest("/ticker/24hr", params)
+	// Check cache first
+	if cached, ok := p.getCachedTicker(symbolKey); ok {
+		return cached, nil
+	}
+
+	// Fetch with retry
+	params := url.Values{}
+	params.Set("symbol", symbolKey)
+
+	body, err := p.doPublicWithRetry("/ticker/24hr", params)
 	if err != nil {
 		return nil, fmt.Errorf("get ticker: %w", err)
 	}
@@ -213,20 +373,32 @@ func (p *Provider) GetTicker(symbol string) (*exchange.Ticker, error) {
 	ticker.LowPrice, _ = strconv.ParseFloat(raw.LowPrice, 64)
 	ticker.PriceChange, _ = strconv.ParseFloat(raw.PriceChange, 64)
 
+	// Store in cache
+	p.setCachedTicker(symbolKey, ticker)
+
 	return ticker, nil
 }
 
-// GetOrderBook fetches the order book for a symbol.
+// GetOrderBook fetches the order book for a symbol with caching and retry.
 func (p *Provider) GetOrderBook(symbol string, limit int) (*exchange.OrderBook, error) {
 	if limit <= 0 || limit > 5000 {
 		limit = 100 // default
 	}
 
+	symbolKey := strings.ToUpper(symbol)
+	cacheKey := fmt.Sprintf("%s:%d", symbolKey, limit)
+
+	// Check cache first
+	if cached, ok := p.getCachedOrderBook(cacheKey); ok {
+		return cached, nil
+	}
+
+	// Fetch with retry
 	params := url.Values{}
-	params.Set("symbol", strings.ToUpper(symbol))
+	params.Set("symbol", symbolKey)
 	params.Set("limit", strconv.Itoa(limit))
 
-	body, err := p.publicRequest("/depth", params)
+	body, err := p.doPublicWithRetry("/depth", params)
 	if err != nil {
 		return nil, fmt.Errorf("get order book: %w", err)
 	}
@@ -241,7 +413,7 @@ func (p *Provider) GetOrderBook(symbol string, limit int) (*exchange.OrderBook, 
 	}
 
 	book := &exchange.OrderBook{
-		Symbol:    strings.ToUpper(symbol),
+		Symbol:    symbolKey,
 		Timestamp: time.Now(),
 	}
 
@@ -259,6 +431,9 @@ func (p *Provider) GetOrderBook(symbol string, limit int) (*exchange.OrderBook, 
 			book.Asks = append(book.Asks, exchange.OrderBookEntry{Price: price, Quantity: qty})
 		}
 	}
+
+	// Store in cache
+	p.setCachedOrderBook(cacheKey, book)
 
 	return book, nil
 }
@@ -326,7 +501,7 @@ func (p *Provider) GetOrderStatus(symbol, orderID string) (*exchange.Order, erro
 	params.Set("symbol", strings.ToUpper(symbol))
 	params.Set("orderId", orderID)
 
-	body, err := p.signedRequest("GET", "/order", params)
+	body, err := p.doSignedWithRetry("GET", "/order", params)
 	if err != nil {
 		return nil, fmt.Errorf("get order status: %w", err)
 	}
@@ -336,7 +511,7 @@ func (p *Provider) GetOrderStatus(symbol, orderID string) (*exchange.Order, erro
 
 // GetAccount fetches account balances and permissions.
 func (p *Provider) GetAccount() (*exchange.Account, error) {
-	body, err := p.signedRequest("GET", "/account", nil)
+	body, err := p.doSignedWithRetry("GET", "/account", nil)
 	if err != nil {
 		return nil, fmt.Errorf("get account: %w", err)
 	}

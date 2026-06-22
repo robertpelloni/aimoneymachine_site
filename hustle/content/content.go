@@ -288,6 +288,78 @@ Respond ONLY with the JSON array, no other text.`, count, niche)
 	return topicList, nil
 }
 
+// GenerateGallery creates a stylized HTML index of all generated content
+func (c *ContentModule) GenerateGallery() (string, error) {
+	files, err := os.ReadDir(c.OutputDir)
+	if err != nil {
+		return "", err
+	}
+
+	var sb strings.Builder
+	sb.WriteString("<!DOCTYPE html><html><head><title>AI Hustle Machine Content Gallery</title>")
+	sb.WriteString("<style>body{font-family:sans-serif;line-height:1.6;max-width:800px;margin:2em auto;background:#f4f4f9;color:#333;}")
+	sb.WriteString(".card{background:#fff;padding:1.5em;margin-bottom:1.5em;border-radius:8px;box-shadow:0 2px 5px rgba(0,0,0,0.1);}")
+	sb.WriteString("h1{color:#2c3e50;} .tag{display:inline-block;background:#3498db;color:#fff;padding:0.2em 0.6em;border-radius:4px;font-size:0.8em;margin-right:0.5em;}")
+	sb.WriteString(".meta{color:#7f8c8d;font-size:0.9em;margin-bottom:1em;}</style></head><body>")
+	sb.WriteString("<h1>🚀 Generated Content Gallery</h1>")
+
+	count := 0
+	for _, f := range files {
+		if f.IsDir() || !strings.HasSuffix(f.Name(), ".md") {
+			continue
+		}
+
+		path := filepath.Join(c.OutputDir, f.Name())
+		data, err := os.ReadFile(path)
+		if err != nil {
+			continue
+		}
+
+		contentStr := string(data)
+		title := f.Name()
+		createdAt := "Unknown"
+		contentType := "article"
+		excerpt := ""
+
+		// Simple frontmatter parsing
+		lines := strings.Split(contentStr, "\n")
+		for _, line := range lines {
+			if strings.HasPrefix(line, "title: ") {
+				title = strings.Trim(strings.TrimPrefix(line, "title: "), `"'`)
+			} else if strings.HasPrefix(line, "date: ") {
+				createdAt = strings.TrimSpace(strings.TrimPrefix(line, "date: "))
+			} else if strings.HasPrefix(line, "type: ") {
+				contentType = strings.TrimSpace(strings.TrimPrefix(line, "type: "))
+			} else if strings.HasPrefix(line, "excerpt: ") {
+				excerpt = strings.Trim(strings.TrimPrefix(line, "excerpt: "), `"'`)
+			}
+		}
+
+		sb.WriteString("<div class='card'>")
+		sb.WriteString(fmt.Sprintf("<h2>%s</h2>", title))
+		sb.WriteString(fmt.Sprintf("<div class='meta'><span class='tag'>%s</span> %s</div>", contentType, createdAt))
+		if excerpt != "" {
+			sb.WriteString(fmt.Sprintf("<p>%s</p>", excerpt))
+		}
+		sb.WriteString(fmt.Sprintf("<a href='%s'>Read Markdown</a>", f.Name()))
+		sb.WriteString("</div>")
+		count++
+	}
+
+	if count == 0 {
+		sb.WriteString("<p>No content generated yet. Launch a hustle to start!</p>")
+	}
+
+	sb.WriteString("</body></html>")
+
+	galleryPath := filepath.Join(c.OutputDir, "index.html")
+	if err := os.WriteFile(galleryPath, []byte(sb.String()), 0644); err != nil {
+		return "", err
+	}
+
+	return galleryPath, nil
+}
+
 // Quick helper for simple JSON string array parsing
 func parseJSONStrings(data string, target *[]string) error {
 	data = strings.TrimSpace(data)
