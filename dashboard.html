@@ -1,0 +1,364 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>AI Hustle Machine Dashboard</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        background: #0f172a;
+        color: #e2e8f0;
+        padding: 20px;
+      }
+      h1 {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: #fff;
+        margin-bottom: 20px;
+        letter-spacing: -0.02em;
+      }
+      h2 {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #94a3b8;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin: 20px 0 10px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 12px;
+      }
+      .card {
+        background: #1e293b;
+        border: 1px solid #334155;
+        border-radius: 12px;
+        padding: 16px;
+      }
+      .card h3 {
+        font-size: 0.8rem;
+        color: #64748b;
+        margin-bottom: 4px;
+      }
+      .card .value {
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: #fff;
+      }
+      .card .sub {
+        font-size: 0.75rem;
+        color: #64748b;
+        margin-top: 4px;
+      }
+      .green {
+        color: #22c55e !important;
+      }
+      .yellow {
+        color: #eab308 !important;
+      }
+      .red {
+        color: #ef4444 !important;
+      }
+      .blue {
+        color: #3b82f6 !important;
+      }
+      .purple {
+        color: #a855f7 !important;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 8px;
+      }
+      th {
+        text-align: left;
+        font-size: 0.75rem;
+        color: #64748b;
+        text-transform: uppercase;
+        padding: 8px 4px;
+        border-bottom: 1px solid #334155;
+      }
+      td {
+        font-size: 0.85rem;
+        padding: 8px 4px;
+        border-bottom: 1px solid #1e293b;
+      }
+      .status-dot {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        margin-right: 6px;
+      }
+      .status-dot.on {
+        background: #22c55e;
+      }
+      .status-dot.off {
+        background: #ef4444;
+      }
+      .logo {
+        font-size: 1.8rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, #2563eb, #a855f7);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 4px;
+      }
+      .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+      }
+      .refresh {
+        font-size: 0.75rem;
+        color: #64748b;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <div>
+        <div class="logo">AI Hustle Machine</div>
+        <div style="font-size: 0.8rem; color: #64748b">
+          Live Status Dashboard
+        </div>
+      </div>
+      <div class="refresh" id="lastUpdated">Loading...</div>
+    </div>
+
+    <h2>Trading Bots</h2>
+    <div class="grid" id="botGrid"></div>
+
+    <h2>Account</h2>
+    <div class="grid" id="accountGrid"></div>
+
+    <h2>System Status</h2>
+    <div class="grid" id="systemGrid"></div>
+
+    <h2>Recent Trades</h2>
+    <div style="overflow-x: auto">
+      <table>
+        <thead>
+          <tr>
+            <th>Time</th>
+            <th>Bot</th>
+            <th>Price</th>
+            <th>RSI</th>
+            <th>Decision</th>
+          </tr>
+        </thead>
+        <tbody id="tradeLog"></tbody>
+      </table>
+    </div>
+
+    <h2>Content Expansion</h2>
+    <div style="overflow-x: auto">
+      <table>
+        <thead>
+          <tr>
+            <th>Metric</th>
+            <th>Value</th>
+          </tr>
+        </thead>
+        <tbody id="contentStats"></tbody>
+      </table>
+    </div>
+
+    <script>
+        async function fetchAPI(endpoint) {
+          try {
+            const r = await fetch(endpoint);
+            return await r.json();
+          } catch (e) {
+            return null;
+          }
+        }
+
+        function parseLog(logText) {
+          const lines = logText.split("\n").filter((l) => l.trim());
+          const trades = [];
+          const bots = {
+            BTC: 0,
+            ETH: 0,
+            SOL: 0,
+            DOGE: 0,
+            XRP: 0,
+            ADA: 0,
+            LINK: 0,
+          };
+          const decisions = {};
+          const prices = {};
+          const rsis = {};
+
+          for (const line of lines) {
+            for (const sym of Object.keys(bots)) {
+              if (line.includes(`Symbol: ${sym}`)) {
+                bots[sym]++;
+                decisions[sym] = "?";
+              }
+              if (line.includes(`Symbol: ${sym}`) && line.includes("Price:")) {
+                const m = line.match(/Price for \w+: \$?([0-9,.]+)/);
+                if (m) prices[sym] = m[1];
+              }
+              if (line.includes(`Symbol: ${sym}`) && line.includes("RSI")) {
+                const m = line.match(/RSI\(14\): ([0-9.]+)/);
+                if (m) rsis[sym] = parseFloat(m[1]).toFixed(1);
+              }
+              if (line.includes(`Symbol: ${sym}`) && line.includes("Decision:")) {
+                const m = line.match(/Decision: (\w+)/);
+                if (m) decisions[sym] = m[1];
+              }
+              if (
+                line.includes(`Symbol: ${sym}`) &&
+                (line.includes("BUY") || line.includes("SELL"))
+              ) {
+                const m = line.match(
+                  /(\d{2}:\d{2}:\d{2}).*Symbol: (\w+).*Price: \$?([0-9,.]+).*Decision: (\w+)/,
+                );
+                if (m)
+                  trades.unshift({
+                    time: m[1],
+                    sym: m[2],
+                    price: m[3],
+                    decision: m[4],
+                  });
+              }
+            }
+          }
+          return { bots, decisions, prices, rsis, trades };
+        }
+
+        async function loadLog() {
+          try {
+            const r = await fetch("/api/log");
+            return await r.text();
+          } catch (e) {
+            return "";
+          }
+        }
+
+        async function loadContentProgress() {
+          try {
+            const r = await fetch("/api/progress");
+            return await r.json();
+          } catch (e) {
+            return { done: [] };
+          }
+        }
+
+        function renderBots(data) {
+          const grid = document.getElementById("botGrid");
+          const colorMap = {
+            BTC: "#F7931A",
+            ETH: "#627EEA",
+            SOL: "#9945FF",
+            DOGE: "#C2A633",
+            XRP: "#23292F",
+            ADA: "#0033AD",
+            LINK: "#2A5ADA",
+          };
+          grid.innerHTML = Object.entries(data.bots)
+            .map(([sym, cycles]) => {
+              const decision = data.decisions[sym] || "?";
+              const decClass =
+                decision === "BUY"
+                  ? "green"
+                  : decision === "SELL"
+                    ? "red"
+                    : "yellow";
+              const rsi = data.rsis[sym] || "--";
+              const price = data.prices[sym] || "--";
+              return `<a href="/bot?sym=${sym}" style="text-decoration:none;color:inherit;display:block">
+      <div class="card" style="cursor:pointer;transition:border-color .2s" onmouseover="this.style.borderColor='${colorMap[sym]||'#2563EB'}" onmouseout="this.style.borderColor='#334155'">
+        <h3 style="color:${colorMap[sym] || "#fff"}">${sym}</h3>
+        <div class="value">${cycles}</div>
+        <div class="sub">cycles</div>
+        <div style="margin-top:8px;display:flex;justify-content:space-between;font-size:.75rem">
+          <span>$${price}</span>
+          <span>RSI: ${rsi}</span>
+          <span class="${decClass}" style="font-weight:600">${decision}</span>
+        </div>
+      </div></a>`;}]}
+            })
+            .join("");
+        }
+
+        function renderAccount() {
+          const grid = document.getElementById("accountGrid");
+          grid.innerHTML = `
+      <div class="card"><h3>Balance</h3><div class="value">$55</div><div class="sub">Binance.US</div></div>
+      <div class="card"><h3>Positions</h3><div class="value">0</div><div class="sub">Open</div></div>
+      <div class="card"><h3>Stop Loss</h3><div class="value green">5%</div><div class="sub">Hard stop</div></div>
+      <div class="card"><h3>Trailing</h3><div class="value blue">8%</div><div class="sub">Trailing stop</div></div>`;
+        }
+
+        function renderSystem() {
+          const grid = document.getElementById("systemGrid");
+          grid.innerHTML = `
+      <div class="card"><h3>Orchestrator</h3><div><span class="status-dot on"></span>Running</div></div>
+      <div class="card"><h3>FreeLLM</h3><div><span class="status-dot on"></span>Online</div></div>
+      <div class="card"><h3>Website</h3><div><span class="status-dot on"></span>HTTP 200</div></div>
+      <div class="card"><h3>LinkedIn</h3><div><span class="status-dot on"></span>Active</div></div>
+      <div class="card"><h3>Twitter</h3><div><span class="status-dot on"></span>Active</div></div>
+      <div class="card"><h3>Content Gen</h3><div><span class="status-dot on"></span>Running</div></div>`;
+        }
+
+        function renderTrades(trades) {
+          const tbody = document.getElementById("tradeLog");
+          if (trades.length === 0) {
+            tbody.innerHTML =
+              '<tr><td colspan="5" style="color:#64748B;text-align:center;padding:20px">No trades yet — waiting for market movement</td></tr>';
+            return;
+          }
+          tbody.innerHTML = trades
+            .slice(0, 20)
+            .map(
+              (t) =>
+                `<tr><td>${t.time}</td><td style="font-weight:600">${t.sym}</td><td>$${t.price}</td><td>--</td><td class="${t.decision === "BUY" ? "green" : "red"}" style="font-weight:600">${t.decision}</td></tr>`,
+            )
+            .join("");
+        }
+
+        function renderContent(progress) {
+          const tbody = document.getElementById("contentStats");
+          const done = (progress.done || []).length;
+          const total = 217;
+          const pct = ((done / total) * 100).toFixed(1);
+          tbody.innerHTML = `
+      <tr><td>Posts completed</td><td style="font-weight:600">${done} / ${total} (${pct}%)</td></tr>
+      <tr><td>Target size</td><td style="font-weight:600">100,000 chars each</td></tr>
+      <tr><td>Progress</td><td><div style="background:#334155;border-radius:4px;height:8px;width:100%"><div style="background:linear-gradient(90deg,#2563EB,#A855F7);border-radius:4px;height:8px;width:${pct}%"></div></div></td></tr>`;
+        }
+
+        async function refresh() {
+          document.getElementById("lastUpdated").textContent = "Refreshing...";
+
+          // Load data
+          const log = await loadLog();
+          const data = parseLog(log);
+          const progress = await loadContentProgress();
+
+          renderBots(data);
+          renderAccount();
+          renderSystem();
+          renderTrades(data.trades);
+          renderContent(progress);
+
+          document.getElementById("lastUpdated").textContent =
+            `Updated: ${new Date().toLocaleTimeString()}`;
+        }
+
+        // Initial load
+        refresh();
+        setInterval(refresh, 10000);
+    </script>
+  </body>
+</html>

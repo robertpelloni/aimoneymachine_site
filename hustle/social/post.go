@@ -4,10 +4,12 @@ import (
 	"bytes"
 <<<<<<< HEAD
 	"encoding/json"
-	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
+	"time"
+
 =======
 	"context"
 	"encoding/json"
@@ -22,6 +24,7 @@ import (
 	"time"
 
 	"github.com/dghubble/oauth1"
+>>>>>>> origin/main
 	"github.com/robertpelloni/hustle/orchestrator"
 )
 
@@ -262,16 +265,15 @@ func NewTwitterProvider(apiKey, apiSecret, accessToken, accessSecret string) *Tw
 
 type LinkedInProvider struct {
 <<<<<<< HEAD
-	AccessToken string
-	AuthorURN   string
+	HTTPClient *http.Client
+	APIURL     string
 }
 
 func (p *LinkedInProvider) Post(orch *orchestrator.Orchestrator, platform, content string) error {
-	if p.AccessToken == "" || p.AuthorURN == "" {
-		fmt.Printf("[LinkedIn] Missing API keys. Mock posting to %s: %s\n", platform, content)
-		return nil
-	}
+	accessToken := os.Getenv("LINKEDIN_ACCESS_TOKEN")
+	memberID := os.Getenv("LINKEDIN_MEMBER_ID")
 
+	if accessToken == "" || memberID == "" {
 =======
 	DryRun      bool
 	AccessToken string
@@ -301,12 +303,17 @@ func (p *LinkedInProvider) Post(orch *orchestrator.Orchestrator, platform, conte
 	}
 
 	if p.AccessToken == "" || p.AuthorURN == "" {
+>>>>>>> origin/main
 		return fmt.Errorf("missing LINKEDIN_ACCESS_TOKEN or LINKEDIN_MEMBER_ID environment variable")
 	}
 
 	apiURL := p.APIURL
 	if apiURL == "" {
+<<<<<<< HEAD
+		apiURL = "https://api.linkedin.com/v2/ugcPosts"
+=======
 		apiURL = linkedInAPIEndpoint
+>>>>>>> origin/main
 	}
 
 	client := p.HTTPClient
@@ -316,7 +323,11 @@ func (p *LinkedInProvider) Post(orch *orchestrator.Orchestrator, platform, conte
 
 >>>>>>> origin/main
 	payload := map[string]interface{}{
+<<<<<<< HEAD
+		"author":         fmt.Sprintf("urn:li:person:%s", memberID),
+=======
 		"author":         p.AuthorURN,
+>>>>>>> origin/main
 		"lifecycleState": "PUBLISHED",
 		"specificContent": map[string]interface{}{
 			"com.linkedin.ugc.ShareContent": map[string]interface{}{
@@ -341,7 +352,11 @@ func (p *LinkedInProvider) Post(orch *orchestrator.Orchestrator, platform, conte
 
 	payloadBytes, err := json.Marshal(payload)
 	if err != nil {
+<<<<<<< HEAD
+		return fmt.Errorf("failed to marshal linkedin payload: %v", err)
+=======
 		return fmt.Errorf("failed to marshal linkedin payload: %w", err)
+>>>>>>> origin/main
 	}
 
 <<<<<<< HEAD
@@ -350,10 +365,17 @@ func (p *LinkedInProvider) Post(orch *orchestrator.Orchestrator, platform, conte
 	req, err := http.NewRequest("POST", apiURL, bytes.NewBuffer(payloadBytes))
 >>>>>>> origin/main
 	if err != nil {
+<<<<<<< HEAD
+		return fmt.Errorf("failed to create linkedin request: %v", err)
+	}
+
+	req.Header.Set("Authorization", "Bearer "+accessToken)
+=======
 		return fmt.Errorf("failed to create linkedin request: %w", err)
 	}
 
 	req.Header.Set("Authorization", "Bearer "+p.AccessToken)
+>>>>>>> origin/main
 	req.Header.Set("X-Restli-Protocol-Version", "2.0.0")
 	req.Header.Set("Content-Type", "application/json")
 
@@ -377,12 +399,20 @@ func (p *LinkedInProvider) Post(orch *orchestrator.Orchestrator, platform, conte
 	}
 
 	if err != nil {
+<<<<<<< HEAD
+		return fmt.Errorf("linkedin api request failed: %v", err)
+=======
 		return fmt.Errorf("linkedin api request failed: %w", err)
+>>>>>>> origin/main
 	}
 
 	if resp.StatusCode != http.StatusCreated && resp.StatusCode != http.StatusOK {
-		resp.Body.Close()
-		return fmt.Errorf("linkedin api returned status %d (retries exhausted)", resp.StatusCode)
+<<<<<<< HEAD
+		bodyBytes, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("linkedin api returned status %d: %s", resp.StatusCode, string(bodyBytes))
+=======
+		return fmt.Errorf("linkedin api returned status %d", resp.StatusCode)
+>>>>>>> origin/main
 	}
 	defer resp.Body.Close()
 
@@ -390,6 +420,12 @@ func (p *LinkedInProvider) Post(orch *orchestrator.Orchestrator, platform, conte
 	return nil
 }
 
+<<<<<<< HEAD
+func NewLinkedInProvider() *LinkedInProvider {
+	return &LinkedInProvider{
+		HTTPClient: &http.Client{Timeout: 10 * time.Second},
+		APIURL:     "https://api.linkedin.com/v2/ugcPosts",
+=======
 func NewLinkedInProvider(accessToken, authorURN string) *LinkedInProvider {
 	return &LinkedInProvider{
 		AccessToken: accessToken,
