@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"math"
 	"os"
 	"sort"
@@ -199,24 +200,29 @@ func (m *L3Memory) Checksum() string {
 
 // Orchestrator handles tiered memory orchestration, financial tracking, and LLM access
 type Orchestrator struct {
-	Version   string            `json:"version"`
-	L1        L1Memory          `json:"l1"`
-	L2        L2Memory          `json:"l2"`
-	L3        L3Memory          `json:"l3"`
-	Ledger    Ledger            `json:"ledger"`
-	LLM       LLMProvider       `json:"-"`
-	Embedder  EmbeddingProvider `json:"-"`
-	DB        *SQLiteStore      `json:"-"`
+	Version    string            `json:"version"`
+	DryRun     bool              `json:"dry_run"`
+	RSSFeeds   []string          `json:"rss_feeds"`
+	WealthGoal float64           `json:"wealth_goal"`
+	TaskQueue  []string          `json:"task_queue"`
+	L1         L1Memory          `json:"l1"`
+	L2         L2Memory          `json:"l2"`
+	L3         L3Memory          `json:"l3"`
+	Ledger     Ledger            `json:"ledger"`
+	LLM        LLMProvider       `json:"-"`
+	Embedder   EmbeddingProvider `json:"-"`
+	DB         *SQLiteStore      `json:"-"`
 }
 
 func NewOrchestrator() *Orchestrator {
 	o := &Orchestrator{
-		L1:       L1Memory{Entries: make([]MemoryEntry, 0)},
-		L2:       L2Memory{Entries: make([]MemoryEntry, 0)},
-		L3:       L3Memory{Entries: make([]MemoryEntry, 0)},
-		Ledger:   Ledger{Transactions: make([]Transaction, 0)},
-		LLM:      &MockLLM{},
-		Embedder: &MockEmbedder{},
+		WealthGoal: 10000.0,
+		L1:         L1Memory{Entries: make([]MemoryEntry, 0)},
+		L2:         L2Memory{Entries: make([]MemoryEntry, 0)},
+		L3:         L3Memory{Entries: make([]MemoryEntry, 0)},
+		Ledger:     Ledger{Transactions: make([]Transaction, 0)},
+		LLM:        &MockLLM{},
+		Embedder:   &MockEmbedder{},
 	}
 
 	// Attempt to load existing ledger
@@ -251,4 +257,20 @@ func (o *Orchestrator) Load(filepath string) error {
 		return err
 	}
 	return json.Unmarshal(data, o)
+}
+
+func (o *Orchestrator) Shutdown() {
+	fmt.Println("[Orchestrator] Initiating graceful shutdown...")
+
+	// Persist final state
+	if err := o.Save("memory.json"); err != nil {
+		fmt.Printf("[Orchestrator] Error during state persistence: %v\n", err)
+	} else {
+		fmt.Println("[Orchestrator] System state persisted to memory.json")
+	}
+
+	if o.DB != nil {
+		o.DB.Close()
+	}
+	fmt.Println("[Orchestrator] Shutdown complete.")
 }

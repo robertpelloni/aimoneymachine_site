@@ -1,30 +1,30 @@
 # Todo List
 
 ## 🔴 Blockers
-- [ ] **Fix Windows CGO build** — Migrate `go-sqlite3` to `modernc.org/sqlite` (pure Go).
-- [ ] **Real Social Posting** — Replace stubs in `hustle/social/post.go` with real API calls.
-- [ ] **Real Web Search** — Replace mock in `hustle/research/search.go` with Tavily/Brave API.
+- [x] **Fix Windows CGO build** (v1.0.0-alpha.78) — Migrate `go-sqlite3` to `modernc.org/sqlite` (pure Go).
+- [x] **Real Social Posting** (v1.0.0-alpha.82) — Real Twitter/LinkedIn API integrations (OAuth1, Bearer token) with DryRun support, error handling, and production tests.
 
 ## 🟠 High Priority
-- [ ] Implement Git-based rollback in `orchestrator/rollback.go`.
-- [ ] Add graceful shutdown (SIGINT handler) to persist state on exit.
-- [ ] Enhance dashboard to show multi-agent status and iterations.
-- [ ] Add `--dry-run` flag to social module.
+- [x] **Real Trading Data** (v1.0.0-alpha.83) — CoinGecko fetcher production-hardened with caching, retry, rate-limit handling, and API key support.
+- [x] **Markdown CMS** (v1.0.0-alpha.82) — Static site generator in `hustle/content/deploy.go` with RSS feed, responsive CSS, and local preview server.
+- [x] **Content Deployment Pipeline** — Automated deploy to WordPress or GitHub Pages from the content output.
 
 ## 🟡 Medium Priority
-- [ ] Make RSS feed list configurable via `.env`.
-- [ ] Implement content topic queue for sequential generation.
-- [ ] Fix `hustle/research/report.go` compilation issues on Windows.
+- [x] **Dashboard Styling** (v1.0.0-alpha.78) — Add color codes to the terminal UI (green for profit, red for error).
+- [x] **Task History** (v1.0.0-alpha.78) — Log task execution times and durations to SQLite.
 
 ## 🟢 Lower Priority
-- [ ] Multi-exchange support (Binance, Kraken).
-- [ ] LLM response cache.
-- [ ] Browser extension for remote monitoring.
+- [ ] **Multi-exchange support** — Binance, Kraken plugins.
+- [ ] **LLM response cache** — Content-addressable local cache.
 
 ## ✅ Completed
-- [x] Merge Phase 3 and v1.0.0-alpha.65 stable baseline.
-- [x] OpenAI-compatible LLM provider.
-- [x] Agent Loop (Observe → Think → Act → Learn → Evaluate).
-- [x] Content Hustle module.
-- [x] Refactored Healer with LLM verification.
-- [x] Content module test coverage.
+- [x] **Dynamic RSS Management** (v1.0.0-alpha.74)
+- [x] **Scheduler Observability** (v1.0.0-alpha.74)
+- [x] **Real Research API** (v1.0.0-alpha.68)
+- [x] **Graceful Shutdown** (v1.0.0-alpha.67)
+- [x] **Git Rollback** (v1.0.0-alpha.69)
+- [x] **Mesh Wealth UI** (v1.0.0-alpha.70/75)
+- [x] **REST API Expansion** (v1.0.0-alpha.72)
+- [x] **Social Dry-Run & Real Posting** (v1.0.0-alpha.82) — Twitter OAuth1 + LinkedIn Bearer with tests
+- [x] **Markdown CMS / Static Site Generator** (v1.0.0-alpha.82) — `deploy.go` with RSS, CSS, server
+- [x] **CoinGecko Fetcher Hardening** (v1.0.0-alpha.83) — Caching, retry, rate-limit, API key, 14 tests

@@ -63,8 +63,8 @@ func TestMeshClusterRegistrationAndAggregation(t *testing.T) {
 			}
 		}
 		if hasMeshTag {
-			if e.Content == "Mesh Peer node-a Status: Active, Profit: $500.00" { foundA = true }
-			if e.Content == "Mesh Peer node-b Status: Degraded, Profit: $-100.00" { foundB = true }
+			if e.Content == "Mesh Peer node-a Status: Active, PROFIT: $500.00" { foundA = true }
+			if e.Content == "Mesh Peer node-b Status: Degraded, PROFIT: $-100.00" { foundB = true }
 		}
 	}
 

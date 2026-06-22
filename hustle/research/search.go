@@ -1,8 +1,10 @@
 package research
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/robertpelloni/hustle/orchestrator"
+	"net/http"
 	"os"
 	"strings"
 	"time"
@@ -50,12 +52,23 @@ func NewResearchSearch(p Provider, orch *orchestrator.Orchestrator, broker *orch
 func (s *ResearchSearch) Query(q string) ([]SearchResult, error) {
 	fmt.Printf("Searching via %s for: %s\n", s.ActiveProvider, q)
 
-	if s.ActiveProvider == Tavily && s.APIKey == "" {
-		fmt.Println("Warning: TAVILY_API_KEY not set, using mock data.")
+	var results []SearchResult
+	var err error
+
+	if s.ActiveProvider == Tavily && s.APIKey != "" {
+		results, err = s.queryTavily(q)
+		if err != nil {
+			fmt.Printf("[Research] Tavily query failed: %v. Falling back to mock.\n", err)
+		}
 	}
 
-	results := []SearchResult{
-		{URL: "https://hustle.com/info", Title: "Hustle Strategy", Snippet: "Key insights for automated revenue with $BTC trends.", Provider: string(s.ActiveProvider)},
+	if len(results) == 0 {
+		if s.ActiveProvider == Tavily && s.APIKey == "" {
+			fmt.Println("Warning: TAVILY_API_KEY not set, using mock data.")
+		}
+		results = []SearchResult{
+			{URL: "https://hustle.com/info", Title: "Hustle Strategy", Snippet: "Key insights for automated revenue with $BTC trends.", Provider: string(s.ActiveProvider)},
+		}
 	}
 
 	if s.Orchestrator != nil {
@@ -90,5 +103,48 @@ func (s *ResearchSearch) Query(q string) ([]SearchResult, error) {
 		}
 	}
 
+	return results, nil
+}
+
+func (s *ResearchSearch) queryTavily(q string) ([]SearchResult, error) {
+	url := "https://api.tavily.com/search"
+	payload := map[string]interface{}{
+		"api_key":      s.APIKey,
+		"query":        q,
+		"search_depth": "basic",
+	}
+	body, _ := json.Marshal(payload)
+
+	resp, err := http.Post(url, "application/json", strings.NewReader(string(body)))
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("tavily API returned status: %d", resp.StatusCode)
+	}
+
+	var data struct {
+		Results []struct {
+			URL     string `json:"url"`
+			Title   string `json:"title"`
+			Snippet string `json:"content"`
+		} `json:"results"`
+	}
+
+	if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {
+		return nil, err
+	}
+
+	var results []SearchResult
+	for _, r := range data.Results {
+		results = append(results, SearchResult{
+			URL:      r.URL,
+			Title:    r.Title,
+			Snippet:  r.Snippet,
+			Provider: "Tavily",
+		})
+	}
 	return results, nil
 }

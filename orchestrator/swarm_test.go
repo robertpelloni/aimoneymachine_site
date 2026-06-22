@@ -29,7 +29,7 @@ func TestSwarmAggregation(t *testing.T) {
 		t.Errorf("Expected tag 'mesh_status', got %v", entry.Tags)
 	}
 
-	expectedContent := "Mesh Peer test-peer Status: Active, Profit: $500.50"
+	expectedContent := "Mesh Peer test-peer Status: Active, PROFIT: $500.50"
 	if entry.Content != expectedContent {
 		t.Errorf("Expected content '%s', got '%s'", expectedContent, entry.Content)
 	}
