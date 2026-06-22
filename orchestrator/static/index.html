@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Hustle Machine Dashboard</title>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#00bcd4">
+    <style>
+        :root {
+            --primary: #00bcd4;
+            --secondary: #ffeb3b;
+            --bg: #121212;
+            --card-bg: #1e1e1e;
+            --text: #ffffff;
+            --profit: #4caf50;
+            --deficit: #f44336;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 10px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        h1 { margin: 0; font-size: 1.5rem; color: var(--primary); }
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+        .stat-item {
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 1.2rem;
+            font-weight: bold;
+            display: block;
+        }
+        .stat-label {
+            font-size: 0.8rem;
+            color: #aaa;
+        }
+        .profit { color: var(--profit); }
+        .deficit { color: var(--deficit); }
+
+        .action-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+        button {
+            background-color: var(--primary);
+            border: none;
+            color: white;
+            padding: 10px;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+        }
+        button:active { background-color: #008ba3; }
+
+        .log {
+            font-family: monospace;
+            font-size: 0.8rem;
+            height: 150px;
+            overflow-y: auto;
+            background: #000;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .log-entry { margin-bottom: 4px; border-bottom: 1px solid #222; padding-bottom: 2px; }
+        .tag {
+            font-size: 0.7rem;
+            background: #333;
+            padding: 2px 5px;
+            border-radius: 3px;
+            margin-right: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>AI Hustle Machine</h1>
+            <div id="version" style="font-size: 0.8rem; color: #888;">v1.0.0</div>
+        </header>
+
+        <div class="card">
+            <div class="stats">
+                <div class="stat-item">
+                    <span id="profit" class="stat-value">$0.00</span>
+                    <span class="stat-label">NET PROFIT</span>
+                </div>
+                <div class="stat-item">
+                    <span id="memories" class="stat-value">0</span>
+                    <span class="stat-label">MEMORIES</span>
+                </div>
+                <div class="stat-item">
+                    <span id="status" class="stat-value" style="color: var(--profit)">ONLINE</span>
+                    <span class="stat-label">STATUS</span>
+                </div>
+                <div class="stat-item">
+                    <span id="peers" class="stat-value">0</span>
+                    <span class="stat-label">MESH PEERS</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3 style="margin-top: 0; font-size: 1rem;">QUICK ACTIONS</h3>
+            <div class="action-grid">
+                <button onclick="dispatch('hustle://research')">RESEARCH</button>
+                <button onclick="dispatch('hustle://trading')">TRADE</button>
+                <button onclick="dispatch('hustle://content')">CONTENT</button>
+                <button onclick="dispatch('hustle://ecommerce?action=fulfill')">FULFILL ORD</button>
+                <button onclick="dispatch('hustle://ecommerce?action=discover')">E-COMMERCE</button>
+                <button onclick="dispatch('hustle://devagency?action=audit')">DEV AGENCY</button>
+                <button onclick="dispatch('hustle://support?action=resolve')">SUPPORT</button>
+                <button onclick="dispatch('hustle://realestate_manage')">MANAGE STR</button>
+                <button onclick="dispatch('hustle://domains_bid')">DOMAIN BID</button>
+                <button onclick="dispatch('hustle://finance?action=classify')">FINANCE</button>
+                <button onclick="dispatch('hustle://bi?action=report')">BI REPORT</button>
+                <button onclick="dispatch('hustle://legal?action=generate')">LEGAL DOC</button>
+                <button onclick="dispatch('hustle://crm?action=update')">CRM LEAD</button>
+                <button onclick="dispatch('hustle://design?action=brand')">DESIGN</button>
+                <button onclick="dispatch('hustle://confluence?recipe=saas_growth')">STRATEGIC</button>
+                <button onclick="dispatch('hustle://pod?action=plan')">POD DESIGN</button>
+                <button onclick="dispatch('hustle://media?action=plan')">MEDIA PROD</button>
+                <button onclick="dispatch('hustle://careers?action=search')">CAREERS</button>
+                <button onclick="dispatch('hustle://swarm?action=sync')">SYNC MESH</button>
+                <button onclick="dispatch('hustle://calendar?action=process')">CALENDAR</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3 style="margin-top: 0; font-size: 1rem;">L2 VAULT (DISCOVERIES)</h3>
+            <div id="vault" class="log" style="height: 100px; margin-bottom: 10px; background: #111;">
+                <div class="log-entry">Loading discoveries...</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3 style="margin-top: 0; font-size: 1rem;">RECENT ACTIVITY</h3>
+            <div id="log" class="log">
+                <div class="log-entry">Connecting to orchestrator...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function updateStatus() {
+            try {
+                // Fetch Vault discoveries from strategy endpoint
+                const resVault = await fetch('/strategy');
+                const vaultData = await resVault.json();
+                const vaultDiv = document.getElementById('vault');
+                vaultDiv.innerHTML = '';
+                vaultData.reverse().slice(0, 5).forEach(entry => {
+                    const div = document.createElement('div');
+                    div.className = 'log-entry';
+                    div.innerHTML = `<span class="tag">SUCCESS</span> ${entry.Content}`;
+                    vaultDiv.appendChild(div);
+                });
+
+                const res = await fetch('/status');
+                const data = await res.json();
+
+                document.getElementById('profit').innerText = '$' + data.profit.toFixed(2);
+                document.getElementById('profit').className = 'stat-value ' + (data.profit >= 0 ? 'profit' : 'deficit');
+                document.getElementById('memories').innerText = data.memories;
+                document.getElementById('peers').innerText = data.peers;
+                document.getElementById('version').innerText = data.version;
+
+                updateAgents();
+            } catch (e) {
+                console.error("Failed to fetch status", e);
+            }
+        }
+
+        async function updateAgents() {
+            try {
+                const res = await fetch('/agents');
+                const data = await res.json();
+                const log = document.getElementById('log');
+                log.innerHTML = '';
+
+                // If it's a list of memories (old API)
+                if (Array.isArray(data)) {
+                    data.reverse().slice(0, 10).forEach(entry => {
+                        const div = document.createElement('div');
+                        div.className = 'log-entry';
+                        const tags = (entry.Tags || []).map(t => `<span class="tag">${t}</span>`).join('');
+                        div.innerHTML = `${tags} ${entry.Content}`;
+                        log.appendChild(div);
+                    });
+                }
+            } catch (e) {
+                console.error("Failed to fetch agents", e);
+            }
+        }
+
+        async function dispatch(uri) {
+            try {
+                const res = await fetch('/dispatch', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ uri })
+                });
+                if (res.ok) {
+                    alert('Dispatched: ' + uri);
+                } else {
+                    alert('Error: ' + await res.text());
+                }
+            } catch (e) {
+                alert('Connection failed');
+            }
+        }
+
+        setInterval(updateStatus, 3000);
+        updateStatus();
+
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/service-worker.js')
+                .then(() => console.log('Service Worker Registered'));
+        }
+    </script>
+</body>
+</html>

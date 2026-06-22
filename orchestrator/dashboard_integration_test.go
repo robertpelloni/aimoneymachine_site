@@ -15,7 +15,12 @@ import (
 <<<<<<< HEAD
 =======
 func stripANSI(str string) string {
+<<<<<<< HEAD
+	const ansi = "[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]"
+	re := regexp.MustCompile(ansi)
+=======
 	re := regexp.MustCompile("\x1b\\[[0-9;]*[mK]")
+>>>>>>> origin/main
 	return re.ReplaceAllString(str, "")
 }
 
@@ -63,18 +68,11 @@ func TestDashboardSocialStatus(t *testing.T) {
 	output := captureOutput(func() {
 		ShowDashboard(orch)
 	})
-
-	if !strings.Contains(output, "Twitter:        [✗ OFFLINE]") {
-		t.Errorf("Expected Twitter OFFLINE, got \n%s", output)
-	}
-	if !strings.Contains(output, "LinkedIn:       [✗ OFFLINE]") {
-		t.Errorf("Expected LinkedIn OFFLINE, got \n%s", output)
-	}
-
-	// Test Online Status
+	output = stripANSI(output)
 =======
 	output := captureOutput(func() { ShowDashboard(orch) })
 	cleanOutput := stripANSI(output)
+>>>>>>> origin/main
 
 <<<<<<< HEAD
 	if !strings.Contains(output, "Twitter:        [✗ OFFLINE]") {
@@ -107,15 +105,11 @@ func TestDashboardSocialStatus(t *testing.T) {
 	output = captureOutput(func() {
 		ShowDashboard(orch)
 	})
-
-	if !strings.Contains(output, "Twitter:        [✓ ONLINE]") {
-		t.Errorf("Expected Twitter ONLINE, got \n%s", output)
-	}
-	if !strings.Contains(output, "LinkedIn:       [✓ ONLINE]") {
-		t.Errorf("Expected LinkedIn ONLINE, got \n%s", output)
+	output = stripANSI(output)
 =======
 	output = captureOutput(func() { ShowDashboard(orch) })
 	cleanOutput = stripANSI(output)
+>>>>>>> origin/main
 
 <<<<<<< HEAD
 	if !strings.Contains(output, "Twitter:        [✓ ONLINE]") {

@@ -2,10 +2,9 @@
 
 ## Prerequisites
 
-- **Go 1.24.3** (Required toolchain)
+- **Go 1.24.0+** (Required toolchain)
 - **LM Studio** (Recommended) or **Ollama** for free local LLM inference
 - **A loaded model** in LM Studio (e.g., `gemma-4-26b-it`) or Ollama (e.g., `gemma3:27b`)
-- **gcc** (Required for `go-sqlite3` CGO)
 
 ## Quick Start
 
@@ -33,7 +32,7 @@ go work sync
 ./build.sh
 ```
 
-> **Windows CGO Note**: If `build.sh` fails with `cgo: cannot parse gcc output`, the `go-sqlite3` driver has a known incompatibility with some gcc versions on Windows. Workaround: `set CGO_ENABLED=0` and the system will skip SQLite persistence (uses in-memory only). A pure-Go SQLite alternative (`modernc.org/sqlite`) is planned.
+> **Note**: The project uses `modernc.org/sqlite`, a pure-Go SQLite driver. No CGO or `gcc` is required for compilation.
 
 ### 3. Verify LLM Connection
 
@@ -73,6 +72,7 @@ curl -s http://localhost:1234/v1/chat/completions \
 | `LLM_BASE_URL` | `http://localhost:1234/v1` | OpenAI-compatible LLM server |
 | `LLM_MODEL` | *(auto-detect)* | Model name (auto-detected from /models) |
 | `LLM_API_KEY` | *(from `LM_STUDIO_KEY`)* | API key (not needed for local) |
+| `LLM_CACHE_ENABLED` | `true` | Enable SQLite-based response caching |
 | `EMBED_BASE_URL` | `http://localhost:1234/v1` | Embedding server URL |
 | `EMBED_MODEL` | *(auto-detect)* | Embedding model name |
 | `TAVILY_API_KEY` | *(none)* | Real web search (research module) |

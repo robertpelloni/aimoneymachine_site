@@ -1,0 +1,38 @@
+[
+  {
+    "keyword": "LM Studio",
+    "url": "https://lmstudio.ai/?ref=hustle-machine",
+    "program": "direct",
+    "commission": "N/A"
+  },
+  {
+    "keyword": "Ollama",
+    "url": "https://ollama.ai/?ref=hustle-machine",
+    "program": "direct",
+    "commission": "N/A"
+  },
+  {
+    "keyword": "GPU",
+    "url": "https://www.amazon.com/s?k=gpu\u0026tag=hustlemachine-20",
+    "program": "amazon",
+    "commission": "1-4%"
+  },
+  {
+    "keyword": "mechanical keyboard",
+    "url": "https://www.amazon.com/s?k=mechanical+keyboard\u0026tag=hustlemachine-20",
+    "program": "amazon",
+    "commission": "1-4%"
+  },
+  {
+    "keyword": "web hosting",
+    "url": "https://www.bluehost.com/track/hustlemachine/",
+    "program": "bluehost",
+    "commission": "$65+"
+  },
+  {
+    "keyword": "VPN",
+    "url": "https://www.expressvpn.com/go/hustlemachine",
+    "program": "expressvpn",
+    "commission": "$13-36"
+  }
+]

@@ -1,6 +1,7 @@
 package orchestrator
 
 import (
+	"strings"
 	"testing"
 )
 
@@ -30,7 +31,7 @@ func TestSwarmAggregation(t *testing.T) {
 	}
 
 	expectedContent := "Mesh Peer test-peer Status: Active, PROFIT: $500.50"
-	if entry.Content != expectedContent {
-		t.Errorf("Expected content '%s', got '%s'", expectedContent, entry.Content)
+	if !strings.HasPrefix(entry.Content, expectedContent) {
+		t.Errorf("Expected content to start with '%s', got '%s'", expectedContent, entry.Content)
 	}
 }

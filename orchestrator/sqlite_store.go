@@ -28,9 +28,57 @@ func NewSQLiteStore(filepath string) (*SQLiteStore, error) {
 	if extLoaded {
 		db.Exec("CREATE VIRTUAL TABLE IF NOT EXISTS vec_memories USING vec0(embedding FLOAT[1536]);")
 	}
+<<<<<<< HEAD
+
+	// Standard table for metadata
+	query := `
+	CREATE TABLE IF NOT EXISTS memories (
+		id TEXT PRIMARY KEY,
+		tier TEXT,
+		content TEXT,
+		base_score REAL,
+		timestamp DATETIME,
+		tags TEXT,
+		embedding BLOB
+	);`
+	_, err = db.Exec(query)
+	if err != nil {
+		return nil, err
+	}
+
+	// Task History table
+	taskQuery := `
+	CREATE TABLE IF NOT EXISTS task_history (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		task_id TEXT,
+		duration_ms INTEGER,
+		status TEXT,
+		message TEXT,
+		timestamp DATETIME
+	);`
+	_, err = db.Exec(taskQuery)
+	if err != nil {
+		return nil, err
+	}
+
+	// LLM Cache table
+	cacheQuery := `
+	CREATE TABLE IF NOT EXISTS llm_cache (
+		prompt_hash TEXT PRIMARY KEY,
+		response TEXT,
+		model TEXT,
+		timestamp DATETIME
+	);`
+	_, err = db.Exec(cacheQuery)
+	if err != nil {
+		return nil, err
+	}
+
+=======
 	db.Exec("CREATE TABLE IF NOT EXISTS memories (id TEXT PRIMARY KEY, tier TEXT, content TEXT, base_score REAL, timestamp DATETIME, tags TEXT, embedding BLOB);")
 	db.Exec("CREATE TABLE IF NOT EXISTS task_history (id INTEGER PRIMARY KEY AUTOINCREMENT, task_id TEXT, duration_ms INTEGER, status TEXT, message TEXT, timestamp DATETIME);")
 	db.Exec("CREATE TABLE IF NOT EXISTS llm_cache (prompt_hash TEXT PRIMARY KEY, prompt TEXT, response TEXT, timestamp DATETIME);")
+>>>>>>> origin/main
 	return &SQLiteStore{db: db, extLoaded: extLoaded}, nil
 }
 
@@ -50,6 +98,23 @@ func (s *SQLiteStore) LogTaskExecution(taskID string, duration time.Duration, st
 
 type TaskHistoryEntry struct {
 	ID int; TaskID string; DurationMs int64; Status string; Message string; Timestamp time.Time
+}
+
+func (s *SQLiteStore) GetCachedResponse(hash string) (string, bool) {
+	var response string
+	err := s.db.QueryRow("SELECT response FROM llm_cache WHERE prompt_hash = ?", hash).Scan(&response)
+	if err != nil {
+		return "", false
+	}
+	return response, true
+}
+
+func (s *SQLiteStore) CacheResponse(hash, response, model string) error {
+	_, err := s.db.Exec(`
+		INSERT OR REPLACE INTO llm_cache (prompt_hash, response, model, timestamp)
+		VALUES (?, ?, ?, ?)`,
+		hash, response, model, time.Now())
+	return err
 }
 
 func (s *SQLiteStore) GetTaskHistory(limit int) ([]TaskHistoryEntry, error) {

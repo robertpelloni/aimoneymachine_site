@@ -2,20 +2,42 @@ package main
 
 import (
 	"bufio"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"net/url"
 	"os"
+	"strconv"
 	"os/exec"
 	"os/signal"
 	"syscall"
 	"strings"
 	"time"
 
+	"github.com/robertpelloni/hustle/hustle/careers"
 	"github.com/robertpelloni/hustle/hustle/content"
+	"github.com/robertpelloni/hustle/hustle/crm"
+	"github.com/robertpelloni/hustle/hustle/design"
 	"github.com/robertpelloni/hustle/hustle/curation"
+	"github.com/robertpelloni/hustle/hustle/devagency"
+	"github.com/robertpelloni/hustle/hustle/domains"
+	"github.com/robertpelloni/hustle/hustle/bi"
+	"github.com/robertpelloni/hustle/hustle/confluence"
+	"github.com/robertpelloni/hustle/hustle/finance"
+	"github.com/robertpelloni/hustle/hustle/legal"
+	"github.com/robertpelloni/hustle/hustle/ecommerce"
+	"github.com/robertpelloni/hustle/hustle/localization"
+	"github.com/robertpelloni/hustle/hustle/media"
+	"github.com/robertpelloni/hustle/hustle/pod"
+	"github.com/robertpelloni/hustle/hustle/publisher"
+	"github.com/robertpelloni/hustle/hustle/publishing"
+	"github.com/robertpelloni/hustle/hustle/qa"
+	"github.com/robertpelloni/hustle/hustle/realestate"
 	"github.com/robertpelloni/hustle/hustle/research"
+	"github.com/robertpelloni/hustle/hustle/retail"
 	"github.com/robertpelloni/hustle/hustle/social"
+	"github.com/robertpelloni/hustle/hustle/stocks"
+	"github.com/robertpelloni/hustle/hustle/support"
 	"github.com/robertpelloni/hustle/hustle/trading"
 	"github.com/robertpelloni/hustle/orchestrator"
 )
@@ -36,6 +58,7 @@ func main() {
 	agentIter := flag.Int("agent-iterations", 20, "Max iterations for agent loop")
 	autoPlan := flag.Bool("autoplan", false, "LLM generates and executes a strategic hustle plan")
 	dryRun := flag.Bool("dry-run", false, "Execute in dry-run mode (no external mutations)")
+	stealth := flag.Bool("stealth", false, "Run in stealth mode with randomized task jitter")
 	flag.Parse()
 
 	// Source version from VERSION.md
@@ -54,7 +77,17 @@ func main() {
 	// ── Initialize Orchestrator with REAL LLM ──
 	orch := orchestrator.NewOrchestrator()
 	orch.Load("memory.json")
+
+	// Initialize Identity (DID)
+	id, err := orchestrator.NewIdentity()
+	if err == nil {
+		orch.Identity = id
+		fmt.Printf("[Identity] Node DID: %s\n", id.GetDID())
+	} else {
+		fmt.Printf("[Identity] ⚠️ Failed to initialize identity: %v\n", err)
+	}
 	orch.DryRun = *dryRun
+	orch.StealthMode = *stealth
 
 	// Initialize SQLite Store
 	db, err := orchestrator.NewSQLiteStore("hustle.db")
@@ -69,7 +102,12 @@ func main() {
 	// Auto-detect and test the LLM connection
 	if model, err := llmProvider.DetectModel(); err == nil {
 		fmt.Printf("[LLM] ✅ Connected to local LLM: %s\n", model)
-		orch.LLM = orchestrator.NewCachingLLM(llmProvider)
+		// Wrap with cache if DB available
+		if orch.DB != nil {
+			orch.LLM = &orchestrator.CachingLLM{Provider: llmProvider, Store: orch.DB}
+		} else {
+			orch.LLM = llmProvider
+		}
 		// Also set up real embeddings
 		orch.Embedder = orchestrator.NewOpenAICompatEmbedder()
 	} else {
@@ -82,8 +120,14 @@ func main() {
 	chainManager.LoadState("chains.json")
 	discoverer := orchestrator.NewChainDiscoverer(orch, chainManager)
 	broker := orchestrator.NewA2ABroker(orch)
+	orch.Broker = broker
 	swarm := orchestrator.NewMemorySwarm(orch, broker)
 	multiAgent := orchestrator.NewMultiAgentOrchestrator(orch, protocol, broker)
+
+	// Initialize Content Calendar
+	contentCalendar := publisher.NewContentCalendar()
+	contentCalendar.LoadCalendar()
+	orch.Calendar = contentCalendar
 
 	// ── Initialize Trading Module ──
 	var fetcher trading.PriceFetcher = &trading.MockPriceFetcher{}
@@ -93,16 +137,66 @@ func main() {
 		fmt.Println("[Trading] COINGECKO_API_KEY " + mapBool(os.Getenv("COINGECKO_API_KEY") != "", "set", "not set — using free tier (rate limited)"))
 		fmt.Println("[Trading] COINGECKO_API_URL: " + getEnvDefault("COINGECKO_API_URL", "https://api.coingecko.com/api/v3"))
 	}
+	// ── Initialize Trading Module ──
+	var executor trading.TradeExecutor = &trading.MockExecutor{}
+	if os.Getenv("BINANCE_API_KEY") != "" {
+		fmt.Println("[Trading] Real execution enabled via Binance.")
+		executor = trading.NewBinanceExecutor()
+	} else if os.Getenv("KRAKEN_API_KEY") != "" {
+		fmt.Println("[Trading] Real execution enabled via Kraken.")
+		executor = trading.NewKrakenExecutor()
+	} else if os.Getenv("COINBASE_API_KEY") != "" {
+		fmt.Println("[Trading] Real execution enabled via Coinbase.")
+		executor = trading.NewCoinbaseExecutor()
+	} else if os.Getenv("GEMINI_API_KEY") != "" {
+		fmt.Println("[Trading] Real execution enabled via Gemini.")
+		executor = trading.NewGeminiExecutor()
+	}
+
 	traderModule := &trading.TradingModule{
 		Orchestrator: orch,
 		Broker:       broker,
 		Fetcher:      fetcher,
+		Executor:     executor,
 	}
 
 	// ── Initialize Content Module ──
 	contentModule := content.NewContentModule(orch, "output/content")
 
 	// ── Mesh Event Listeners ──
+	fixCh := broker.SubscribeTopic("swarm_fix")
+	go func() {
+		for msg := range fixCh {
+			fmt.Printf("[Mesh] Received Swarm Fix Request: %s\n", msg.Payload)
+			// Nodes attempt to solve the issue
+			h := orchestrator.NewHealer(orch)
+			diagnosis := h.Diagnose(msg.Payload)
+
+			// If a fix is found, broadcast it back as a resolution
+			prompt := fmt.Sprintf("Solve this system error for a mesh peer: %s. Provide a step-by-step verified fix.", diagnosis)
+			fix, err := orch.LLM.Generate(prompt)
+			if err == nil {
+				broker.Publish(orchestrator.Message{
+					ID:        fmt.Sprintf("fix-res-%d", time.Now().Unix()),
+					Source:    "healer-module",
+					Type:      orchestrator.Event,
+					Topic:     "swarm_resolution",
+					Payload:   fix,
+					Timestamp: time.Now(),
+				})
+			}
+		}
+	}()
+
+	resCh := broker.SubscribeTopic("swarm_resolution")
+	go func() {
+		for msg := range resCh {
+			fmt.Printf("[Mesh] Received Swarm Resolution Patch: %s\n", msg.Payload)
+			h := orchestrator.NewHealer(orch)
+			h.ApplyPatch(msg.Payload)
+		}
+	}()
+
 	alphaCh := broker.SubscribeTopic("alpha_discovery")
 	go func() {
 		for msg := range alphaCh {
@@ -111,11 +205,30 @@ func main() {
 		}
 	}()
 
+	skillCh := broker.SubscribeTopic("skill_discovery")
+	go func() {
+		for msg := range skillCh {
+			fmt.Printf("[Mesh] Received Skill Discovery from %s\n", msg.Source)
+			var chain orchestrator.Chain
+			if err := json.Unmarshal([]byte(msg.Payload), &chain); err == nil {
+				chainManager.Register(&chain)
+			}
+		}
+	}()
+
 	syncCh := broker.SubscribeTopic("swarm_sync")
 	go func() {
 		for msg := range syncCh {
 			fmt.Printf("[Mesh] Swarm Sync Notification from %s\n", msg.Source)
 			swarm.HandleSyncRequest(msg.Source)
+		}
+	}()
+
+	leaderCh := broker.SubscribeTopic("leaderboard_sync")
+	go func() {
+		for msg := range leaderCh {
+			fmt.Printf("[Mesh] Leaderboard update from %s\n", msg.Source)
+			protocol.HandleURI(msg.Payload)
 		}
 	}()
 
@@ -195,7 +308,338 @@ func main() {
 			return provider.Post(orch, platform, contentStr)
 		}
 
+		if p.Get("action") == "engage" {
+			fmt.Printf("[Social] Engaging with topic: %s\n", topic)
+			posts, err := provider.Search(topic)
+			if err != nil {
+				return err
+			}
+			if len(posts) == 0 {
+				fmt.Println("[Social] No relevant posts found to engage with.")
+				return nil
+			}
+
+			// Engage with the first post
+			target := posts[0]
+			reply := social.GenerateContent(orch, "reply to: "+target.Content)
+			return provider.Reply(target.ID, reply)
+		}
+
 		social.SchedulePost(orch, provider, platform, topic)
+		return nil
+	})
+
+	protocol.Register("design", func(p url.Values) error {
+		action := p.Get("action")
+		name := p.Get("name")
+		if name == "" { name = "AI Hustle Machine" }
+		niche := p.Get("niche")
+		if niche == "" { niche = "automation technology" }
+
+		dModule := design.NewDesignModule(orch, broker)
+
+		if action == "brand" {
+			strategy, err := dModule.IdeateBrand(name, niche)
+			if err != nil { return err }
+			fmt.Printf("[Design] Brand Strategy for %s:\n%s\n", name, strategy)
+		}
+		return nil
+	})
+
+	protocol.Register("crm", func(p url.Values) error {
+		action := p.Get("action")
+		email := p.Get("email")
+		if email == "" { email = "client@example.com" }
+
+		cModule := crm.NewCRMModule(orch, broker)
+
+		if action == "update" {
+			status := p.Get("status")
+			if status == "" { status = "contacted" }
+			return cModule.UpdateLeadStatus(email, crm.LeadStatus(status))
+		}
+		return nil
+	})
+
+	protocol.Register("legal", func(p url.Values) error {
+		action := p.Get("action")
+		docType := p.Get("type")
+		if docType == "" { docType = "Privacy Policy" }
+		name := p.Get("name")
+		if name == "" { name = "AI Hustle Machine" }
+
+		lModule := legal.NewLegalModule(orch, broker)
+
+		if action == "generate" {
+			doc, err := lModule.GenerateDocument(docType, name)
+			if err != nil { return err }
+			fmt.Printf("[Legal] Document Generated (%s):\n%s\n", docType, doc)
+		}
+		return nil
+	})
+
+	protocol.Register("bi", func(p url.Values) error {
+		action := p.Get("action")
+
+		biModule := bi.NewBIModule(orch, broker)
+
+		if action == "report" {
+			insights, err := biModule.GenerateInsights()
+			if err != nil { return err }
+			fmt.Printf("[BI] Strategic Insights:\n%s\n", insights)
+		}
+		return nil
+	})
+
+	protocol.Register("finance", func(p url.Values) error {
+		action := p.Get("action")
+
+		fModule := finance.NewFinanceModule(orch, broker)
+
+		if action == "classify" {
+			data := p.Get("data")
+			if data == "" { data = "2026-01-01,Shopify Subscription,29.00\n2026-01-05,Facebook Ads,500.00" }
+			txs, err := fModule.ClassifyTransactions(data)
+			if err != nil { return err }
+			fmt.Printf("[Finance] Classified %d transactions.\n", len(txs))
+
+			summary, _ := fModule.GenerateTaxSummary(txs)
+			fmt.Printf("[Finance] Tax Summary:\n%s\n", summary)
+		}
+		return nil
+	})
+
+	protocol.Register("stocks", func(p url.Values) error {
+		action := p.Get("action")
+		symbol := p.Get("symbol")
+		if symbol == "" { symbol = "AAPL" }
+
+		sModule := stocks.NewStockModule(orch, broker)
+
+		if action == "analyze" {
+			analysis, err := sModule.AnalyzeStock(symbol)
+			if err != nil { return err }
+			fmt.Printf("[Stocks] Analysis for %s:\n%s\n", symbol, analysis)
+		} else if action == "trade" {
+			side := p.Get("side")
+			if side == "" { side = "buy" }
+			qty, _ := strconv.ParseFloat(p.Get("qty"), 64)
+			if qty == 0 { qty = 1.0 }
+
+			executor := stocks.NewAlpacaExecutor()
+			if *dryRun {
+				fmt.Printf("[Stocks] DRY RUN: Would execute %s %s for %f\n", side, symbol, qty)
+			} else {
+				return executor.ExecuteOrder(symbol, side, qty)
+			}
+		}
+		return nil
+	})
+
+	protocol.Register("careers", func(p url.Values) error {
+		action := p.Get("action")
+		title := p.Get("title")
+		if title == "" { title = "Software Engineer" }
+		loc := p.Get("location")
+		if loc == "" { loc = "Remote" }
+
+		cModule := careers.NewCareerModule(orch, broker)
+
+		if action == "search" {
+			results, err := cModule.SearchJobs(title, loc)
+			if err != nil { return err }
+			fmt.Printf("[Careers] Job Search Results:\n%s\n", results)
+		} else if action == "tailor" {
+			resume := p.Get("resume")
+			if resume == "" { resume = "Experience: 5 years of Go development." }
+			job := p.Get("job")
+			if job == "" { job = "Role: Senior backend engineer. Need expert Go skills." }
+			tailored, err := cModule.TailorResume(resume, job)
+			if err != nil { return err }
+			fmt.Printf("[Careers] Tailored Resume:\n%s\n", tailored)
+		}
+		return nil
+	})
+
+	protocol.Register("media", func(p url.Values) error {
+		action := p.Get("action")
+		title := p.Get("title")
+		if title == "" { title = "The Future of AI" }
+		mType := p.Get("type")
+		if mType == "" { mType = "video" }
+
+		mModule := media.NewMediaModule(orch, broker)
+
+		if action == "plan" {
+			plan, err := mModule.PlanProduction(title, mType)
+			if err != nil { return err }
+			fmt.Printf("[Media] Production Plan for %s:\n%s\n", title, plan)
+		}
+		return nil
+	})
+
+	protocol.Register("pod", func(p url.Values) error {
+		action := p.Get("action")
+		niche := p.Get("niche")
+		if niche == "" { niche = "funny cat quotes" }
+
+		podModule := pod.NewPODModule(orch, broker)
+
+		if action == "plan" {
+			plan, err := podModule.PlanDesigns(niche)
+			if err != nil { return err }
+			fmt.Printf("[POD] Design Plan for %s:\n%s\n", niche, plan)
+		} else if action == "listing" {
+			design := p.Get("design")
+			if design == "" { design = "Coffee Cat" }
+			listing, err := podModule.OptimizeListing(design, niche)
+			if err != nil { return err }
+			fmt.Printf("[POD] Listing for %s:\n%s\n", design, listing)
+		}
+		return nil
+	})
+
+	protocol.Register("qa", func(p url.Values) error {
+		action := p.Get("action")
+		module := p.Get("module")
+
+		q := qa.NewQAModule(orch, broker)
+
+		if action == "test" {
+			if module == "" { module = "./orchestrator/..." }
+			res, err := q.RunTests(module)
+			if err != nil { return err }
+			fmt.Printf("[QA] Test results for %s:\n%s\n", module, res)
+		} else if action == "check" {
+			return q.VerifyStability()
+		}
+		return nil
+	})
+
+	protocol.Register("localization", func(p url.Values) error {
+		action := p.Get("action")
+		target := p.Get("lang")
+		if target == "" { target = "Spanish" }
+
+		loc := localization.NewLocalizationModule(orch, broker)
+
+		if action == "translate" {
+			text := p.Get("text")
+			if text == "" { text = "AI is changing the world." }
+			translated, err := loc.TranslateContent(text, target)
+			if err != nil { return err }
+			fmt.Printf("[Localization] %s -> %s:\n%s\n", text, target, translated)
+		} else if action == "seo" {
+			niche := p.Get("niche")
+			if niche == "" { niche = "tech" }
+			keywords, err := loc.LocalizeSEO(niche, target)
+			if err != nil { return err }
+			fmt.Printf("[Localization] SEO Keywords (%s/%s): %v\n", niche, target, keywords)
+		}
+		return nil
+	})
+
+	protocol.Register("support", func(p url.Values) error {
+		action := p.Get("action")
+		sup := support.NewSupportModule(orch, broker)
+
+		if action == "resolve" {
+			customer := p.Get("customer")
+			if customer == "" { customer = "Anonymous" }
+			issue := p.Get("issue")
+			if issue == "" { issue = "How do I start the orchestrator?" }
+
+			reply, err := sup.ResolveTicket(customer, issue)
+			if err != nil { return err }
+			fmt.Printf("[Support] Resolution for %s:\n%s\n", customer, reply)
+		} else if action == "faq" {
+			return sup.GenerateFAQ()
+		}
+		return nil
+	})
+
+	protocol.Register("devagency", func(p url.Values) error {
+		action := p.Get("action")
+		path := p.Get("path")
+		if path == "" { path = "." }
+
+		agency := devagency.NewDevAgencyModule(orch, broker)
+
+		if action == "audit" {
+			report, err := agency.AuditCode(path)
+			if err != nil { return err }
+			fmt.Printf("[DevAgency] Audit Report for %s:\n%s\n", path, report)
+		} else if action == "propose" {
+			desc := p.Get("desc")
+			if desc == "" { desc = "Build a modern Go backend for an AI SaaS" }
+			proposal, err := agency.ProposeService(desc)
+			if err != nil { return err }
+			fmt.Printf("[DevAgency] Service Proposal:\n%s\n", proposal)
+		}
+		return nil
+	})
+
+	protocol.Register("ecommerce", func(p url.Values) error {
+		action := p.Get("action")
+		niche := p.Get("niche")
+		if niche == "" {
+			niche = "tech gadgets"
+		}
+		eModule := ecommerce.NewEcommerceModule(orch, broker)
+
+		if action == "discover" {
+			products, err := eModule.DiscoverProducts(niche)
+			if err != nil {
+				return err
+			}
+			fmt.Printf("[Ecommerce] ✅ Discovered %d trending products for %s\n", len(products), niche)
+
+			// Generate listing for the best one
+			if len(products) > 0 {
+				listing, err := eModule.GenerateListing(products[0])
+				if err == nil {
+					fmt.Printf("[Ecommerce] Generated listing for: %s\n", products[0].Name)
+
+					// Handle automatic publishing to Shopify if requested
+					if p.Get("publish") == "true" {
+						shop := publisher.NewShopifyPublisher()
+						if *dryRun { shop.DryRun = true }
+						if shop.IsConfigured() || shop.DryRun {
+							_, err := shop.CreateProduct(publisher.ShopifyProduct{
+								Title:    products[0].Name,
+								BodyHTML: listing,
+								Vendor:   "AI Hustle Machine",
+								Status:   "draft",
+							})
+							if err != nil {
+								fmt.Printf("[Ecommerce] ⚠️ Shopify publish failed: %v\n", err)
+							}
+						}
+					}
+				}
+			}
+		} else if action == "ads" {
+			platform := p.Get("platform")
+			if platform == "" { platform = "TikTok" }
+
+			// Use the first discovered product in L2 if none specified
+			products := orch.L2.Search("ecommerce")
+			if len(products) > 0 {
+				pData := ProductFromMemory(products[len(products)-1])
+				ad, err := eModule.GenerateAds(pData, platform)
+				if err != nil { return err }
+				fmt.Printf("[Ecommerce] %s Ad Creative:\n%s\n", platform, ad)
+			}
+		} else if action == "fulfill" {
+			orderID := p.Get("order_id")
+			if orderID == "" { orderID = "ORD-123" }
+			productID := p.Get("product_id")
+			if productID == "" { productID = "PROD-456" }
+
+			confirmation, err := eModule.FulfillOrder(orderID, productID)
+			if err != nil { return err }
+			fmt.Printf("[Ecommerce] Fulfillment Confirmation for %s:\n%s\n", orderID, confirmation)
+		}
 		return nil
 	})
 
@@ -205,6 +649,12 @@ func main() {
 			symbol = "BTC"
 		}
 		traderModule.Symbol = symbol
+
+		action := p.Get("action")
+		if action == "arbitrage" {
+			return traderModule.ScanArbitrage()
+		}
+
 		return traderModule.ExecuteStrategy()
 	})
 
@@ -234,8 +684,40 @@ func main() {
 			TargetWords: 800,
 			Niche:       niche,
 		}
-		_, err := contentModule.Generate(req)
-		return err
+		res, err := contentModule.Generate(req)
+		if err != nil {
+			return err
+		}
+
+		// Handle automatic publishing if requested
+		if p.Get("publish") == "true" {
+			fmt.Printf("[Content] 🚀 Auto-publishing enabled for: %s\n", res.Title)
+
+			// Publish to WordPress if configured
+			wp := publisher.NewWordPressPublisher()
+			if *dryRun {
+				wp.DryRun = true
+			}
+			if wp.IsConfigured() {
+				_, err := wp.PublishPost(res.Title, res.Body, "publish", nil, nil)
+				if err != nil {
+					fmt.Printf("[Content] ⚠️ WordPress publish failed: %v\n", err)
+				}
+			}
+
+			// Publish to Newsletter if configured
+			if contentType == "newsletter" {
+				nl := publisher.NewNewsletterPublisher()
+				if nl.IsConfigured() {
+					err := nl.PublishNewsletter(res.Title, res.Body, nil)
+					if err != nil {
+						fmt.Printf("[Content] ⚠️ Newsletter publish failed: %v\n", err)
+					}
+				}
+			}
+		}
+
+		return nil
 	})
 
 	protocol.Register("swarm", func(p url.Values) error {
@@ -272,6 +754,17 @@ func main() {
 		case "provide_status":
 			data := p.Get("data")
 			swarm.HandleStatusResponse(peerID, data)
+		case "sync_profit":
+			profitStr := p.Get("profit")
+			var amount float64
+			fmt.Sscanf(profitStr, "%f", &amount)
+			content := fmt.Sprintf("Leaderboard Sync: Peer %s Profit: $%.2f", peerID, amount)
+			orch.L1.Add(orchestrator.MemoryEntry{
+				ID:        fmt.Sprintf("leaderboard-%s-%d", peerID, time.Now().Unix()),
+				Content:   content,
+				Timestamp: time.Now(),
+				Tags:      []string{"swarm", "leaderboard", "profit"},
+			})
 		case "set_goal":
 			amountStr := p.Get("amount")
 			var amount float64
@@ -279,8 +772,37 @@ func main() {
 				orch.WealthGoal = amount
 				fmt.Printf("[Swarm] Unified Collective Wealth Goal set to $%.2f\n", amount)
 			}
+		case "request_funding_audit":
+			// A peer is offering us funding. If we are in deficit, request it.
+			if orch.Ledger.Profit() < -500 {
+				fmt.Printf("[Swarm] Deficit detected ($%.2f). Requesting $1000 liquidity from %s\n", orch.Ledger.Profit(), peerID)
+				broker.Route(orchestrator.Message{
+					ID:        fmt.Sprintf("funding-req-%d", time.Now().Unix()),
+					Source:    "local-node",
+					Target:    peerID,
+					Type:      orchestrator.Query,
+					Payload:   "hustle://swarm?action=request_funding&amount=1000.00&peer_id=local-node",
+					Timestamp: time.Now(),
+				})
+			}
+		case "request_funding":
+			amount, _ := strconv.ParseFloat(p.Get("amount"), 64)
+			swarm.HandleFundingRequest(peerID, amount)
+		case "grant_funding":
+			amount, _ := strconv.ParseFloat(p.Get("amount"), 64)
+			sourceID := p.Get("source_id")
+			swarm.HandleFundingGrant(sourceID, amount)
 		}
 		return nil
+	})
+
+	protocol.Register("confluence", func(p url.Values) error {
+		recipe := p.Get("recipe")
+		if recipe == "" {
+			recipe = "saas_growth"
+		}
+		engine := confluence.NewConfluenceEngine(orch, broker)
+		return engine.ExecuteRecipe(confluence.Recipe(recipe))
 	})
 
 	protocol.Register("chain", func(p url.Values) error {
@@ -303,6 +825,153 @@ func main() {
 		}
 		h := orchestrator.NewHealer(orch)
 		h.Loop(issue)
+		return nil
+	})
+
+	protocol.Register("leadgen", func(p url.Values) error {
+		topic := p.Get("topic")
+		if topic == "" {
+			topic = "AI automation"
+		}
+		leads, err := research.DiscoverLeads(orch, topic)
+		if err != nil {
+			return err
+		}
+		fmt.Printf("[LeadGen] ✅ Discovered %d leads for %s\n", len(leads), topic)
+		return nil
+	})
+
+	protocol.Register("affiliate", func(p url.Values) error {
+		action := p.Get("action")
+		niche := p.Get("niche")
+		if niche == "" {
+			niche = "AI productivity tools"
+		}
+
+		if action == "discover" {
+			inserter := publisher.NewAffiliateInserter()
+			return inserter.DiscoverAffiliatePrograms(orch, niche)
+		}
+		return fmt.Errorf("unknown affiliate action: %s", action)
+	})
+
+	protocol.Register("outreach", func(p url.Values) error {
+		topic := p.Get("topic")
+		if topic == "" {
+			topic = "AI automation services"
+		}
+		send := p.Get("send") == "true"
+
+		pitches, err := research.GenerateOutreach(orch, topic)
+		if err != nil {
+			return err
+		}
+		fmt.Printf("[Outreach] ✅ Prepared %d personalized pitches for %s\n", len(pitches), topic)
+
+		if send {
+			for _, pitch := range pitches {
+				if pitch.Platform == "email" {
+					if err := research.SendEmail(pitch); err != nil {
+						fmt.Printf("[Outreach] ❌ Failed to send email to %s: %v\n", pitch.RecipientName, err)
+					}
+				}
+			}
+		}
+
+		return nil
+	})
+
+	protocol.Register("kdp", func(p url.Values) error {
+		action := p.Get("action")
+		niche := p.Get("niche")
+		if niche == "" { niche = "gratitude journal" }
+
+		kModule := publishing.NewKDPModule(orch, broker)
+
+		if action == "plan" {
+			plan, err := kModule.PlanInterior(niche)
+			if err != nil { return err }
+			fmt.Printf("[KDP] Interior Plan for %s:\n%s\n", niche, plan)
+		}
+		return nil
+	})
+
+	protocol.Register("retail", func(p url.Values) error {
+		buyPrice, _ := strconv.ParseFloat(p.Get("buy"), 64)
+		sellPrice, _ := strconv.ParseFloat(p.Get("sell"), 64)
+		cat := p.Get("cat")
+		if cat == "" { cat = "electronics" }
+
+		rModule := retail.NewRetailModule(orch, broker)
+		_, assessment, err := rModule.CalculateArbitrageROI(buyPrice, sellPrice, cat)
+		if err != nil { return err }
+		fmt.Printf("[Retail] Arb Assessment: %s\n", assessment)
+		return nil
+	})
+
+	protocol.Register("domains", func(p url.Values) error {
+		name := p.Get("name")
+		if name == "" { name = "aimoney.site" }
+
+		dModule := domains.NewDomainModule(orch, broker)
+		_, analysis, err := dModule.EvaluateDomain(name)
+		if err != nil { return err }
+		fmt.Printf("[Domains] Evaluation for %s:\n%s\n", name, analysis)
+		return nil
+	})
+
+	protocol.Register("domains_bid", func(p url.Values) error {
+		name := p.Get("name")
+		if name == "" { name = "aimoney.site" }
+		bid, _ := strconv.ParseFloat(p.Get("bid"), 64)
+		if bid == 0 { bid = 100.0 }
+
+		dModule := domains.NewDomainModule(orch, broker)
+		strategy, err := dModule.AuctionBid(name, bid)
+		if err != nil { return err }
+		fmt.Printf("[Domains] Bidding Strategy for %s:\n%s\n", name, strategy)
+		return nil
+	})
+
+	protocol.Register("realestate", func(p url.Values) error {
+		rent, _ := strconv.ParseFloat(p.Get("rent"), 64)
+		rate, _ := strconv.ParseFloat(p.Get("rate"), 64)
+		loc := p.Get("loc")
+		if loc == "" { loc = "Miami, FL" }
+
+		reModule := realestate.NewRealEstateModule(orch, broker)
+		_, assessment, err := reModule.CalculateSTRProfit(rent, rate, loc)
+		if err != nil { return err }
+		fmt.Printf("[RealEstate] STR Assessment for %s:\n%s\n", loc, assessment)
+		return nil
+	})
+
+	protocol.Register("realestate_manage", func(p url.Values) error {
+		loc := p.Get("loc")
+		if loc == "" { loc = "Miami, FL" }
+		msg := p.Get("msg")
+		if msg == "" { msg = "How do I access the parking?" }
+
+		reModule := realestate.NewRealEstateModule(orch, broker)
+		response, err := reModule.ManageListing(loc, msg)
+		if err != nil { return err }
+		fmt.Printf("[RealEstate] Management Response for %s:\n%s\n", loc, response)
+		return nil
+	})
+
+	protocol.Register("calendar", func(p url.Values) error {
+		action := p.Get("action")
+		if action == "process" {
+			pending := contentCalendar.GetPendingEntries()
+			fmt.Printf("[Calendar] Processing %d pending entries\n", len(pending))
+			for _, entry := range pending {
+				if err := contentCalendar.PublishEntry(orch, &entry); err != nil {
+					fmt.Printf("[Calendar] ❌ Failed to publish %s: %v\n", entry.ID, err)
+				}
+			}
+		} else if action == "status" {
+			contentCalendar.PrintStatus()
+		}
 		return nil
 	})
 
@@ -613,6 +1282,8 @@ func runInteractiveMenu(orch *orchestrator.Orchestrator, protocol *orchestrator.
 		fmt.Println("12. 🆕 Generate Newsletter")
 		fmt.Println("13. 🆕 Generate SEO Article")
 		fmt.Println("14. 🆕 Generate Social Thread")
+		fmt.Println(" v. 🆕 Generate Video Script")
+		fmt.Println(" r. 🆕 Generate Reel Script")
 		fmt.Println("15. 🆕 Brainstorm Content Topics")
 		fmt.Println("16. 🆕 Start Agent Loop (10 iterations)")
 		fmt.Println("17. 🆕 Auto-Plan Hustles (LLM strategy)")
@@ -705,6 +1376,22 @@ func runInteractiveMenu(orch *orchestrator.Orchestrator, protocol *orchestrator.
 				topic = "How AI agents are replacing SaaS"
 			}
 			protocol.HandleURI(fmt.Sprintf("hustle://content?topic=%s&type=thread", url.QueryEscape(topic)))
+		case "v":
+			fmt.Print("Video topic (default: The Future of Autonomous Agents): ")
+			topic, _ := reader.ReadString('\n')
+			topic = strings.TrimSpace(topic)
+			if topic == "" {
+				topic = "The Future of Autonomous Agents"
+			}
+			protocol.HandleURI(fmt.Sprintf("hustle://content?topic=%s&type=video", url.QueryEscape(topic)))
+		case "r":
+			fmt.Print("Reel topic (default: 3 AI tools to 10x your productivity): ")
+			topic, _ := reader.ReadString('\n')
+			topic = strings.TrimSpace(topic)
+			if topic == "" {
+				topic = "3 AI tools to 10x your productivity"
+			}
+			protocol.HandleURI(fmt.Sprintf("hustle://content?topic=%s&type=reel", url.QueryEscape(topic)))
 		case "15":
 			fmt.Print("Niche (default: AI & automation): ")
 			niche, _ := reader.ReadString('\n')
@@ -786,6 +1473,11 @@ func runInteractiveMenu(orch *orchestrator.Orchestrator, protocol *orchestrator.
 			fmt.Println("Invalid option, please try again.")
 		}
 	}
+}
+
+// ProductFromMemory is a wrapper for reconstruction logic
+func ProductFromMemory(e orchestrator.MemoryEntry) ecommerce.Product {
+	return ecommerce.ProductFromMemory(e)
 }
 
 // mapBool returns a if cond is true, b if false.

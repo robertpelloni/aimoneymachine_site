@@ -1,3 +1,197 @@
+## [1.1.4-dev] - 2026-07-03
+
+### Added
+- **Autonomous Fulfillment**: Added dropshipping order processing to the E-commerce module.
+- **Automated Property Management**: Added guest communication and dynamic pricing for Short-Term Rentals.
+- **Bidding Strategies**: Added psychological bidding and acquisition strategy for domain flipping.
+- **Enhanced PWA Quick Actions**: Added shortcuts for Fulfillment, STR Management, and Domain Bidding.
+
+## [1.2.1-dev] - 2026-07-05
+
+### Added
+- **Cross-Domain Confluence**: New `confluence` module for executing synergistic multi-domain "Business Recipes" (e.g., `saas_growth`, `dropship_loop`).
+- **Self-Funding Swarm**: Autonomous mesh-wide capital reallocation where profitable nodes fund peers in deficit.
+- **Synergistic Dashboards**: Added metrics for Confluence campaigns to terminal and web dashboards.
+- **Capital Transfer Protocol**: Added `TransferCapital` logic to the Ledger and corresponding swarm topic handlers.
+
+## [1.2.0] - 2026-07-04
+
+### Added
+- **The Autonomous Economy**: Reached v1.2.0 milestone with 26+ specialized modules covering the entire digital and physical business lifecycle.
+- **Auto-Pilot Strategy**: Enhanced Agent Loop and Strategic Planner to autonomously switch between all 26 domains based on mesh-wide ROI.
+- **Enterprise Operations**: Integrated modules for SaaS Generation, API Automation, Marketing Analytics, BI, Legal, CRM, and Bookkeeping.
+- **Physical Asset Management**: Added autonomous fulfillment for Dropshipping and guest communication/pricing for Short-Term Rentals.
+- **Multi-Platform Creative**: Support for Video/Reel scripts, POD design planning, and Amazon KDP layout.
+- **Stock & Option Trading**: Integrated quantitative stock trading via Alpaca.
+
+## [1.1.3-dev] - 2026-07-02
+
+### Added
+- **Design Services**: New `design` module for autonomous brand strategy, logo ideation, and visual direction.
+- **Borg Suite Expansion**: Reached 24 specialized autonomous modules across the monorepo.
+- **PWA Quick Actions**: Added branding and design shortcuts to the mobile dashboard.
+
+## [1.1.2-dev] - 2026-07-01
+
+### Added
+- **Business Intelligence (BI)**: New `bi` module for autonomous memory pattern analysis and strategic opportunity reporting.
+- **Legal & Compliance**: New `legal` module for autonomous generation of privacy policies, TOS, and AI-liability documents.
+- **CRM & Client Relations**: New `crm` module to manage lead touchpoints and generate personalized follow-up sequences.
+- **Enhanced PWA Actions**: Added quick-action buttons for BI, Legal, and CRM modules.
+
+## [1.1.0-dev] - 2026-06-29
+
+### Added
+- **Borg Skill Marketplace**: Nodes now autonomously broadcast and register custom `Chains` as discoverable "Skills" across the mesh.
+- **Autonomous Ad Management**: E-commerce module now generates high-converting social media ad creative (TikTok, Facebook) for trending products.
+- **Finance & Bookkeeping**: New `finance` module for autonomous client transaction classification and tax summary generation.
+- **Borg Singularity Cycle**: Initiated v1.1.x development cycle focused on autonomous skill exchange and multi-domain financial services.
+
+## [1.0.0] - 2026-06-28
+
+### Added
+- **Production Stability**: Finalized v1.0.0 stable release after comprehensive E2E validation.
+- **ROI-Driven Scheduling**: Implemented autonomous task reallocation in the scheduler based on mesh-wide profitability data.
+- **Cluster Management**: Enhanced cluster launcher with graceful child process termination and health monitoring.
+- **Final Verification**: Completed exhaustive system audit and documented 100% compliance in `VERIFICATION_REPORT.md`.
+
+## [1.0.0-alpha.99] - 2026-06-27
+
+### Added
+- **KDP & Retail Arbitrage**: New modules for low-content book publishing and Amazon FBA ROI scanning.
+- **Domain & STR Arbitrage**: Autonomous domain valuation and Airbnb arbitrage profitability analysis.
+- **Stock & Options Trading**: Integrated Alpaca executor for quantitative stock trading.
+- **Global Mesh Leaderboard**: Real-time aggregate profit tracking for the Top 10 mesh performers via `leaderboard_sync`.
+- **Hyper-Diverse Expansion**: The machine now supports 17 distinct automated money-making domains.
+
+## [1.0.0-alpha.98] - 2026-06-26
+
+### Added
+- **Print-on-Demand (POD) Module**: Autonomous design planning and listing optimization for Etsy/Redbubble.
+- **Media Production Module**: Script-to-asset list conversion for faceless YouTube/TikTok channels.
+- **Career Services Module**: Autonomous job discovery and LLM-driven professional resume tailoring.
+- **Hyper-Diverse Metrics**: Integrated POD, Media, and Career activity tracking into all dashboards.
+- **Cross-Domain Hustle Protocol**: Expanded the URI router to handle a total of 12 distinct hustle modules.
+
+## [1.0.0-alpha.97] - 2026-06-25
+
+### Added
+- **Translation & Localization**: New `localization` module for autonomous content translation and language-specific SEO.
+- **QA & Testing Module**: New `qa` module for autonomous module testing and system-wide health checks.
+- **Collaborative QA Healing**: Integrated QA failures with the swarm healing topic for federated bug fixes.
+- **Enhanced Vault UI**: PWA dashboard now displays recent discoveries from the L2 memory vault.
+
+## [1.0.0-alpha.96] - 2026-06-24
+
+### Added
+- **Shopify Integration**: Automated product listing creation via `ShopifyPublisher` in the publisher module.
+- **Dev Agency Module**: New `devagency` module for autonomous code audits and professional project proposals.
+- **Customer Support Module**: New `support` module for automated ticket resolution using L3 archive memory for technical context.
+- **Service Autonomy Protocols**: Registered `hustle://devagency` and `hustle://support` in the central orchestrator.
+- **Enhanced PWA Dashboard**: Added quick-action buttons for Ecommerce, Dev Agency, and Support modules.
+
+## [1.0.0-alpha.95] - 2026-06-23
+
+### Added
+- **E-commerce & Dropshipping Module**: New `ecommerce` module for autonomous trending product discovery and Shopify-ready listing generation.
+- **Collaborative Swarm Healing**: Implemented a federated resilience pattern where mesh peers collaborate to solve system errors via `swarm_fix` and `swarm_resolution` topics.
+- **Enhanced Orchestration**: Added `Broker` field to `Orchestrator` struct to facilitate direct mesh communication for internal modules.
+- **Expanded Dashboard**: Integrated e-commerce metrics and active swarm healing status into both terminal and web dashboards.
+
+## [1.0.0-alpha.94] - 2026-06-22
+
+### Added
+- **Gemini Exchange Support**: Implemented `GeminiExecutor` with HMAC-SHA384 base64 signing for diversified trade execution.
+- **PWA Dashboard**: Enhanced the web dashboard with `manifest.json` and service worker for mobile installability and offline support.
+- **Dynamic Niche Arbitrage**: Automated sentiment spike detection in research results to trigger SEO content production for viral trends.
+- **Autonomous Feedback Loop**: Integrated niche arbitrage commands into the A2A broker for zero-touch content reaction.
+
+## [1.0.0-alpha.93] - 2026-06-21
+
+### Added
+- **Multimedia Content Engine**: Integrated script generation for YouTube Videos and TikTok/Reels with hooks, visual cues, and SEO metadata.
+- **Mobile-Friendly Web Dashboard**: Responsive dark-themed dashboard served directly by the orchestrator for remote management.
+- **Coinbase Advanced Trade Support**: New `CoinbaseExecutor` for diversified real-world trading on the Coinbase exchange.
+- **Interactive UI Expansion**: New hotkeys 'v' and 'r' for manual script generation in the terminal menu.
+
+## [1.0.0-alpha.92] - 2026-06-20
+
+### Added
+- **Automated Affiliate Monetization**: Integrated `publisher.AffiliateInserter` for autonomous injection of affiliate links and disclosures into generated content.
+- **Lead Acquisition Pipeline**: Closed-loop lead generation and automated outreach via SMTP with personalized pitches.
+- **Advanced Trading Confluence**: Upgraded trading signals with Bollinger Bands, MACD, and sentiment-agreement requirements.
+- **Autonomous Lead Discovery**: Deep research-driven lead extraction from web search results.
+- **System Portability**: Downgraded internal `modernc.org/libc` to maintain Go 1.24.0 compatibility across all platforms.
+
+### Fixed
+- **Dependency Hell**: Resolved version mismatch between `modernc.org/sqlite` and required Go versions.
+- **Mathematical Integrity**: Verified all technical indicators against a 100% pass-rate test suite.
+
+## [1.0.0-alpha.91] - 2026-06-20
+
+### Added
+- **Global Profit Leaderboard**: Real-time mesh-wide node performance tracking via `action=sync_profit`.
+- **Collaborative Healing**: Enhanced the `Healer` to leverage the collective swarm memory for resolving technical issues.
+- **Security Verification**: Active cryptographic identity verification for federated sync requests.
+
+### Fixed
+- **DryRun Integrity**: Ensured `ContentCalendar` publishing respects the global safety mode across all social providers.
+- **Stability**: Resolved a potential runtime panic in the technical indicator logic (RSI).
+
+## [1.0.0-alpha.90] - 2026-06-19
+
+### Added
+- **Cross-Exchange Arbitrage Scanner**: New `ScanArbitrage` capability in the `TradingModule` that detects and logs profitable price gaps between Binance and Kraken.
+- **Federated Identity (DID)**: Implemented Ed25519-based node identity system for secure mesh communication. Nodes now sign sync requests to verify authenticity.
+- **Adaptive Swarm Synchronization**: Updated `MemorySwarm` to autonomously trigger immediate delta-syncs when high-profit peers ($>1000) are detected in the mesh.
+- **Security Hardening**: Integrated DID verification as a prerequisite for federated memory reconciliation.
+
+## [1.0.0-alpha.89] - 2026-06-18
+
+### Added
+- **Social Engagement Loop**: Implemented autonomous Search & Reply capabilities for Twitter/X. The machine now actively participates in niche conversations to grow its reach and brand authority.
+- **Sentiment-Driven Trading (Confluence 2.0)**: Upgraded the `TradingModule` to perform live news/social sentiment analysis via the `research` module before trade execution. Decisions now require both technical confluence and positive sentiment.
+- **Multi-Exchange Execution (Kraken)**: Added `KrakenExecutor` for diversified capital management, allowing real-world trade execution on both Binance and Kraken.
+- **Cross-Module Integration**: Established direct functional dependency between `trading` and `research` for high-fidelity signal extraction.
+
+### Fixed
+- **Social API Interface**: Hardened the `social.Provider` interface and implementations to handle Search/Reply routing correctly across Twitter and LinkedIn stubs.
+
+## [1.0.0-alpha.88] - 2026-06-17
+
+### Added
+- **Real Trade Execution (Binance)**: Implemented `BinanceExecutor` for authenticated BUY/SELL orders on the Binance exchange, transitioning from paper trading to real capital growth.
+- **Autonomous Outreach Delivery (SMTP)**: Added SMTP support to the `outreach` module. The machine now autonomously delivers personalized pitches to discovered leads using their extracted contact info.
+- **Micro-SaaS Generation**: Expanded `ContentModule` with a `tool` type to generate self-contained HTML/JS applications, driving diversified "Utility SEO" traffic.
+- **Acquisition Pipeline Hardening**: Updated `LeadGen` to autonomously extract contact emails from research results.
+
+### Fixed
+- **Safety Lockdown**: Fixed a critical bug where `ContentCalendar` publishing would bypass `DryRun` mode. All social posts now correctly honor the global safety state.
+
+## [1.0.0-alpha.87] - 2026-06-16
+
+### Added
+- **Ghost Protocol (Stealth Mode)**: New `-stealth` CLI flag and logic to introduce randomized ±15% timing jitter to scheduled tasks, preventing bot detection patterns.
+- **Advanced Trading Intelligence**: Implemented Bollinger Bands and MACD technical indicators in the `TradingModule` for higher-signal trade confluence.
+- **Autonomous Prompt Evolution**: Added `OptimizePrompts` feedback loop to the `Healer` that uses revenue data to autonomously mutate and improve content generation prompts.
+- **Acquisition & Distribution**: Finalized the lead discovery, outreach prepare, and multi-platform strategic calendar orchestration loop.
+
+### Fixed
+- **Technical Indicator Accuracy**: Fixed a mathematical error in the RSI calculation to ensure correct technical signaling.
+
+## [1.0.0-alpha.84] - 2026-06-15
+
+### Added
+- **Affiliate Monetization Engine**: Integrated `hustle/publisher/AffiliateInserter` into the content pipeline. All generated content is now automatically processed to include relevant affiliate links and legal disclosures.
+- **Lead Generation Hustle**: New `hustle://leadgen` protocol and `DiscoverLeads` functionality in `hustle/research/leadgen.go` for autonomous discovery of high-value business opportunities.
+- **Automated Content Distribution**: Enhanced `hustle://content` protocol to support a `publish=true` parameter, enabling autonomous posting to WordPress and Newsletters.
+- **Strategic Agent Upgrades**: Refined `AgentLoop` and `HustlePlan` logic to prioritize the "Research -> LeadGen -> Content -> Publish -> Social" high-ROI sequence.
+- **API Resilience**: Implemented exponential backoff and `429 Too Many Requests` awareness for Twitter, LinkedIn, and Tavily API providers.
+
+### Fixed
+- **Dashboard Stability**: Fixed a division-by-zero panic in the terminal dashboard when the wealth goal was unset.
+- **Test Integrity**: Integrated `stripANSI` utility in `orchestrator` tests to ensure reliable verification against color-coded output.
+
 ## [1.0.0-alpha.82] - 2026-06-13
 
 ### Fixed

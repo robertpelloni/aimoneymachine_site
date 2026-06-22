@@ -1,11 +1,34 @@
-go 1.25.0
+go 1.24.3
 
 use (
+	./hustle/automation
+	./hustle/bi
+	./hustle/careers
+	./hustle/confluence
 	./hustle/content
 	./hustle/curation
-	./hustle/research
-	./hustle/social
-	./hustle/trading
+	./hustle/crm
+	./hustle/design
+	./hustle/devagency
+	./hustle/domains
+	./hustle/ecommerce
+	./hustle/finance
+	./hustle/legal
+	./hustle/localization
+	./hustle/marketing
+	./hustle/media
+	./hustle/pod
+	./hustle/production/cmd/cluster
 	./hustle/publisher
+	./hustle/publishing
+	./hustle/qa
+	./hustle/realestate
+	./hustle/research
+	./hustle/retail
+	./hustle/saas
+	./hustle/social
+	./hustle/stocks
+	./hustle/support
+	./hustle/trading
 	./orchestrator
 )

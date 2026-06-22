@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"os"
 	"strings"
+
+	"github.com/robertpelloni/hustle/orchestrator"
 )
 
 // AffiliateLink represents an affiliate link
@@ -105,6 +107,54 @@ func (a *AffiliateInserter) GetLinksForContent(content string) []AffiliateLink {
 	}
 
 	return relevant
+}
+
+// DiscoverAffiliatePrograms uses research results to find and add new affiliate links
+func (a *AffiliateInserter) DiscoverAffiliatePrograms(orch *orchestrator.Orchestrator, niche string) error {
+	fmt.Printf("[Affiliate] Discovering new affiliate programs for niche: %s\n", niche)
+
+	prompt := fmt.Sprintf(`Research the top 5 high-commission affiliate programs for the niche: "%s".
+
+Respond with a JSON array of objects:
+[
+  {
+    "keyword": "Product or Service Name",
+    "url": "Affiliate Registration or Info URL",
+    "program": "Program name (e.g. Amazon, Impact, Direct)",
+    "commission": "Commission rate (e.g. 10%%, $50)"
+  }
+]
+
+Respond ONLY with valid JSON.`, niche)
+
+	var newLinks []AffiliateLink
+	if err := orch.LLM.GenerateJSON(prompt, &newLinks); err != nil {
+		return fmt.Errorf("failed to generate affiliate links: %v", err)
+	}
+
+	// Add new links to the list (avoiding duplicates by keyword)
+	addedCount := 0
+	for _, nl := range newLinks {
+		exists := false
+		for _, ex := range a.Links {
+			if strings.EqualFold(ex.Keyword, nl.Keyword) {
+				exists = true
+				break
+			}
+		}
+		if !exists {
+			a.Links = append(a.Links, nl)
+			addedCount++
+		}
+	}
+
+	if addedCount > 0 {
+		fmt.Printf("[Affiliate] ✅ Successfully added %d new affiliate programs for %s\n", addedCount, niche)
+		return a.SaveLinks()
+	}
+
+	fmt.Printf("[Affiliate] No new unique programs found for %s\n", niche)
+	return nil
 }
 
 // getDefaultAffiliateLinks returns a starter set of affiliate links
