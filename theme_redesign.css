@@ -1,0 +1,1734 @@
+/*
+ * AI MONEY MACHINE — CROWN JEWEL OF EXCESS 👑💰💎✨💵
+ */
+
+@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,500;1,600;1,700;1,800;1,900&family=Inter:wght@200;300;400;500;600;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600&family=Great+Vibes&family=Marcellus&family=Tangerine:wght@400;700&display=swap");
+
+:root {
+	--gold: #d4a847;
+	--gold-light: #f7d97e;
+	--gold-pale: #f5e6b8;
+	--gold-dark: #8a6d2b;
+	--gold-rich: #c9952e;
+	--gold-gradient: linear-gradient(
+		135deg,
+		#f7d97e 0%,
+		#d4a847 15%,
+		#f5e6b8 30%,
+		#d4a847 45%,
+		#c9952e 55%,
+		#f7d97e 65%,
+		#d4a847 80%,
+		#f5e6b8 90%,
+		#f7d97e 100%
+	);
+	--gold-shimmer: linear-gradient(
+		135deg,
+		#f7d97e,
+		#fff8e7,
+		#d4a847,
+		#f5e6b8,
+		#d4a847,
+		#fff8e7,
+		#c9952e,
+		#f7d97e,
+		#d4a847
+	);
+	--gold-liquid: linear-gradient(
+		135deg,
+		#d4a847,
+		#f7d97e,
+		#c9952e,
+		#f5e6b8,
+		#d4a847,
+		#f7d97e,
+		#8a6d2b,
+		#f5e6b8,
+		#d4a847
+	);
+	--emerald: #0d5c3d;
+	--ruby: #8b1a2b;
+	--navy: #04060e;
+	--velvet: #080412;
+	--cream: #faf6ee;
+	--text-primary: #f5f0e8;
+	--text-secondary: #d0c8b8;
+	--text-muted: #6a6050;
+	--glass-bg: rgba(4, 6, 14, 0.55);
+	--glass-border: rgba(212, 168, 71, 0.08);
+	--radius: 28px;
+	--radius-sm: 14px;
+	--font-serif: "Playfair Display", "Georgia", serif;
+	--font-serif-alt: "Marcellus", "Georgia", serif;
+	--font-sans: "Inter", "Helvetica Neue", sans-serif;
+	--font-script: "Great Vibes", cursive;
+	--font-script-alt: "Tangerine", cursive;
+	--font-elegant: "Cormorant Garamond", "Georgia", serif;
+	--ease: cubic-bezier(0.4, 0, 0.2, 1);
+	--bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+/* ── PALATIAL BASE ── */
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+}
+body {
+	margin: 0;
+	padding: 0;
+	font-family: var(--font-sans);
+	background: var(--navy);
+	color: var(--text-primary);
+	line-height: 2.1;
+	-webkit-font-smoothing: antialiased;
+	overflow-x: hidden;
+}
+
+/* ── GOLD FOIL OCEAN + AMBIENT GLOW ── */
+body::before {
+	content: "";
+	position: fixed;
+	inset: 0;
+	background:
+		repeating-linear-gradient(
+			90deg,
+			transparent,
+			transparent 2px,
+			rgba(212, 168, 71, 0.012) 2px,
+			rgba(212, 168, 71, 0.012) 3px
+		),
+		repeating-linear-gradient(
+			0deg,
+			transparent,
+			transparent 2px,
+			rgba(212, 168, 71, 0.01) 2px,
+			rgba(212, 168, 71, 0.01) 3px
+		),
+		radial-gradient(
+			ellipse at 10% 15%,
+			rgba(212, 168, 71, 0.07) 0%,
+			transparent 45%
+		),
+		radial-gradient(
+			ellipse at 90% 20%,
+			rgba(247, 217, 126, 0.05) 0%,
+			transparent 40%
+		),
+		radial-gradient(
+			ellipse at 25% 75%,
+			rgba(212, 168, 71, 0.06) 0%,
+			transparent 50%
+		),
+		radial-gradient(
+			ellipse at 75% 80%,
+			rgba(245, 230, 184, 0.04) 0%,
+			transparent 45%
+		),
+		radial-gradient(
+			ellipse at 50% 45%,
+			rgba(212, 168, 71, 0.03) 0%,
+			transparent 35%
+		),
+		radial-gradient(
+			ellipse at 50% 100%,
+			rgba(8, 4, 18, 0.5) 0%,
+			transparent 60%
+		),
+		radial-gradient(ellipse at 50% 0%, rgba(4, 6, 14, 0.8) 0%, transparent 50%);
+	pointer-events: none;
+	z-index: 0;
+}
+
+/* ═══════════════════════════════════════════
+   💎 DIAMOND RAIN (15 particles)
+   ═══════════════════════════════════════════ */
+@keyframes diamondRain {
+	0% {
+		transform: translateY(-100vh) rotate(0deg);
+		opacity: 0;
+	}
+	10% {
+		opacity: var(--d-op, 0.5);
+	}
+	85% {
+		opacity: var(--d-op, 0.5);
+	}
+	100% {
+		transform: translateY(105vh) rotate(720deg);
+		opacity: 0;
+	}
+}
+.diamond-rain {
+	position: fixed;
+	inset: 0;
+	pointer-events: none;
+	z-index: 0;
+	overflow: hidden;
+}
+.diamond-rain i {
+	position: absolute;
+	top: -5vh;
+	font-size: var(--ds, 12px);
+	font-style: normal;
+	color: var(--gold);
+	opacity: 0;
+	animation: diamondRain var(--dd, 12s) linear infinite;
+	animation-delay: var(--dl, 0s);
+	--d-op: 0.3;
+	text-shadow: 0 0 10px rgba(212, 168, 71, 0.2);
+}
+.diamond-rain i:nth-child(1) {
+	left: 3%;
+	--dd: 14s;
+	--dl: 0s;
+	--ds: 10px;
+}
+.diamond-rain i:nth-child(2) {
+	left: 10%;
+	--dd: 18s;
+	--dl: 1.5s;
+	--ds: 14px;
+	--d-op: 0.15;
+}
+.diamond-rain i:nth-child(3) {
+	left: 17%;
+	--dd: 16s;
+	--dl: 3s;
+	--ds: 8px;
+}
+.diamond-rain i:nth-child(4) {
+	left: 24%;
+	--dd: 20s;
+	--dl: 0.8s;
+	--ds: 16px;
+	--d-op: 0.12;
+}
+.diamond-rain i:nth-child(5) {
+	left: 31%;
+	--dd: 13s;
+	--dl: 4.5s;
+	--ds: 11px;
+}
+.diamond-rain i:nth-child(6) {
+	left: 38%;
+	--dd: 17s;
+	--dl: 2.2s;
+	--ds: 9px;
+	--d-op: 0.2;
+}
+.diamond-rain i:nth-child(7) {
+	left: 45%;
+	--dd: 19s;
+	--dl: 0.3s;
+	--ds: 13px;
+}
+.diamond-rain i:nth-child(8) {
+	left: 52%;
+	--dd: 15s;
+	--dl: 5s;
+	--ds: 7px;
+	--d-op: 0.18;
+}
+.diamond-rain i:nth-child(9) {
+	left: 59%;
+	--dd: 21s;
+	--dl: 1.8s;
+	--ds: 15px;
+}
+.diamond-rain i:nth-child(10) {
+	left: 66%;
+	--dd: 14s;
+	--dl: 3.8s;
+	--ds: 10px;
+	--d-op: 0.12;
+}
+.diamond-rain i:nth-child(11) {
+	left: 73%;
+	--dd: 18s;
+	--dl: 0.5s;
+	--ds: 12px;
+}
+.diamond-rain i:nth-child(12) {
+	left: 80%;
+	--dd: 16s;
+	--dl: 2.8s;
+	--ds: 8px;
+	--d-op: 0.2;
+}
+.diamond-rain i:nth-child(13) {
+	left: 87%;
+	--dd: 22s;
+	--dl: 4s;
+	--ds: 14px;
+}
+.diamond-rain i:nth-child(14) {
+	left: 93%;
+	--dd: 12s;
+	--dl: 6s;
+	--ds: 6px;
+	--d-op: 0.25;
+}
+.diamond-rain i:nth-child(15) {
+	left: 48%;
+	--dd: 24s;
+	--dl: 7s;
+	--ds: 18px;
+	--d-op: 0.08;
+}
+
+/* ═══════════════════════════════════════════
+   💵 WEALTH RAIN ($$$ emoji particles)
+   ═══════════════════════════════════════════ */
+@keyframes wealthRain {
+	0% {
+		transform: translateY(-100vh) rotate(0deg) scale(0.5);
+		opacity: 0;
+	}
+	15% {
+		opacity: var(--w-op, 0.4);
+		transform: scale(var(--ws, 1));
+	}
+	80% {
+		opacity: var(--w-op, 0.4);
+	}
+	100% {
+		transform: translateY(105vh) rotate(-360deg) scale(0.5);
+		opacity: 0;
+	}
+}
+.wealth-rain {
+	position: fixed;
+	inset: 0;
+	pointer-events: none;
+	z-index: 0;
+	overflow: hidden;
+}
+.wealth-rain i {
+	position: absolute;
+	top: -10vh;
+	font-size: var(--ws2, 18px);
+	font-style: normal;
+	opacity: 0;
+	animation: wealthRain var(--wd, 15s) linear infinite;
+	animation-delay: var(--wl, 0s);
+	--w-op: 0.2;
+}
+.wealth-rain i:nth-child(1) {
+	left: 8%;
+	--wd: 20s;
+	--wl: 0s;
+	--ws2: 14px;
+	content: "💰";
+}
+.wealth-rain i:nth-child(2) {
+	left: 22%;
+	--wd: 25s;
+	--wl: 3s;
+	--ws2: 22px;
+	content: "💎";
+	--w-op: 0.15;
+}
+.wealth-rain i:nth-child(3) {
+	left: 36%;
+	--wd: 18s;
+	--wl: 5.5s;
+	--ws2: 16px;
+	content: "👑";
+}
+.wealth-rain i:nth-child(4) {
+	left: 50%;
+	--wd: 22s;
+	--wl: 1.5s;
+	--ws2: 20px;
+	content: "💵";
+	--w-op: 0.12;
+}
+.wealth-rain i:nth-child(5) {
+	left: 64%;
+	--wd: 17s;
+	--wl: 4s;
+	--ws2: 12px;
+	content: "✨";
+}
+.wealth-rain i:nth-child(6) {
+	left: 78%;
+	--wd: 24s;
+	--wl: 2s;
+	--ws2: 24px;
+	content: "💎";
+	--w-op: 0.1;
+}
+.wealth-rain i:nth-child(7) {
+	left: 92%;
+	--wd: 19s;
+	--wl: 6.5s;
+	--ws2: 15px;
+	content: "💰";
+}
+.wealth-rain i:nth-child(8) {
+	left: 15%;
+	--wd: 26s;
+	--wl: 8s;
+	--ws2: 28px;
+	content: "👑";
+	--w-op: 0.08;
+}
+.wealth-rain i:nth-child(9) {
+	left: 42%;
+	--wd: 21s;
+	--wl: 2.5s;
+	--ws2: 10px;
+	content: "💵";
+}
+.wealth-rain i:nth-child(10) {
+	left: 70%;
+	--wd: 15s;
+	--wl: 9s;
+	--ws2: 18px;
+	content: "💎";
+	--w-op: 0.15;
+}
+
+/* ═══════════════════════════════════════════
+   ✨ GOLDEN SPARKLE BURSTS
+   ═══════════════════════════════════════════ */
+@keyframes sparkleBurst {
+	0%,
+	100% {
+		transform: scale(0) rotate(0deg);
+		opacity: 0;
+	}
+	50% {
+		transform: scale(1.5) rotate(180deg);
+		opacity: 1;
+	}
+}
+.sparkle-field {
+	position: fixed;
+	inset: 0;
+	pointer-events: none;
+	z-index: 0;
+	overflow: hidden;
+}
+.sparkle-field i {
+	position: absolute;
+	font-size: 8px;
+	font-style: normal;
+	color: var(--gold-light);
+	animation: sparkleBurst var(--sp-dur, 3s) ease-in-out infinite;
+	animation-delay: var(--sp-del, 0s);
+	text-shadow: 0 0 6px rgba(247, 217, 126, 0.5);
+}
+.sparkle-field i:nth-child(1) {
+	top: 10%;
+	left: 15%;
+	--sp-dur: 3.5s;
+	--sp-del: 0s;
+}
+.sparkle-field i:nth-child(2) {
+	top: 25%;
+	left: 75%;
+	--sp-dur: 4s;
+	--sp-del: 0.8s;
+	font-size: 6px;
+}
+.sparkle-field i:nth-child(3) {
+	top: 40%;
+	left: 30%;
+	--sp-dur: 2.8s;
+	--sp-del: 1.5s;
+}
+.sparkle-field i:nth-child(4) {
+	top: 55%;
+	left: 85%;
+	--sp-dur: 3.2s;
+	--sp-del: 2s;
+	font-size: 10px;
+}
+.sparkle-field i:nth-child(5) {
+	top: 70%;
+	left: 10%;
+	--sp-dur: 4.5s;
+	--sp-del: 0.5s;
+}
+.sparkle-field i:nth-child(6) {
+	top: 85%;
+	left: 60%;
+	--sp-dur: 3s;
+	--sp-del: 1.2s;
+	font-size: 7px;
+}
+.sparkle-field i:nth-child(7) {
+	top: 15%;
+	left: 50%;
+	--sp-dur: 5s;
+	--sp-del: 3s;
+	font-size: 12px;
+}
+.sparkle-field i:nth-child(8) {
+	top: 65%;
+	left: 40%;
+	--sp-dur: 3.8s;
+	--sp-del: 0.3s;
+}
+.sparkle-field i:nth-child(9) {
+	top: 35%;
+	left: 5%;
+	--sp-dur: 2.5s;
+	--sp-del: 2.5s;
+	font-size: 5px;
+}
+.sparkle-field i:nth-child(10) {
+	top: 90%;
+	left: 90%;
+	--sp-dur: 4.2s;
+	--sp-del: 1.8s;
+}
+
+/* ═══════════════════════════════════════════
+   🌊 GOLDEN LIQUID WAVE ANIMATION (navbar area)
+   ═══════════════════════════════════════════ */
+@keyframes goldWave {
+	0% {
+		background-position: 0% 50%;
+	}
+	50% {
+		background-position: 100% 50%;
+	}
+	100% {
+		background-position: 0% 50%;
+	}
+}
+
+/* ═══════════════════════════════════════════
+   🌌 CELESTIAL GOLDEN SUNS (5 orbs)
+   ═══════════════════════════════════════════ */
+.golden-sun {
+	position: fixed;
+	border-radius: 50%;
+	pointer-events: none;
+	z-index: 0;
+	filter: blur(150px);
+}
+.gs1 {
+	width: 1200px;
+	height: 1200px;
+	background: radial-gradient(
+		circle,
+		rgba(212, 168, 71, 0.06),
+		transparent 65%
+	);
+	top: -30%;
+	left: -25%;
+	animation: solarDrift 25s ease-in-out infinite alternate;
+}
+.gs2 {
+	width: 900px;
+	height: 900px;
+	background: radial-gradient(
+		circle,
+		rgba(212, 168, 71, 0.04),
+		rgba(13, 92, 61, 0.03),
+		transparent 70%
+	);
+	bottom: -25%;
+	right: -20%;
+	animation: solarDrift 30s ease-in-out infinite alternate-reverse;
+}
+.gs3 {
+	width: 700px;
+	height: 700px;
+	background: radial-gradient(
+		circle,
+		rgba(247, 217, 126, 0.03),
+		transparent 60%
+	);
+	top: 30%;
+	left: 55%;
+	animation: solarDrift 20s ease-in-out infinite alternate;
+}
+.gs4 {
+	width: 500px;
+	height: 500px;
+	background: radial-gradient(circle, rgba(196, 30, 58, 0.03), transparent 55%);
+	top: 65%;
+	left: 10%;
+	animation: solarDrift 28s ease-in-out infinite alternate-reverse;
+}
+.gs5 {
+	width: 350px;
+	height: 350px;
+	background: radial-gradient(circle, rgba(26, 43, 109, 0.04), transparent 50%);
+	bottom: 10%;
+	left: 40%;
+	animation: solarDrift 18s ease-in-out infinite alternate;
+}
+@keyframes solarDrift {
+	0% {
+		transform: translate(0, 0) scale(1);
+		opacity: 0.4;
+	}
+	100% {
+		transform: translate(60px, -50px) scale(1.3);
+		opacity: 1;
+	}
+}
+
+/* ═══════════════════════════════════════════
+   🏷️ ROYAL MONOGRAM WATERMARK
+   ═══════════════════════════════════════════ */
+.royal-monogram {
+	position: fixed;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%) rotate(-35deg);
+	font-family: var(--font-script-alt);
+	font-size: 35rem;
+	font-weight: 700;
+	color: rgba(212, 168, 71, 0.012);
+	pointer-events: none;
+	z-index: 0;
+	user-select: none;
+	white-space: nowrap;
+	animation: monogramFade 8s ease-in-out infinite alternate;
+}
+@keyframes monogramFade {
+	0%,
+	100% {
+		opacity: 0.4;
+	}
+	50% {
+		opacity: 1;
+	}
+}
+
+/* ═══════════════════════════════════════════
+   📜 GOLDEN MARQUEE TICKER (wealth statements)
+   ═══════════════════════════════════════════ */
+@keyframes marqueeScroll {
+	0% {
+		transform: translateX(0);
+	}
+	100% {
+		transform: translateX(-50%);
+	}
+}
+.wealth-ticker {
+	position: fixed;
+	bottom: 0;
+	left: 0;
+	z-index: 999;
+	width: 100%;
+	height: 36px;
+	background: linear-gradient(
+		90deg,
+		rgba(212, 168, 71, 0.12),
+		rgba(212, 168, 71, 0.06) 50%,
+		rgba(212, 168, 71, 0.12)
+	);
+	backdrop-filter: blur(20px);
+	-webkit-backdrop-filter: blur(20px);
+	border-top: 1px solid rgba(212, 168, 71, 0.15);
+	overflow: hidden;
+	display: flex;
+	align-items: center;
+}
+.wealth-ticker-inner {
+	display: flex;
+	white-space: nowrap;
+	animation: marqueeScroll 40s linear infinite;
+}
+.wealth-ticker-inner span {
+	font-family: var(--font-serif-alt);
+	font-size: 0.7rem;
+	text-transform: uppercase;
+	letter-spacing: 0.3em;
+	color: var(--gold-pale);
+	padding: 0 3rem;
+	opacity: 0.7;
+}
+
+/* ═══════════════════════════════════════════
+   🏛️ GILDED CROWN HEADER
+   ═══════════════════════════════════════════ */
+.wp-site-blocks {
+	position: relative;
+	z-index: 1;
+}
+.wp-block-template-part:first-child {
+	position: relative;
+}
+.wp-block-template-part:first-child::before {
+	content: "";
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	height: 5px;
+	background: var(--gold-gradient);
+	background-size: 200% 100%;
+	animation: goldWave 4s ease-in-out infinite;
+	z-index: 10;
+	box-shadow: 0 0 40px rgba(212, 168, 71, 0.3);
+}
+.wp-block-template-part:first-child::after {
+	content: "";
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	width: 100%;
+	height: 2px;
+	background: repeating-linear-gradient(
+		90deg,
+		transparent 0px,
+		transparent 15px,
+		var(--gold) 15px,
+		var(--gold-light) 20px,
+		transparent 20px,
+		transparent 40px
+	);
+	opacity: 0.4;
+}
+
+/* ── SITE TITLE — LIQUID GOLD ── */
+.wp-block-site-title {
+	font-family: var(--font-serif) !important;
+	font-size: 2.6rem !important;
+	font-weight: 900 !important;
+	font-style: italic;
+	letter-spacing: 0.06em;
+	background: var(--gold-liquid);
+	-webkit-background-clip: text;
+	-webkit-text-fill-color: transparent;
+	background-clip: text;
+	background-size: 300% 100%;
+	animation: goldWave 6s ease-in-out infinite;
+	position: relative;
+	display: inline-block;
+	filter: drop-shadow(0 0 30px rgba(212, 168, 71, 0.1));
+}
+.wp-block-site-title::before {
+	content: "👑";
+	position: absolute;
+	left: -3.5rem;
+	top: 50%;
+	transform: translateY(-50%);
+	font-size: 1.4rem;
+	-webkit-text-fill-color: initial;
+	color: var(--gold);
+	filter: drop-shadow(0 0 15px rgba(212, 168, 71, 0.4));
+	animation: crownBounce 3s ease-in-out infinite;
+}
+.wp-block-site-title::after {
+	content: "👑";
+	position: absolute;
+	right: -3.5rem;
+	top: 50%;
+	transform: translateY(-50%) scaleX(-1);
+	font-size: 1.4rem;
+	-webkit-text-fill-color: initial;
+	color: var(--gold);
+	filter: drop-shadow(0 0 15px rgba(212, 168, 71, 0.4));
+	animation: crownBounce 3s ease-in-out infinite 0.5s;
+}
+@keyframes crownBounce {
+	0%,
+	100% {
+		transform: translateY(-50%) scale(1);
+	}
+	50% {
+		transform: translateY(-65%) scale(1.15);
+	}
+}
+.wp-block-site-title a {
+	text-decoration: none !important;
+	background: var(--gold-liquid);
+	-webkit-background-clip: text;
+	-webkit-text-fill-color: transparent;
+	background-clip: text;
+	background-size: 300% 100%;
+	animation: goldWave 6s ease-in-out infinite;
+}
+
+/* ── TAGLINE ── */
+.wp-block-site-tagline {
+	font-family: var(--font-script-alt) !important;
+	font-size: 1.8rem !important;
+	font-weight: 700 !important;
+	color: var(--gold-pale) !important;
+	letter-spacing: 0.04em;
+	text-shadow: 0 0 30px rgba(212, 168, 71, 0.1);
+	margin-top: -0.8rem !important;
+}
+
+/* ═══════════════════════════════════════════
+   💎 JEWEL-ENCRUSTED NAVIGATION
+   ═══════════════════════════════════════════ */
+.wp-block-navigation {
+	background: linear-gradient(
+		145deg,
+		rgba(4, 6, 14, 0.75),
+		rgba(8, 4, 18, 0.7)
+	) !important;
+	backdrop-filter: blur(50px) saturate(1.5);
+	-webkit-backdrop-filter: blur(50px) saturate(1.5);
+	border: 1px solid rgba(212, 168, 71, 0.1) !important;
+	border-radius: 60px !important;
+	padding: 0.6rem 1.2rem !important;
+	box-shadow:
+		0 8px 40px rgba(0, 0, 0, 0.6),
+		0 0 100px rgba(212, 168, 71, 0.03),
+		inset 0 1px 0 rgba(212, 168, 71, 0.06);
+	position: relative;
+	overflow: hidden;
+}
+.wp-block-navigation::before {
+	content: "";
+	position: absolute;
+	top: -1px;
+	left: -100%;
+	width: 300%;
+	height: 2px;
+	background: var(--gold-liquid);
+	background-size: 300% 100%;
+	animation:
+		goldWave 8s linear infinite,
+		railSweep 8s linear infinite;
+	opacity: 0.5;
+}
+.wp-block-navigation::after {
+	content: "";
+	position: absolute;
+	bottom: -1px;
+	left: -100%;
+	width: 300%;
+	height: 2px;
+	background: var(--gold-liquid);
+	background-size: 300% 100%;
+	animation:
+		goldWave 8s linear infinite,
+		railSweep 8s linear infinite;
+	animation-delay: 4s;
+	opacity: 0.5;
+}
+@keyframes railSweep {
+	0% {
+		left: -100%;
+	}
+	100% {
+		left: 100%;
+	}
+}
+.wp-block-navigation a {
+	color: var(--text-secondary) !important;
+	font-family: var(--font-serif-alt) !important;
+	font-weight: 400 !important;
+	font-size: 0.8rem !important;
+	text-transform: uppercase;
+	letter-spacing: 0.2em;
+	padding: 0.7rem 2rem !important;
+	border-radius: 40px !important;
+	transition: all 0.4s var(--ease) !important;
+	text-decoration: none !important;
+	position: relative;
+}
+.wp-block-navigation a:hover {
+	color: var(--gold-light) !important;
+	background: linear-gradient(
+		135deg,
+		rgba(212, 168, 71, 0.12),
+		rgba(212, 168, 71, 0.05)
+	) !important;
+	box-shadow: 0 0 40px rgba(212, 168, 71, 0.08);
+	text-shadow: 0 0 20px rgba(212, 168, 71, 0.2);
+	transform: translateY(-1px);
+}
+.wp-block-navigation .current-menu-item a {
+	color: var(--gold) !important;
+	background: linear-gradient(
+		135deg,
+		rgba(212, 168, 71, 0.15),
+		rgba(212, 168, 71, 0.06)
+	) !important;
+	box-shadow: inset 0 0 40px rgba(212, 168, 71, 0.04);
+}
+.wp-block-navigation
+	.wp-block-navigation-item
+	+ .wp-block-navigation-item::before {
+	content: "◆";
+	position: absolute;
+	left: -0.4rem;
+	top: 50%;
+	transform: translateY(-50%);
+	font-size: 0.35rem;
+	color: var(--gold);
+	opacity: 0.3;
+	text-shadow: 0 0 8px rgba(212, 168, 71, 0.2);
+}
+
+/* ── COVER HERO ── */
+.wp-block-cover {
+	border-radius: var(--radius);
+	position: relative;
+	overflow: hidden;
+	min-height: 650px !important;
+}
+.wp-block-cover::before {
+	content: "";
+	position: absolute;
+	inset: 0;
+	background: linear-gradient(
+		135deg,
+		rgba(212, 168, 71, 0.06),
+		transparent 25%,
+		rgba(13, 92, 61, 0.03) 50%,
+		transparent 75%,
+		rgba(196, 30, 58, 0.02) 100%
+	);
+	pointer-events: none;
+	z-index: 1;
+}
+.wp-block-cover::after {
+	content: "";
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	width: 100%;
+	height: 5px;
+	background: var(--gold-gradient);
+	background-size: 200% 100%;
+	animation: goldWave 4s ease-in-out infinite;
+	opacity: 0.7;
+	z-index: 1;
+	box-shadow: 0 0 40px rgba(212, 168, 71, 0.2);
+}
+
+/* ═══════════════════════════════════════════
+   📜 TYPOGRAPHY — ROYAL DECREE
+   ═══════════════════════════════════════════ */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+	font-family: var(--font-serif) !important;
+	font-weight: 700 !important;
+	letter-spacing: -0.01em !important;
+	line-height: 1.05 !important;
+}
+h1 {
+	font-size: 5.5rem !important;
+	font-weight: 900 !important;
+	font-style: italic !important;
+	background: var(--gold-liquid);
+	-webkit-background-clip: text;
+	-webkit-text-fill-color: transparent;
+	background-clip: text;
+	background-size: 300% 100%;
+	animation: goldWave 6s ease-in-out infinite;
+	filter: drop-shadow(0 0 50px rgba(212, 168, 71, 0.08));
+	line-height: 1.02 !important;
+}
+h1::after {
+	content: "";
+	display: block;
+	width: 160px;
+	height: 3px;
+	background: var(--gold-gradient);
+	background-size: 200% 100%;
+	animation: goldWave 4s ease-in-out infinite;
+	margin-top: 1.2rem;
+	border-radius: 2px;
+	box-shadow: 0 0 30px rgba(212, 168, 71, 0.15);
+}
+h2 {
+	font-size: 3.2rem !important;
+	font-weight: 700 !important;
+	color: var(--gold-light) !important;
+	position: relative;
+	display: inline-block;
+}
+h2::before {
+	content: "";
+	position: absolute;
+	bottom: -8px;
+	left: 0;
+	width: 120px;
+	height: 2px;
+	background: var(--gold-gradient);
+	background-size: 200% 100%;
+	animation: goldWave 4s ease-in-out infinite;
+	border-radius: 1px;
+}
+h2::after {
+	content: "";
+	position: absolute;
+	bottom: -14px;
+	left: 0;
+	width: 80px;
+	height: 1px;
+	background: var(--gold-gradient);
+	opacity: 0.5;
+}
+h3 {
+	font-size: 2rem !important;
+	font-weight: 600 !important;
+	color: var(--gold-pale) !important;
+}
+h4 {
+	font-size: 1.5rem !important;
+	font-weight: 600 !important;
+	color: var(--cream) !important;
+}
+p {
+	font-family: var(--font-elegant);
+	color: var(--text-secondary);
+	font-size: 1.2rem;
+	line-height: 2.1;
+	font-weight: 400;
+}
+strong,
+b {
+	color: var(--cream);
+	font-weight: 700;
+}
+
+/* ── GOLD LINKS ── */
+a {
+	color: var(--gold-light);
+	text-decoration: none;
+	transition: all 0.3s var(--ease);
+	position: relative;
+}
+a:hover {
+	color: var(--gold);
+	text-shadow: 0 0 40px rgba(212, 168, 71, 0.2);
+}
+.post-content a:not(.wp-block-button__link)::after {
+	content: "";
+	position: absolute;
+	bottom: -1px;
+	left: 0;
+	width: 100%;
+	height: 1px;
+	background: var(--gold-gradient);
+	background-size: 200% 100%;
+	animation: goldWave 4s ease-in-out infinite;
+	transform: scaleX(0);
+	transform-origin: right;
+	transition: transform 0.4s var(--ease);
+}
+.post-content a:not(.wp-block-button__link):hover::after {
+	transform: scaleX(1);
+	transform-origin: left;
+}
+
+/* ═══════════════════════════════════════════
+   💎 OPULENT POST CARDS — JEWEL BOXES
+   ═══════════════════════════════════════════ */
+.wp-block-latest-posts__list {
+	display: grid;
+	gap: 2.5rem;
+}
+.wp-block-latest-posts__list li {
+	background: linear-gradient(
+		160deg,
+		rgba(10, 6, 20, 0.88),
+		rgba(4, 6, 14, 0.95)
+	) !important;
+	border: 1px solid rgba(212, 168, 71, 0.08) !important;
+	border-radius: var(--radius) !important;
+	padding: 3.5rem 4rem !important;
+	margin: 0 !important;
+	transition: all 0.6s var(--ease) !important;
+	position: relative;
+	overflow: hidden;
+	box-shadow:
+		0 8px 40px rgba(0, 0, 0, 0.5),
+		0 0 0 1px rgba(212, 168, 71, 0.03),
+		inset 0 1px 0 rgba(212, 168, 71, 0.03);
+}
+
+/* Liquid gold top border */
+.wp-block-latest-posts__list li::before {
+	content: "";
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 3px;
+	background: var(--gold-liquid);
+	background-size: 300% 100%;
+	opacity: 0;
+	transition: opacity 0.6s var(--ease);
+	z-index: 2;
+}
+
+/* 4 corner diamond gems */
+.wp-block-latest-posts__list li .cd {
+	position: absolute;
+	font-size: 0.6rem;
+	font-style: normal;
+	color: var(--gold-dark);
+	opacity: 0.15;
+	transition: all 0.6s var(--ease);
+	z-index: 1;
+}
+.wp-block-latest-posts__list li .cd1 {
+	top: 14px;
+	left: 18px;
+}
+.wp-block-latest-posts__list li .cd2 {
+	top: 14px;
+	right: 18px;
+}
+.wp-block-latest-posts__list li .cd3 {
+	bottom: 14px;
+	left: 18px;
+}
+.wp-block-latest-posts__list li .cd4 {
+	bottom: 14px;
+	right: 18px;
+}
+
+/* Sparkle sweep */
+.wp-block-latest-posts__list li .ss {
+	position: absolute;
+	top: 0;
+	left: -80%;
+	width: 60%;
+	height: 100%;
+	background: linear-gradient(
+		90deg,
+		transparent,
+		rgba(255, 255, 255, 0.008),
+		rgba(212, 168, 71, 0.015),
+		rgba(255, 255, 255, 0.008),
+		transparent
+	);
+	transform: skewX(-25deg);
+	transition: left 1s var(--ease);
+	pointer-events: none;
+	z-index: 1;
+}
+
+/* 3D perspective hover */
+.wp-block-latest-posts__list li:hover {
+	transform: translateY(-12px) scale(1.015);
+	border-color: rgba(212, 168, 71, 0.2) !important;
+	box-shadow:
+		0 50px 120px rgba(0, 0, 0, 0.7),
+		0 0 100px rgba(212, 168, 71, 0.05),
+		0 0 0 1px rgba(212, 168, 71, 0.08);
+	background: linear-gradient(
+		160deg,
+		rgba(16, 10, 30, 0.92),
+		rgba(6, 10, 22, 0.98)
+	) !important;
+}
+.wp-block-latest-posts__list li:hover::before {
+	opacity: 1;
+}
+.wp-block-latest-posts__list li:hover .ss {
+	left: 150%;
+}
+.wp-block-latest-posts__list li:hover .cd {
+	color: var(--gold);
+	opacity: 0.5;
+	text-shadow: 0 0 10px rgba(212, 168, 71, 0.3);
+}
+
+.wp-block-latest-posts__post-title {
+	font-family: var(--font-serif) !important;
+	font-size: 2rem !important;
+	font-weight: 700 !important;
+	color: var(--cream) !important;
+	text-decoration: none !important;
+	transition: all 0.4s var(--ease);
+	line-height: 1.3 !important;
+	position: relative;
+	z-index: 1;
+}
+.wp-block-latest-posts__post-title:hover {
+	background: var(--gold-liquid);
+	-webkit-background-clip: text;
+	-webkit-text-fill-color: transparent;
+	background-clip: text;
+	background-size: 300% 100%;
+	animation: goldWave 6s ease-in-out infinite;
+}
+.wp-block-latest-posts__post-date {
+	font-family: var(--font-elegant) !important;
+	font-size: 0.95rem !important;
+	font-style: italic;
+	color: var(--gold-dark) !important;
+	letter-spacing: 0.05em;
+	position: relative;
+	z-index: 1;
+}
+.wp-block-latest-posts__post-excerpt {
+	font-family: var(--font-elegant) !important;
+	color: var(--text-secondary) !important;
+	margin-top: 1rem !important;
+	font-size: 1.1rem !important;
+	font-weight: 400;
+	line-height: 2;
+	position: relative;
+	z-index: 1;
+}
+
+/* ── SINGLE POST ── */
+.wp-block-post {
+	max-width: 920px;
+	margin: 0 auto;
+	position: relative;
+}
+.wp-block-post-title {
+	font-family: var(--font-serif) !important;
+	font-size: 3.8rem !important;
+	font-weight: 800 !important;
+	line-height: 1.06 !important;
+	margin-bottom: 0.8rem !important;
+	color: var(--cream) !important;
+}
+.wp-block-post-title a {
+	color: var(--cream) !important;
+	text-decoration: none !important;
+	transition: all 0.3s var(--ease);
+	background: none;
+	-webkit-text-fill-color: var(--cream);
+}
+.wp-block-post-title a:hover {
+	color: var(--gold-light) !important;
+	-webkit-text-fill-color: var(--gold-light);
+	text-shadow: 0 0 40px rgba(212, 168, 71, 0.1);
+}
+
+/* ── META ── */
+.wp-block-post-date,
+.wp-block-post-author {
+	font-family: var(--font-elegant) !important;
+	font-size: 1.05rem !important;
+	font-style: italic;
+	color: var(--gold-dark) !important;
+}
+.wp-block-post-terms a {
+	display: inline-block;
+	background: linear-gradient(
+		135deg,
+		rgba(212, 168, 71, 0.08),
+		rgba(212, 168, 71, 0.03)
+	);
+	border: 1px solid rgba(212, 168, 71, 0.1);
+	border-radius: 30px;
+	padding: 0.35rem 1.5rem;
+	margin: 0.15rem;
+	font-family: var(--font-serif-alt);
+	font-size: 0.65rem !important;
+	text-transform: uppercase;
+	letter-spacing: 0.12em;
+	transition: all 0.4s var(--ease);
+	color: var(--gold-pale) !important;
+}
+.wp-block-post-terms a:hover {
+	background: var(--gold-gradient);
+	background-size: 200% 100%;
+	animation: goldWave 4s ease-in-out infinite;
+	border-color: transparent;
+	color: var(--navy) !important;
+	box-shadow: 0 4px 30px rgba(212, 168, 71, 0.3);
+	transform: translateY(-2px);
+}
+
+/* ═══════════════════════════════════════════
+   🥇 GOLD BULLION BUTTONS
+   ═══════════════════════════════════════════ */
+.wp-block-button__link {
+	background: var(--gold-liquid) !important;
+	background-size: 300% 100% !important;
+	animation: goldWave 6s ease-in-out infinite !important;
+	border: none !important;
+	border-radius: 60px !important;
+	padding: 1.3rem 4rem !important;
+	font-family: var(--font-serif-alt) !important;
+	font-weight: 600 !important;
+	font-size: 0.85rem !important;
+	text-transform: uppercase;
+	letter-spacing: 0.18em;
+	transition: all 0.5s var(--bounce) !important;
+	position: relative;
+	overflow: hidden;
+	text-decoration: none !important;
+	color: var(--navy) !important;
+	box-shadow:
+		0 6px 40px rgba(212, 168, 71, 0.3),
+		0 0 0 1px rgba(212, 168, 71, 0.15);
+}
+.wp-block-button__link::before {
+	content: "";
+	position: absolute;
+	top: 0;
+	left: -100%;
+	width: 100%;
+	height: 100%;
+	background: linear-gradient(
+		90deg,
+		transparent,
+		rgba(255, 255, 255, 0.2),
+		rgba(255, 255, 255, 0.3),
+		rgba(255, 255, 255, 0.2),
+		transparent
+	);
+	transition: left 0.8s var(--ease);
+}
+.wp-block-button__link:hover {
+	transform: translateY(-5px) scale(1.03);
+	box-shadow:
+		0 20px 60px rgba(212, 168, 71, 0.4),
+		0 0 0 1px rgba(212, 168, 71, 0.25) !important;
+}
+.wp-block-button__link:hover::before {
+	left: 150%;
+}
+.is-style-outline .wp-block-button__link {
+	background: transparent !important;
+	border: 1.5px solid var(--gold) !important;
+	color: var(--gold) !important;
+	box-shadow: none !important;
+	animation: none !important;
+}
+.is-style-outline .wp-block-button__link:hover {
+	background: var(--gold-gradient) !important;
+	background-size: 200% 100% !important;
+	animation: goldWave 4s ease-in-out infinite !important;
+	border-color: transparent !important;
+	color: var(--navy) !important;
+}
+
+/* ═══════════════════════════════════════════
+   📖 POST CONTENT — ROYAL LIBRARY
+   ═══════════════════════════════════════════ */
+.wp-block-post-content {
+	font-family: var(--font-elegant);
+	font-size: 1.25rem;
+	line-height: 2.2;
+	color: var(--text-secondary);
+	font-weight: 400;
+}
+.wp-block-post-content p {
+	margin-bottom: 2rem;
+}
+.wp-block-post-content h2 {
+	margin-top: 4.5rem;
+	margin-bottom: 1.5rem;
+}
+.wp-block-post-content h3 {
+	margin-top: 3rem;
+	margin-bottom: 1rem;
+}
+.wp-block-post-content ul,
+.wp-block-post-content ol {
+	padding-left: 2rem;
+	margin-bottom: 2rem;
+}
+.wp-block-post-content li {
+	margin-bottom: 0.6rem;
+}
+.wp-block-post-content blockquote {
+	border-left: 3px solid transparent;
+	border-image: var(--gold-gradient);
+	border-image-slice: 1;
+	padding: 1.2rem 0 1.2rem 3rem;
+	margin: 3.5rem 0;
+	font-family: var(--font-serif);
+	font-style: italic;
+	font-size: 1.5rem;
+	font-weight: 500;
+	color: var(--gold-pale);
+	background: rgba(212, 168, 71, 0.02);
+	border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+	position: relative;
+}
+.wp-block-post-content blockquote::before {
+	content: '"';
+	position: absolute;
+	top: -0.3rem;
+	left: 0.6rem;
+	font-size: 5rem;
+	font-family: var(--font-serif);
+	color: var(--gold);
+	opacity: 0.15;
+	line-height: 1;
+}
+.wp-block-post-content blockquote::after {
+	content: '"';
+	position: absolute;
+	bottom: -1.5rem;
+	right: 1rem;
+	font-size: 5rem;
+	font-family: var(--font-serif);
+	color: var(--gold);
+	opacity: 0.1;
+	line-height: 1;
+}
+.wp-block-post-content blockquote p {
+	margin-bottom: 0;
+}
+.wp-block-post-content code {
+	font-family: "JetBrains Mono", monospace;
+	background: linear-gradient(
+		135deg,
+		rgba(212, 168, 71, 0.08),
+		rgba(212, 168, 71, 0.03)
+	);
+	padding: 0.15em 0.5em;
+	border-radius: 4px;
+	font-size: 0.8em;
+	border: 1px solid rgba(212, 168, 71, 0.08);
+	color: var(--gold-pale);
+}
+.wp-block-post-content pre {
+	background: linear-gradient(
+		160deg,
+		rgba(4, 6, 14, 0.85),
+		rgba(8, 4, 18, 0.9)
+	);
+	border: 1px solid rgba(212, 168, 71, 0.06);
+	border-radius: var(--radius-sm);
+	padding: 2.5rem;
+	overflow-x: auto;
+	font-family: "JetBrains Mono", monospace;
+	font-size: 0.85rem;
+	line-height: 1.7;
+	box-shadow:
+		inset 0 0 80px rgba(0, 0, 0, 0.6),
+		0 0 0 1px rgba(212, 168, 71, 0.02);
+}
+.wp-block-post-content img {
+	border-radius: var(--radius-sm);
+	max-width: 100%;
+	height: auto;
+	box-shadow: 0 20px 80px rgba(0, 0, 0, 0.7);
+	border: 1px solid rgba(212, 168, 71, 0.05);
+	transition: all 0.5s var(--ease);
+}
+.wp-block-post-content img:hover {
+	transform: scale(1.02);
+	box-shadow: 0 30px 100px rgba(0, 0, 0, 0.8);
+	border-color: rgba(212, 168, 71, 0.1);
+}
+.wp-block-post-content hr {
+	border: none;
+	height: 1.5px;
+	background: linear-gradient(
+		90deg,
+		transparent 0%,
+		var(--gold) 10%,
+		var(--gold-light) 25%,
+		var(--gold) 40%,
+		var(--gold-pale) 50%,
+		var(--gold) 60%,
+		var(--gold-light) 75%,
+		var(--gold) 90%,
+		transparent 100%
+	);
+	margin: 4.5rem 0;
+}
+
+/* ── TABLES ── */
+.wp-block-table {
+	border-collapse: collapse;
+	width: 100%;
+	margin: 3rem 0;
+	font-family: var(--font-elegant);
+}
+.wp-block-table thead {
+	background: linear-gradient(
+		135deg,
+		rgba(212, 168, 71, 0.12),
+		rgba(212, 168, 71, 0.05)
+	);
+}
+.wp-block-table th {
+	font-family: var(--font-serif);
+	color: var(--gold-light);
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.12em;
+	font-size: 0.8rem;
+	padding: 1.2rem;
+	border: 1px solid rgba(212, 168, 71, 0.08);
+}
+.wp-block-table td {
+	padding: 1rem 1.2rem;
+	border: 1px solid rgba(212, 168, 71, 0.05);
+	color: var(--text-secondary);
+	font-size: 0.95rem;
+}
+.wp-block-table tr:hover td {
+	background: rgba(212, 168, 71, 0.02);
+}
+
+/* ── SEPARATOR ── */
+.wp-block-separator {
+	border: none !important;
+	height: 2px !important;
+	background: linear-gradient(
+		90deg,
+		transparent 0%,
+		var(--gold) 10%,
+		var(--gold-light) 30%,
+		var(--gold) 50%,
+		var(--gold-pale) 60%,
+		var(--gold) 80%,
+		var(--gold-light) 90%,
+		transparent 100%
+	) !important;
+	margin: 3.5rem auto !important;
+	max-width: 600px !important;
+	box-shadow: 0 0 30px rgba(212, 168, 71, 0.08);
+	border-radius: 2px;
+}
+
+/* ── SEARCH ── */
+.wp-block-search__input {
+	background: rgba(4, 6, 14, 0.7) !important;
+	border: 1px solid rgba(212, 168, 71, 0.1) !important;
+	border-radius: 60px !important;
+	padding: 1.1rem 2rem !important;
+	color: var(--text-primary) !important;
+	font-family: var(--font-elegant);
+	font-size: 1.05rem;
+	font-style: italic;
+	transition: all 0.3s var(--ease);
+}
+.wp-block-search__input::placeholder {
+	color: var(--text-muted);
+	font-family: var(--font-elegant);
+	font-style: italic;
+}
+.wp-block-search__input:focus {
+	border-color: var(--gold) !important;
+	box-shadow: 0 0 60px rgba(212, 168, 71, 0.06);
+	outline: none;
+}
+.wp-block-search__button {
+	background: var(--gold-liquid) !important;
+	background-size: 300% 100% !important;
+	animation: goldWave 6s ease-in-out infinite !important;
+	border: none !important;
+	border-radius: 60px !important;
+	padding: 1.1rem 3rem !important;
+	color: var(--navy) !important;
+	font-weight: 600 !important;
+	font-family: var(--font-serif-alt) !important;
+	font-size: 0.8rem !important;
+	text-transform: uppercase;
+	letter-spacing: 0.15em;
+	cursor: pointer;
+	transition: all 0.3s var(--ease);
+	box-shadow: 0 6px 30px rgba(212, 168, 71, 0.2);
+}
+.wp-block-search__button:hover {
+	transform: translateY(-3px);
+	box-shadow: 0 10px 50px rgba(212, 168, 71, 0.3);
+}
+
+/* ═══════════════════════════════════════════
+   🏛️ GRAND FOYER FOOTER
+   ═══════════════════════════════════════════ */
+.wp-block-template-part:last-child {
+	background: linear-gradient(
+		180deg,
+		var(--navy),
+		var(--velvet) 50%,
+		#020104
+	) !important;
+	border-top: 1px solid rgba(212, 168, 71, 0.04) !important;
+	padding: 7rem 2rem 5rem !important;
+	text-align: center;
+	position: relative;
+}
+.wp-block-template-part:last-child::before {
+	content: "";
+	position: absolute;
+	top: -1px;
+	left: 5%;
+	width: 90%;
+	height: 1px;
+	background: linear-gradient(
+		90deg,
+		transparent,
+		var(--gold),
+		var(--gold-light),
+		var(--gold-pale),
+		var(--gold),
+		transparent
+	);
+}
+.wp-block-template-part:last-child::after {
+	content: "◇ ◆ ◇ ◆ ◇ ◆ ◇ ◆";
+	position: absolute;
+	top: 2rem;
+	left: 50%;
+	transform: translateX(-50%);
+	font-size: 0.65rem;
+	letter-spacing: 1rem;
+	color: var(--gold-dark);
+	opacity: 0.3;
+}
+.wp-block-template-part:last-child p {
+	color: var(--text-muted);
+	font-size: 0.9rem;
+	font-family: var(--font-elegant);
+	font-style: italic;
+}
+
+/* ═══════════════════════════════════════════
+   💫 ROYAL ARRIVAL ANIMATIONS
+   ═══════════════════════════════════════════ */
+@keyframes royalArrival {
+	0% {
+		opacity: 0;
+		transform: translateY(60px) scale(0.93);
+		filter: blur(6px);
+	}
+	50% {
+		filter: blur(0);
+	}
+	100% {
+		opacity: 1;
+		transform: translateY(0) scale(1);
+	}
+}
+.wp-block-latest-posts__list li {
+	animation: royalArrival 0.8s var(--ease) forwards;
+	opacity: 0;
+}
+.wp-block-latest-posts__list li:nth-child(1) {
+	animation-delay: 0.05s;
+}
+.wp-block-latest-posts__list li:nth-child(2) {
+	animation-delay: 0.12s;
+}
+.wp-block-latest-posts__list li:nth-child(3) {
+	animation-delay: 0.19s;
+}
+.wp-block-latest-posts__list li:nth-child(4) {
+	animation-delay: 0.26s;
+}
+.wp-block-latest-posts__list li:nth-child(5) {
+	animation-delay: 0.33s;
+}
+.wp-block-latest-posts__list li:nth-child(6) {
+	animation-delay: 0.4s;
+}
+.wp-block-latest-posts__list li:nth-child(7) {
+	animation-delay: 0.47s;
+}
+.wp-block-latest-posts__list li:nth-child(8) {
+	animation-delay: 0.54s;
+}
+.wp-block-post {
+	animation: royalArrival 0.7s var(--ease) forwards;
+}
+
+/* ═══════════════════════════════════════════
+   💫 GOLD SCROLLBAR
+   ═══════════════════════════════════════════ */
+::-webkit-scrollbar {
+	width: 14px;
+}
+::-webkit-scrollbar-track {
+	background: var(--velvet);
+	border-left: 1px solid rgba(212, 168, 71, 0.04);
+}
+::-webkit-scrollbar-thumb {
+	background: linear-gradient(
+		180deg,
+		var(--gold),
+		var(--gold-light) 25%,
+		var(--gold-rich) 50%,
+		var(--gold-pale) 75%,
+		var(--gold)
+	);
+	border-radius: 7px;
+	border: 2px solid var(--velvet);
+}
+::-webkit-scrollbar-thumb:hover {
+	background: linear-gradient(180deg, var(--gold-light), var(--gold));
+}
+
+/* ── SELECTION ── */
+::selection {
+	background: linear-gradient(
+		135deg,
+		rgba(212, 168, 71, 0.3),
+		rgba(212, 168, 71, 0.15)
+	);
+	color: var(--cream);
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 768px) {
+	h1 {
+		font-size: 2.8rem !important;
+	}
+	h1::after {
+		width: 100px;
+	}
+	h2 {
+		font-size: 2.2rem !important;
+	}
+	h3 {
+		font-size: 1.5rem !important;
+	}
+	.wp-block-post-title {
+		font-size: 2.2rem !important;
+	}
+	.wp-block-latest-posts__list li {
+		padding: 2rem !important;
+	}
+	.wp-block-latest-posts__list {
+		gap: 1.2rem;
+	}
+	.wp-block-latest-posts__post-title {
+		font-size: 1.4rem !important;
+	}
+	.wp-block-site-title {
+		font-size: 1.8rem !important;
+	}
+	.wp-block-site-title::before,
+	.wp-block-site-title::after {
+		display: none;
+	}
+	.wp-block-site-tagline {
+		font-size: 1.2rem !important;
+	}
+	.wp-block-navigation {
+		border-radius: 30px !important;
+		padding: 0.3rem !important;
+	}
+	.wp-block-navigation a {
+		padding: 0.4rem 0.8rem !important;
+		font-size: 0.65rem !important;
+	}
+	.wp-block-navigation
+		.wp-block-navigation-item
+		+ .wp-block-navigation-item::before {
+		display: none;
+	}
+	.diamond-rain,
+	.wealth-rain {
+		opacity: 0.25;
+	}
+	.wealth-ticker {
+		height: 28px;
+	}
+	.wealth-ticker-inner span {
+		font-size: 0.55rem;
+		padding: 0 1.5rem;
+	}
+}
