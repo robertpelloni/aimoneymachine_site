@@ -12,6 +12,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+<<<<<<< HEAD
+	"github.com/dghubble/oauth1"
+	"github.com/robertpelloni/hustle/orchestrator"
+=======
+>>>>>>> origin/main
 	"net/http"
 >>>>>>> origin/main
 	"time"
@@ -36,14 +41,23 @@ type Provider interface {
 
 type TwitterProvider struct {
 <<<<<<< HEAD
-	DryRun bool
-	APIURL string
 =======
 	DryRun       bool
+>>>>>>> origin/main
 	APIKey       string
 	APISecret    string
 	AccessToken  string
 	AccessSecret string
+<<<<<<< HEAD
+}
+
+func (p *TwitterProvider) Post(orch *orchestrator.Orchestrator, platform, content string) error {
+	if p.APIKey == "" || p.APISecret == "" || p.AccessToken == "" || p.AccessSecret == "" {
+		fmt.Printf("[Twitter] Missing API keys. Mock posting to %s: %s\n", platform, content)
+		return nil
+	}
+
+=======
 	APIURL       string
 }
 
@@ -80,11 +94,30 @@ func (p *TwitterProvider) Post(orch *orchestrator.Orchestrator, platform, conten
 		return fmt.Errorf("missing Twitter OAuth environment variables")
 	}
 
+>>>>>>> origin/main
 	config := oauth1.NewConfig(p.APIKey, p.APISecret)
 	token := oauth1.NewToken(p.AccessToken, p.AccessSecret)
 	httpClient := config.Client(context.Background(), token)
 >>>>>>> origin/main
 
+<<<<<<< HEAD
+	payload := map[string]string{
+		"text": content,
+	}
+	payloadBytes, err := json.Marshal(payload)
+	if err != nil {
+		return fmt.Errorf("failed to marshal twitter payload: %w", err)
+	}
+
+	resp, err := httpClient.Post(twitterAPIEndpoint, "application/json", bytes.NewBuffer(payloadBytes))
+	if err != nil {
+		return fmt.Errorf("failed to post to twitter: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 201 {
+		return fmt.Errorf("twitter API returned status %d", resp.StatusCode)
+=======
 	reqBody, err := json.Marshal(twitterPostRequest{Text: content})
 	if err != nil {
 		return fmt.Errorf("failed to marshal twitter request: %w", err)
@@ -116,6 +149,7 @@ func (p *TwitterProvider) Post(orch *orchestrator.Orchestrator, platform, conten
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		return fmt.Errorf("twitter API error: received status code %d", resp.StatusCode)
+>>>>>>> origin/main
 	}
 
 	fmt.Printf("[Twitter] Successfully posted to %s: %s\n", platform, content)
@@ -134,12 +168,26 @@ func NewTwitterProvider(apiKey, apiSecret, accessToken, accessSecret string) *Tw
 		APISecret:    apiSecret,
 		AccessToken:  accessToken,
 		AccessSecret: accessSecret,
+<<<<<<< HEAD
+=======
 		APIURL:       twitterAPIEndpoint,
 >>>>>>> origin/main
 	}
 }
 
 type LinkedInProvider struct {
+<<<<<<< HEAD
+	AccessToken string
+	AuthorURN   string
+}
+
+func (p *LinkedInProvider) Post(orch *orchestrator.Orchestrator, platform, content string) error {
+	if p.AccessToken == "" || p.AuthorURN == "" {
+		fmt.Printf("[LinkedIn] Missing API keys. Mock posting to %s: %s\n", platform, content)
+		return nil
+	}
+
+=======
 	DryRun      bool
 	AccessToken string
 	AuthorURN   string
@@ -171,18 +219,27 @@ func (p *LinkedInProvider) Post(orch *orchestrator.Orchestrator, platform, conte
 		client = http.DefaultClient
 	}
 
+>>>>>>> origin/main
 	payload := map[string]interface{}{
 		"author":         p.AuthorURN,
 		"lifecycleState": "PUBLISHED",
 		"specificContent": map[string]interface{}{
 			"com.linkedin.ugc.ShareContent": map[string]interface{}{
+<<<<<<< HEAD
+				"shareCommentary": map[string]string{
+=======
 				"shareCommentary": map[string]interface{}{
+>>>>>>> origin/main
 					"text": content,
 				},
 				"shareMediaCategory": "NONE",
 			},
 		},
+<<<<<<< HEAD
+		"visibility": map[string]string{
+=======
 		"visibility": map[string]interface{}{
+>>>>>>> origin/main
 			"com.linkedin.ugc.MemberNetworkVisibility": "PUBLIC",
 		},
 	}
@@ -192,7 +249,11 @@ func (p *LinkedInProvider) Post(orch *orchestrator.Orchestrator, platform, conte
 		return fmt.Errorf("failed to marshal linkedin payload: %w", err)
 	}
 
+<<<<<<< HEAD
+	req, err := http.NewRequest("POST", linkedInAPIEndpoint, bytes.NewBuffer(payloadBytes))
+=======
 	req, err := http.NewRequest("POST", apiURL, bytes.NewBuffer(payloadBytes))
+>>>>>>> origin/main
 	if err != nil {
 		return fmt.Errorf("failed to create linkedin request: %w", err)
 	}
@@ -201,6 +262,17 @@ func (p *LinkedInProvider) Post(orch *orchestrator.Orchestrator, platform, conte
 	req.Header.Set("X-Restli-Protocol-Version", "2.0.0")
 	req.Header.Set("Content-Type", "application/json")
 
+<<<<<<< HEAD
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return fmt.Errorf("failed to post to linkedin: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 201 {
+		return fmt.Errorf("linkedin API returned status %d", resp.StatusCode)
+=======
 	resp, err := client.Do(req)
 	if err != nil {
 		return fmt.Errorf("linkedin api request failed: %w", err)
@@ -209,6 +281,7 @@ func (p *LinkedInProvider) Post(orch *orchestrator.Orchestrator, platform, conte
 
 	if resp.StatusCode != http.StatusCreated && resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("linkedin api returned status %d", resp.StatusCode)
+>>>>>>> origin/main
 	}
 
 	fmt.Printf("[LinkedIn] Successfully posted to %s: %s\n", platform, content)
@@ -219,8 +292,11 @@ func NewLinkedInProvider(accessToken, authorURN string) *LinkedInProvider {
 	return &LinkedInProvider{
 		AccessToken: accessToken,
 		AuthorURN:   authorURN,
+<<<<<<< HEAD
+=======
 		HTTPClient:  &http.Client{Timeout: 10 * time.Second},
 		APIURL:      linkedInAPIEndpoint,
+>>>>>>> origin/main
 	}
 }
 

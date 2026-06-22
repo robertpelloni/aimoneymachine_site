@@ -181,10 +181,13 @@ func main() {
 				os.Getenv("TWITTER_ACCESS_TOKEN"),
 				os.Getenv("TWITTER_ACCESS_SECRET"),
 			)
+<<<<<<< HEAD
+=======
 		}
 
 		if *dryRun {
 			provider.SetDryRun(true)
+>>>>>>> origin/main
 		}
 
 		if contentStr != "" {

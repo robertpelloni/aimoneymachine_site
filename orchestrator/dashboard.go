@@ -3,8 +3,11 @@ package orchestrator
 import (
 	"fmt"
 	"os"
+<<<<<<< HEAD
+=======
 	"sort"
 	"strings"
+>>>>>>> origin/main
 	"time"
 )
 
@@ -85,6 +88,25 @@ func ShowDashboard(orch *Orchestrator) {
 		fmt.Printf(" [LAST ACTION]    %s\n", lastAgent.Content)
 	}
 
+<<<<<<< HEAD
+	fmt.Println("--------------------------------------------------")
+	fmt.Println(" [SOCIAL PROVIDERS]")
+
+	twitterStatus := "[✗ OFFLINE]"
+	if os.Getenv("TWITTER_API_KEY") != "" && os.Getenv("TWITTER_ACCESS_TOKEN") != "" {
+		twitterStatus = "[✓ ONLINE]"
+	}
+	fmt.Printf("  Twitter:        %s\n", twitterStatus)
+
+	linkedInStatus := "[✗ OFFLINE]"
+	if os.Getenv("LINKEDIN_ACCESS_TOKEN") != "" && os.Getenv("LINKEDIN_AUTHOR_URN") != "" {
+		linkedInStatus = "[✓ ONLINE]"
+	}
+	fmt.Printf("  LinkedIn:       %s\n", linkedInStatus)
+
+	fmt.Println("--------------------------------------------------")
+	fmt.Println(" [FINANCIAL PERFORMANCE]")
+=======
 	fmt.Printf("%s--------------------------------------------------%s\n", colorCyan, colorReset)
 	fmt.Printf(" [SOCIAL PROVIDERS]\n")
 
@@ -102,6 +124,7 @@ func ShowDashboard(orch *Orchestrator) {
 
 	fmt.Printf("%s--------------------------------------------------%s\n", colorCyan, colorReset)
 	fmt.Printf(" [%sFINANCIAL PERFORMANCE%s]\n", colorBold, colorReset)
+>>>>>>> origin/main
 	fmt.Printf("  Revenue:        $%.2f\n", orch.Ledger.TotalRevenue())
 	fmt.Printf("  Expenses:       $%.2f\n", orch.Ledger.TotalExpenses())
 

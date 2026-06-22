@@ -9,7 +9,7 @@ require (
 
 require (
 <<<<<<< HEAD
-	github.com/dghubble/oauth1 v0.7.3 // indirect
+	github.com/dghubble/oauth1 v0.7.3
 	github.com/mattn/go-sqlite3 v1.14.44 // indirect
 =======
 	github.com/dustin/go-humanize v1.0.1 // indirect
