@@ -1,3 +1,5 @@
+# 🚧 UNDER CONSTRUCTION — ALPHA STATE! 🚧
+
 # AI Hustle Machine — Fully Automated Luxury Protocol
 
 A self-orchestrating, LLM-driven autonomous agent system that runs revenue-generating "hustles" using free local AI models. The machine thinks, acts, learns, and evolves — without human intervention.
