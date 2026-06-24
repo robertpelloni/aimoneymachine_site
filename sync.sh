@@ -27,7 +27,6 @@ echo "Main branch detected: $MAIN_BRANCH"
 echo "Fetching all remotes and tags..."
 git fetch --all --tags || echo "Warning: Fetch failed, continuing with local state."
 
-
 echo "Updating submodules recursively to their latest tracking commits..."
 git submodule update --init --recursive
 
@@ -42,19 +41,11 @@ echo "Step 2: Dual-Direction Intelligent Merge Engine"
 ALL_LOCAL_BRANCHES=$(git branch --format='%(refname:short)')
 
 for BRANCH in $ALL_LOCAL_BRANCHES; do
-    if [ "$BRANCH" == "main" ] || [ "$BRANCH" == "master" ]; then
+    if [ "$BRANCH" == "main" ] || [ "$BRANCH" == "master" ] || [ "$BRANCH" == "$INITIAL_BRANCH" ]; then
         continue
     fi
 
     echo "--- Reconciling Branch: $BRANCH ---"
-
-    # Stash if necessary (including untracked files)
-    STASHED=false
-    if [[ $(git status --porcelain) ]]; then
-        echo "Stashing local changes..."
-        git stash -u
-        STASHED=true
-    fi
 
     # Checkout the feature branch
     if ! git checkout "$BRANCH"; then
@@ -75,49 +66,41 @@ for BRANCH in $ALL_LOCAL_BRANCHES; do
 
     # Reverse Merge: Merging main into feature branch
     if [ -n "$MERGE_SOURCE" ]; then
-    echo "Reverse Merge: Merging $MERGE_SOURCE into $BRANCH..."
-    if git merge "$MERGE_SOURCE" --no-edit; then
-        echo "Successfully caught up $BRANCH with $MERGE_SOURCE."
-    else
-        echo "CONFLICT or error detected on $BRANCH. Aborting reverse merge."
-        git merge --abort || true
-    fi
-
-        # Forward Merge: Merging feature branch back into main (Optional/Automated)
-        if [[ $BRANCH == feat/ready-* ]]; then
-            if git rev-parse --verify "$MAIN_BRANCH" >/dev/null 2>&1; then
-                echo "Forward Merge: Merging $BRANCH back into $MAIN_BRANCH..."
-                if git checkout "$MAIN_BRANCH"; then
-                    if git merge "$BRANCH" --no-edit; then
-                        echo "Successfully merged $BRANCH into $MAIN_BRANCH."
-                    else
-                        echo "CONFLICT detected during forward merge of $BRANCH. Aborting."
-                        git merge --abort || true
-                    fi
-                    git checkout "$BRANCH"
-                else
-                    echo "Failed to checkout $MAIN_BRANCH for forward merge. Skipping."
-                fi
-            fi
+        echo "Reverse Merge: Merging $MERGE_SOURCE into $BRANCH..."
+        if git merge "$MERGE_SOURCE" --no-edit; then
+            echo "Successfully caught up $BRANCH with $MERGE_SOURCE."
+        else
+            echo "CONFLICT or error detected on $BRANCH. Aborting reverse merge."
+            git merge --abort || true
         fi
-    fi
 
-    # Return to initial branch
-    git checkout "$INITIAL_BRANCH"
-
-    if [ "$STASHED" = true ]; then
-        echo "Restoring stashed changes..."
-        git stash pop
-        STASHED=false
+        # Forward Merge
+        echo "Forward Merge: Merging $BRANCH back into $MAIN_BRANCH..."
+        if git checkout "$MAIN_BRANCH"; then
+            if git merge "$BRANCH" --no-edit; then
+                echo "Successfully merged $BRANCH into $MAIN_BRANCH."
+            else
+                echo "CONFLICT detected during forward merge of $BRANCH. Aborting."
+                git merge --abort || true
+            fi
+        else
+            echo "Failed to checkout $MAIN_BRANCH for forward merge. Skipping."
+        fi
     fi
 done
 
-# Ensure we are back on the initial branch and it is caught up
+# Return to initial branch and ensure it is caught up
+git checkout "$INITIAL_BRANCH"
+
 CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
-if [ "$CURRENT_BRANCH" != "$MAIN_BRANCH" ]; then
-    echo "Finalizing sync for $CURRENT_BRANCH..."
-    git merge "$REMOTE/$MAIN_BRANCH" --no-edit || echo "Final sync merge failed. Manual intervention required."
+echo "Finalizing sync for $CURRENT_BRANCH..."
+if git merge "$MAIN_BRANCH" --no-edit; then
+   echo "Successfully merged $MAIN_BRANCH into $CURRENT_BRANCH."
+else
+    echo "Final sync merge failed. Manual intervention required."
+    git merge --abort || true
 fi
+
 
 echo "Step 3: Workspace Cleanup, Documentation, & Push"
 
