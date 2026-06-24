@@ -33,20 +33,6 @@ func (m *ChainManager) Register(c *Chain) {
 	m.Chains[c.Name] = c
 	fmt.Printf("[Chain] Registered workflow: %s (%d steps)\n", c.Name, len(c.Steps))
 	m.SaveState("chains.json")
-
-	// Borg Skill Marketplace: Broadcast new chain to mesh
-	if m.Orchestrator.Broker != nil {
-		fmt.Printf("[Chain] Sharing skill '%s' with the mesh...\n", c.Name)
-		data, _ := json.Marshal(c)
-		m.Orchestrator.Broker.Publish(Message{
-			ID:        fmt.Sprintf("skill-%d", time.Now().Unix()),
-			Source:    "chain-manager",
-			Type:      Event,
-			Topic:     "skill_discovery",
-			Payload:   string(data),
-			Timestamp: time.Now(),
-		})
-	}
 }
 
 func (m *ChainManager) SaveState(filepath string) error {

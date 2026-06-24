@@ -3,11 +3,8 @@ package orchestrator
 import (
 	"fmt"
 	"os"
-<<<<<<< HEAD
-=======
 	"sort"
 	"strings"
->>>>>>> origin/main
 	"time"
 )
 
@@ -39,22 +36,12 @@ func ShowDashboard(orch *Orchestrator) {
 		fmt.Printf(" [SCHEDULER]      Next: %s\n", strings.Join(orch.TaskQueue, " | "))
 	}
 
-	// Hyper-Diverse Hustle Metrics
-	contentCount := len(orch.L1.Search("content"))
-	productCount := len(orch.L1.Search("ecommerce"))
-	auditCount := len(orch.L1.Search("devagency"))
-	ticketCount := len(orch.L1.Search("support"))
-	podCount := len(orch.L1.Search("pod"))
-	mediaCount := len(orch.L1.Search("media"))
-	careerCount := len(orch.L1.Search("careers"))
-	financeCount := len(orch.L1.Search("finance"))
-	biCount := len(orch.L1.Search("bi"))
-	designCount := len(orch.L1.Search("design"))
-	confCount := len(orch.L1.Search("confluence"))
-
-	if contentCount > 0 || productCount > 0 || auditCount > 0 || ticketCount > 0 || podCount > 0 || mediaCount > 0 || careerCount > 0 || financeCount > 0 || biCount > 0 || designCount > 0 || confCount > 0 {
-		fmt.Printf(" [HUSTLE METRICS] Content:%d | Product:%d | Agency:%d | Support:%d | POD:%d | Media:%d | Careers:%d | Fin:%d | BI:%d | Design:%d | Strategic:%d\n",
-			contentCount, productCount, auditCount, ticketCount, podCount, mediaCount, careerCount, financeCount, biCount, designCount, confCount)
+	// Content Metrics
+	contentCount := 0
+	contentEntries := orch.L1.Search("content")
+	contentCount = len(contentEntries)
+	if contentCount > 0 {
+		fmt.Printf(" [CONTENT HUB]    Generated: %d pieces\n", contentCount)
 	}
 
 	// Agent Observability
@@ -98,25 +85,6 @@ func ShowDashboard(orch *Orchestrator) {
 		fmt.Printf(" [LAST ACTION]    %s\n", lastAgent.Content)
 	}
 
-<<<<<<< HEAD
-	fmt.Println("--------------------------------------------------")
-	fmt.Println(" [SOCIAL PROVIDERS]")
-
-	twitterStatus := "[✗ OFFLINE]"
-	if os.Getenv("TWITTER_API_KEY") != "" && os.Getenv("TWITTER_ACCESS_TOKEN") != "" {
-		twitterStatus = "[✓ ONLINE]"
-	}
-	fmt.Printf("  Twitter:        %s\n", twitterStatus)
-
-	linkedInStatus := "[✗ OFFLINE]"
-	if os.Getenv("LINKEDIN_ACCESS_TOKEN") != "" && os.Getenv("LINKEDIN_AUTHOR_URN") != "" {
-		linkedInStatus = "[✓ ONLINE]"
-	}
-	fmt.Printf("  LinkedIn:       %s\n", linkedInStatus)
-
-	fmt.Println("--------------------------------------------------")
-	fmt.Println(" [FINANCIAL PERFORMANCE]")
-=======
 	fmt.Printf("%s--------------------------------------------------%s\n", colorCyan, colorReset)
 	fmt.Printf(" [SOCIAL PROVIDERS]\n")
 
@@ -134,7 +102,6 @@ func ShowDashboard(orch *Orchestrator) {
 
 	fmt.Printf("%s--------------------------------------------------%s\n", colorCyan, colorReset)
 	fmt.Printf(" [%sFINANCIAL PERFORMANCE%s]\n", colorBold, colorReset)
->>>>>>> origin/main
 	fmt.Printf("  Revenue:        $%.2f\n", orch.Ledger.TotalRevenue())
 	fmt.Printf("  Expenses:       $%.2f\n", orch.Ledger.TotalExpenses())
 
@@ -176,17 +143,12 @@ func ShowDashboard(orch *Orchestrator) {
 	fmt.Printf("  COLLECTIVE MESH PROFIT: %s$%.2f%s\n", collProfitColor, collectiveProfit, colorReset)
 
 	// Collective Goal Progress
-	currentGoal := orch.WealthGoal
-	if currentGoal <= 0 {
-		currentGoal = 10000 // Default goal for display if not set
-	}
-	progress := (collectiveProfit / currentGoal) * 100
+	meshGoal := orch.WealthGoal
+	progress := (collectiveProfit / meshGoal) * 100
 	if progress < 0 { progress = 0 }
-
 	// ASCII Progress Bar
 	barWidth := 20
 	filled := int((progress / 100) * float64(barWidth))
-	if filled < 0 { filled = 0 }
 	if filled > barWidth { filled = barWidth }
 	if filled < 0 { filled = 0 }
 	empty := barWidth - filled
@@ -194,45 +156,16 @@ func ShowDashboard(orch *Orchestrator) {
 	bar := strings.Repeat("█", filled) + strings.Repeat("░", empty)
 
 	fmt.Printf("  GOAL PROGRESS:  [%s] %s%.1f%%%s\n", bar, colorCyan, progress, colorReset)
-	fmt.Printf("  TARGET WEALTH:  $%.2f\n", currentGoal)
+	fmt.Printf("  TARGET WEALTH:  $%.2f\n", meshGoal)
 
 	// Display leaderboard
 	sort.Slice(leaderboard, func(i, j int) bool {
 		return leaderboard[i].profit > leaderboard[j].profit
 	})
-	// Load Leaderboard Sync Entries from L1
-	syncEntries := orch.L1.Search("leaderboard")
-	for _, e := range syncEntries {
-		if idx := strings.Index(e.Content, "Profit: $"); idx != -1 {
-			var amount float64
-			fmt.Sscanf(e.Content[idx:], "Profit: $%f", &amount)
-
-			// Extract peer ID
-			peerID := "unknown"
-			fmt.Sscanf(e.Content, "Leaderboard Sync: Peer %s Profit:", &peerID)
-
-			// Update or Add
-			found := false
-			for j, lp := range leaderboard {
-				if lp.id == peerID {
-					leaderboard[j].profit = amount
-					found = true
-					break
-				}
-			}
-			if !found {
-				leaderboard = append(leaderboard, peerProfit{peerID, amount})
-			}
-		}
-	}
-
 	fmt.Printf("\n  %sPEER LEADERBOARD:%s\n", colorBold, colorReset)
 	fmt.Printf("  %-15s %-15s %-10s\n", "RANK", "PEER ID", "PROFIT")
 	fmt.Println("  " + strings.Repeat("-", 42))
-	sort.Slice(leaderboard, func(i, j int) bool {
-		return leaderboard[i].profit > leaderboard[j].profit
-	})
-	for i := 0; i < len(leaderboard) && i < 10; i++ {
+	for i := 0; i < len(leaderboard) && i < 5; i++ {
 		rankColor := colorReset
 		if i == 0 { rankColor = colorYellow }
 		fmt.Printf("  %s#%-14d %-15s $%-10.2f%s\n", rankColor, i+1, leaderboard[i].id, leaderboard[i].profit, colorReset)
@@ -243,14 +176,6 @@ func ShowDashboard(orch *Orchestrator) {
 	if len(strategies) > 0 {
 		latest := strategies[len(strategies)-1]
 		fmt.Printf("  COLLECTIVE ALPHA: %s\n", latest.Content)
-	}
-
-	fmt.Printf("%s--------------------------------------------------%s\n", colorCyan, colorReset)
-	// Active Swarm Fixes
-	swarmFixes := orch.L1.Search("swarm_fix")
-	if len(swarmFixes) > 0 {
-		latest := swarmFixes[len(swarmFixes)-1]
-		fmt.Printf(" [SWARM HEALING]  Active Fix: %s\n", latest.Content)
 	}
 
 	fmt.Printf("%s--------------------------------------------------%s\n", colorCyan, colorReset)

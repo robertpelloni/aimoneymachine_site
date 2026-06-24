@@ -1,44 +1,22 @@
 package social
 
 import (
-<<<<<<< HEAD
-	"fmt"
-	"net/http"
-	"net/http/httptest"
-	"os"
-=======
 	"encoding/json"
-<<<<<<< HEAD
-	"io"
-	"net/http"
-	"net/http/httptest"
-	"os"
-=======
 	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
->>>>>>> origin/main
 	"testing"
 
 	"github.com/robertpelloni/hustle/orchestrator"
 )
 
-<<<<<<< HEAD
-=======
 func TestLinkedInProvider_Post(t *testing.T) {
 	// Helper function to mock orchestrator
 	mockOrch := &orchestrator.Orchestrator{}
 
 	t.Run("Missing Env Vars", func(t *testing.T) {
-<<<<<<< HEAD
-		os.Unsetenv("LINKEDIN_ACCESS_TOKEN")
-		os.Unsetenv("LINKEDIN_MEMBER_ID")
-
-		p := NewLinkedInProvider()
-=======
 		p := NewLinkedInProvider("", "")
->>>>>>> origin/main
 		err := p.Post(mockOrch, "LinkedIn", "Test content")
 		if err == nil {
 			t.Fatalf("expected error due to missing env vars, got nil")
@@ -46,12 +24,6 @@ func TestLinkedInProvider_Post(t *testing.T) {
 	})
 
 	t.Run("Successful Post", func(t *testing.T) {
-<<<<<<< HEAD
-		t.Setenv("LINKEDIN_ACCESS_TOKEN", "mock-token")
-		t.Setenv("LINKEDIN_MEMBER_ID", "mock-member-id")
-
-=======
->>>>>>> origin/main
 		// Create a mock HTTP server
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			if r.Method != "POST" {
@@ -72,15 +44,10 @@ func TestLinkedInProvider_Post(t *testing.T) {
 		defer server.Close()
 
 		p := &LinkedInProvider{
-<<<<<<< HEAD
-			HTTPClient: server.Client(),
-			APIURL:     server.URL,
-=======
 			AccessToken: "mock-token",
 			AuthorURN:   "mock-member-id",
 			HTTPClient:  server.Client(),
 			APIURL:      server.URL,
->>>>>>> origin/main
 		}
 
 		err := p.Post(mockOrch, "LinkedIn", "Test content")
@@ -90,12 +57,6 @@ func TestLinkedInProvider_Post(t *testing.T) {
 	})
 
 	t.Run("API Error Response", func(t *testing.T) {
-<<<<<<< HEAD
-		t.Setenv("LINKEDIN_ACCESS_TOKEN", "mock-token")
-		t.Setenv("LINKEDIN_MEMBER_ID", "mock-member-id")
-
-=======
->>>>>>> origin/main
 		// Create a mock HTTP server returning 401 Unauthorized
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusUnauthorized)
@@ -104,15 +65,10 @@ func TestLinkedInProvider_Post(t *testing.T) {
 		defer server.Close()
 
 		p := &LinkedInProvider{
-<<<<<<< HEAD
-			HTTPClient: server.Client(),
-			APIURL:     server.URL,
-=======
 			AccessToken: "mock-token",
 			AuthorURN:   "mock-member-id",
 			HTTPClient:  server.Client(),
 			APIURL:      server.URL,
->>>>>>> origin/main
 		}
 
 		err := p.Post(mockOrch, "LinkedIn", "Test content")
@@ -121,10 +77,7 @@ func TestLinkedInProvider_Post(t *testing.T) {
 		}
 	})
 }
-<<<<<<< HEAD
-=======
 
->>>>>>> origin/main
 func TestTwitterProvider_DryRun(t *testing.T) {
 	provider := &TwitterProvider{
 		DryRun: true,
@@ -138,38 +91,16 @@ func TestTwitterProvider_DryRun(t *testing.T) {
 }
 
 func TestTwitterProvider_MissingEnv(t *testing.T) {
-<<<<<<< HEAD
-	provider := &TwitterProvider{
-		DryRun: false,
-	}
-
-	os.Clearenv()
-=======
 	provider := NewTwitterProvider("", "", "", "")
->>>>>>> origin/main
 
 	orch := orchestrator.NewOrchestrator()
 	err := provider.Post(orch, "Twitter", "Test Content")
 	if err == nil {
 		t.Fatalf("expected error due to missing env variables, got nil")
 	}
-<<<<<<< HEAD
-	if err.Error() != "missing Twitter OAuth environment variables" {
-		t.Fatalf("unexpected error message: %v", err)
-	}
 }
 
 func TestTwitterProvider_PostSuccess(t *testing.T) {
-	t.Setenv("TWITTER_CONSUMER_KEY", "test_key")
-	t.Setenv("TWITTER_CONSUMER_SECRET", "test_secret")
-	t.Setenv("TWITTER_ACCESS_TOKEN", "test_token")
-	t.Setenv("TWITTER_ACCESS_SECRET", "test_token_secret")
-
-=======
-}
-
-func TestTwitterProvider_PostSuccess(t *testing.T) {
->>>>>>> origin/main
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != "POST" {
 			t.Errorf("expected POST request, got %s", r.Method)
@@ -187,17 +118,12 @@ func TestTwitterProvider_PostSuccess(t *testing.T) {
 	defer ts.Close()
 
 	provider := &TwitterProvider{
-<<<<<<< HEAD
-		DryRun: false,
-		APIURL: ts.URL,
-=======
 		APIKey:       "test_key",
 		APISecret:    "test_secret",
 		AccessToken:  "test_token",
 		AccessSecret: "test_token_secret",
 		DryRun:       false,
 		APIURL:       ts.URL,
->>>>>>> origin/main
 	}
 
 	orch := orchestrator.NewOrchestrator()
@@ -206,4 +132,3 @@ func TestTwitterProvider_PostSuccess(t *testing.T) {
 		t.Fatalf("expected success, got error: %v", err)
 	}
 }
->>>>>>> origin/main

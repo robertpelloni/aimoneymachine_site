@@ -1,7 +1,7 @@
 ---
 title: "Mock Title"
 type: blog
-date: 2026-06-12
+date: 2026-06-10
 keywords: []
 excerpt: " Mock Title\nMock Content"
 ---

@@ -38,10 +38,6 @@ func (a *API) Start(port string) error {
 	http.HandleFunc("/strategy", a.handleStrategy)
 	http.HandleFunc("/healer", a.handleHealer)
 
-	// Serve the mobile-friendly dashboard
-	fs := http.FileServer(http.Dir("orchestrator/static"))
-	http.Handle("/", fs)
-
 	fmt.Printf("[API] Orchestrator listening on port %s\n", port)
 	return http.ListenAndServe(":"+port, nil)
 }
@@ -181,10 +177,8 @@ func (a *API) handleContent(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *API) handleStrategy(w http.ResponseWriter, r *http.Request) {
-	// Return both L1 strategies and L2 discoveries
-	entries := a.Orchestrator.L1.Search("collective_strategy")
-	entries = append(entries, a.Orchestrator.L2.Entries...)
-	json.NewEncoder(w).Encode(entries)
+	strategies := a.Orchestrator.L1.Search("collective_strategy")
+	json.NewEncoder(w).Encode(strategies)
 }
 
 func (a *API) handleHealer(w http.ResponseWriter, r *http.Request) {

@@ -7,7 +7,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/robertpelloni/hustle/hustle/publisher"
 	"github.com/robertpelloni/hustle/orchestrator"
 )
 
@@ -19,9 +18,6 @@ const (
 	Newsletter  ContentType = "newsletter"
 	SEOArticle  ContentType = "seo"
 	SocialThread ContentType = "thread"
-	MicroTool   ContentType = "tool"
-	VideoScript ContentType = "video"
-	ReelScript  ContentType = "reel"
 )
 
 // ContentRequest specifies what content to generate
@@ -78,10 +74,6 @@ func (c *ContentModule) Generate(req ContentRequest) (*ContentResult, error) {
 	if err != nil {
 		return nil, fmt.Errorf("LLM content generation failed: %v", err)
 	}
-
-	// Process content with affiliate links and disclosure
-	inserter := publisher.NewAffiliateInserter()
-	body = inserter.ProcessContent(body)
 
 	// Extract title from the first heading if present
 	title := req.Topic
@@ -141,13 +133,6 @@ func (c *ContentModule) Generate(req ContentRequest) (*ContentResult, error) {
 
 // buildPrompt creates an LLM prompt optimized for the content type
 func (c *ContentModule) buildPrompt(req ContentRequest) string {
-	// Check for optimized prompt in L3 memory
-	if entries := c.Orch.L3.Search("optimized-prompt-content"); len(entries) > 0 {
-		optimized := entries[len(entries)-1].Content
-		fmt.Printf("[Content] Using SELF-OPTIMIZED PROMPT for %s piece\n", req.Type)
-		return strings.ReplaceAll(optimized, "[topic]", req.Topic)
-	}
-
 	keywordsStr := strings.Join(req.Keywords, ", ")
 
 	switch req.Type {
@@ -208,46 +193,6 @@ Requirements:
 - Tone: thought-provoking, insider perspective, no fluff
 
 Format: Number each tweet like 1/ 2/ etc.`, req.Topic, req.Niche)
-
-	case VideoScript:
-		return fmt.Sprintf(`Write a high-retention YouTube video script for: "%s".
-
-Requirements:
-- Niche: %s
-- Structure: Hook (0-15s) → Intro → Core Content (3-5 points) → Summary → CTA
-- Include visual cues in [brackets] for the editor
-- Include timestamps for a 8-10 minute video
-- Write an SEO-optimized title, description (with timestamps), and tags
-- Tone: engaging, educational, energetic
-
-Format: Markdown with sections for Title, Script, Description, and Tags.`, req.Topic, req.Niche)
-
-	case ReelScript:
-		return fmt.Sprintf(`Write a high-impact TikTok/Reel script for: "%s".
-
-Requirements:
-- Niche: %s
-- Duration: 30-60 seconds
-- Structure: Immediate Hook → 3 quick tips/points → Call to action
-- Include on-screen text overlays instructions
-- Include music/SFX suggestions
-- Write a catchy caption with trending hashtags
-- Tone: fast-paced, entertaining, relatable
-
-Format: Markdown with sections for Hook, On-Screen Text, SFX, Caption.`, req.Topic, req.Niche)
-
-	case MicroTool:
-		return fmt.Sprintf(`Generate a self-contained, single-file HTML/JavaScript utility tool for: "%s".
-
-Requirements:
-- Niche: %s
-- The tool must be useful and solve a specific problem (e.g. calculator, converter, generator)
-- Include CSS for a modern, dark-themed UI
-- All logic must be in the same file
-- Include SEO-friendly text description above and below the tool
-- Add a footer with an affiliate link call-to-action
-
-Format: Complete HTML file`, req.Topic, req.Niche)
 
 	default:
 		return fmt.Sprintf(`Write an informative article about "%s" (~%d words). Keywords: %s. Format: Markdown.`,
@@ -341,78 +286,6 @@ Respond ONLY with the JSON array, no other text.`, count, niche)
 	}
 
 	return topicList, nil
-}
-
-// GenerateGallery creates a stylized HTML index of all generated content
-func (c *ContentModule) GenerateGallery() (string, error) {
-	files, err := os.ReadDir(c.OutputDir)
-	if err != nil {
-		return "", err
-	}
-
-	var sb strings.Builder
-	sb.WriteString("<!DOCTYPE html><html><head><title>AI Hustle Machine Content Gallery</title>")
-	sb.WriteString("<style>body{font-family:sans-serif;line-height:1.6;max-width:800px;margin:2em auto;background:#f4f4f9;color:#333;}")
-	sb.WriteString(".card{background:#fff;padding:1.5em;margin-bottom:1.5em;border-radius:8px;box-shadow:0 2px 5px rgba(0,0,0,0.1);}")
-	sb.WriteString("h1{color:#2c3e50;} .tag{display:inline-block;background:#3498db;color:#fff;padding:0.2em 0.6em;border-radius:4px;font-size:0.8em;margin-right:0.5em;}")
-	sb.WriteString(".meta{color:#7f8c8d;font-size:0.9em;margin-bottom:1em;}</style></head><body>")
-	sb.WriteString("<h1>🚀 Generated Content Gallery</h1>")
-
-	count := 0
-	for _, f := range files {
-		if f.IsDir() || !strings.HasSuffix(f.Name(), ".md") {
-			continue
-		}
-
-		path := filepath.Join(c.OutputDir, f.Name())
-		data, err := os.ReadFile(path)
-		if err != nil {
-			continue
-		}
-
-		contentStr := string(data)
-		title := f.Name()
-		createdAt := "Unknown"
-		contentType := "article"
-		excerpt := ""
-
-		// Simple frontmatter parsing
-		lines := strings.Split(contentStr, "\n")
-		for _, line := range lines {
-			if strings.HasPrefix(line, "title: ") {
-				title = strings.Trim(strings.TrimPrefix(line, "title: "), `"'`)
-			} else if strings.HasPrefix(line, "date: ") {
-				createdAt = strings.TrimSpace(strings.TrimPrefix(line, "date: "))
-			} else if strings.HasPrefix(line, "type: ") {
-				contentType = strings.TrimSpace(strings.TrimPrefix(line, "type: "))
-			} else if strings.HasPrefix(line, "excerpt: ") {
-				excerpt = strings.Trim(strings.TrimPrefix(line, "excerpt: "), `"'`)
-			}
-		}
-
-		sb.WriteString("<div class='card'>")
-		sb.WriteString(fmt.Sprintf("<h2>%s</h2>", title))
-		sb.WriteString(fmt.Sprintf("<div class='meta'><span class='tag'>%s</span> %s</div>", contentType, createdAt))
-		if excerpt != "" {
-			sb.WriteString(fmt.Sprintf("<p>%s</p>", excerpt))
-		}
-		sb.WriteString(fmt.Sprintf("<a href='%s'>Read Markdown</a>", f.Name()))
-		sb.WriteString("</div>")
-		count++
-	}
-
-	if count == 0 {
-		sb.WriteString("<p>No content generated yet. Launch a hustle to start!</p>")
-	}
-
-	sb.WriteString("</body></html>")
-
-	galleryPath := filepath.Join(c.OutputDir, "index.html")
-	if err := os.WriteFile(galleryPath, []byte(sb.String()), 0644); err != nil {
-		return "", err
-	}
-
-	return galleryPath, nil
 }
 
 // Quick helper for simple JSON string array parsing

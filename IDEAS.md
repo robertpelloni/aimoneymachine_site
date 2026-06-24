@@ -18,14 +18,3 @@
 
 ## 5. Neural Dashboard
 - Replace the terminal dashboard with a real-time 3D visualization (using something like `tview` or a separate web frontend) of the mesh as a "living organism".
-
-## 6. Automated Lead Outreach ✅ INTEGRATED
-- Integrate with an email API (SendGrid, Mailgun) or LinkedIn automation to not just discover leads, but autonomously initiate first contact with generated personalized pitches.
-
-## 7. Collaborative "Swarm Healing"
-- When a node encounters a novel bug, it broadcasts the error and its local context to the mesh.
-- Other nodes attempt to solve it in their own sandboxes; the first node to find a verified fix broadcasts the patch back to the mesh.
-
-## 8. Dynamic Niche Arbitrage
-- The research module continuously monitors "Sentiment Spikes" in niche subreddits or forums.
-- When a gap is found (high interest, low content), the machine autonomously spins up a new WordPress niche site, generates 50 articles, and starts an ad campaign.

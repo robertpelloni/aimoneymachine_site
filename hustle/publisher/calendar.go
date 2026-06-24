@@ -6,9 +6,6 @@ import (
 	"os"
 	"strings"
 	"time"
-
-	"github.com/robertpelloni/hustle/hustle/social"
-	"github.com/robertpelloni/hustle/orchestrator"
 )
 
 // ContentCalendar manages automated content scheduling and publishing
@@ -17,8 +14,7 @@ type ContentCalendar struct {
 	WordPress     *WordPressPublisher
 	Newsletter    *NewsletterPublisher
 	Affiliate     *AffiliateInserter
-	Twitter       social.Provider
-	LinkedIn      social.Provider
+	Twitter       *TwitterPoster
 	ScheduleFile  string
 }
 
@@ -36,24 +32,19 @@ type CalendarEntry struct {
 	Error       string    `json:"error,omitempty"`
 }
 
+// TwitterPoster wraps the social posting for the calendar
+type TwitterPoster struct {
+	BearerToken string
+}
+
 // NewContentCalendar creates a new content calendar
 func NewContentCalendar() *ContentCalendar {
-	// Social providers need DryRun config from Orchestrator, handled in PublishEntry
 	return &ContentCalendar{
-		Entries:    make([]CalendarEntry, 0),
-		WordPress:  NewWordPressPublisher(),
-		Newsletter: NewNewsletterPublisher(),
-		Affiliate:  NewAffiliateInserter(),
-		Twitter: social.NewTwitterProvider(
-			os.Getenv("TWITTER_API_KEY"),
-			os.Getenv("TWITTER_API_SECRET"),
-			os.Getenv("TWITTER_ACCESS_TOKEN"),
-			os.Getenv("TWITTER_ACCESS_SECRET"),
-		),
-		LinkedIn: social.NewLinkedInProvider(
-			os.Getenv("LINKEDIN_ACCESS_TOKEN"),
-			os.Getenv("LINKEDIN_AUTHOR_URN"),
-		),
+		Entries:      make([]CalendarEntry, 0),
+		WordPress:    NewWordPressPublisher(),
+		Newsletter:   NewNewsletterPublisher(),
+		Affiliate:    NewAffiliateInserter(),
+		Twitter:      &TwitterPoster{BearerToken: os.Getenv("TWITTER_BEARER_TOKEN")},
 		ScheduleFile: "content_calendar.json",
 	}
 }
@@ -106,7 +97,7 @@ func (c *ContentCalendar) GetPendingEntries() []CalendarEntry {
 }
 
 // PublishEntry publishes a calendar entry
-func (c *ContentCalendar) PublishEntry(orch *orchestrator.Orchestrator, entry *CalendarEntry) error {
+func (c *ContentCalendar) PublishEntry(entry *CalendarEntry) error {
 	if entry.Content == "" {
 		return fmt.Errorf("no content to publish")
 	}
@@ -120,9 +111,7 @@ func (c *ContentCalendar) PublishEntry(orch *orchestrator.Orchestrator, entry *C
 	case "wordpress":
 		err = c.publishToWordPress(entry, content)
 	case "twitter":
-		err = c.publishToTwitter(orch, entry, content)
-	case "linkedin":
-		err = c.publishToLinkedIn(orch, entry, content)
+		err = c.publishToTwitter(entry, content)
 	case "newsletter":
 		err = c.publishToNewsletter(entry, content)
 	case "all":
@@ -131,11 +120,8 @@ func (c *ContentCalendar) PublishEntry(orch *orchestrator.Orchestrator, entry *C
 		if e := c.publishToWordPress(entry, content); e != nil {
 			errs = append(errs, fmt.Sprintf("WordPress: %v", e))
 		}
-		if e := c.publishToTwitter(orch, entry, content); e != nil {
+		if e := c.publishToTwitter(entry, content); e != nil {
 			errs = append(errs, fmt.Sprintf("Twitter: %v", e))
-		}
-		if e := c.publishToLinkedIn(orch, entry, content); e != nil {
-			errs = append(errs, fmt.Sprintf("LinkedIn: %v", e))
 		}
 		if e := c.publishToNewsletter(entry, content); e != nil {
 			errs = append(errs, fmt.Sprintf("Newsletter: %v", e))
@@ -174,18 +160,21 @@ func (c *ContentCalendar) publishToWordPress(entry *CalendarEntry, content strin
 	return nil
 }
 
-func (c *ContentCalendar) publishToTwitter(orch *orchestrator.Orchestrator, entry *CalendarEntry, content string) error {
-	fmt.Printf("[Calendar] Posting to Twitter: %s\n", entry.Title)
-	c.Twitter.SetDryRun(orch.DryRun)
+func (c *ContentCalendar) publishToTwitter(entry *CalendarEntry, content string) error {
+	if c.Twitter.BearerToken == "" {
+		fmt.Printf("[Calendar] Twitter not configured, skipping\n")
+		return nil
+	}
 
-	// Twitter threads are handled by the LLM usually, but for simple calendar posts, we use the provider directly
-	return c.Twitter.Post(orch, "Twitter", content)
-}
+	// For Twitter, we post a thread
+	// Split content into tweet-sized chunks
+	tweets := splitIntoTweets(content, entry.Title)
+	for i, tweet := range tweets {
+		fmt.Printf("[Calendar] Tweet %d/%d: %s\n", i+1, len(tweets), truncate(tweet, 50))
+		// TODO: Actually post via Twitter API
+	}
 
-func (c *ContentCalendar) publishToLinkedIn(orch *orchestrator.Orchestrator, entry *CalendarEntry, content string) error {
-	fmt.Printf("[Calendar] Posting to LinkedIn: %s\n", entry.Title)
-	c.LinkedIn.SetDryRun(orch.DryRun)
-	return c.LinkedIn.Post(orch, "LinkedIn", content)
+	return nil
 }
 
 func (c *ContentCalendar) publishToNewsletter(entry *CalendarEntry, content string) error {
