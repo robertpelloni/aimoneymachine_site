@@ -255,7 +255,7 @@ func main() {
 		if query == "" {
 			query = "AI Trends"
 		}
-		searcher := research.NewResearchSearch(research.Tavily, orch, broker)
+		searcher := research.NewResearchSearch(research.DuckDuckGo, orch, broker)
 		_, err := searcher.Query(query)
 		return err
 	})
@@ -289,12 +289,18 @@ func main() {
 		contentStr := p.Get("content")
 
 		var provider social.Provider
-		if strings.ToLower(platform) == "linkedin" {
+		switch strings.ToLower(platform) {
+		case "linkedin":
 			provider = social.NewLinkedInProvider(
 				os.Getenv("LINKEDIN_ACCESS_TOKEN"),
 				os.Getenv("LINKEDIN_AUTHOR_URN"),
 			)
-		} else {
+		case "bluesky":
+			provider = social.NewBlueskyProvider(
+				os.Getenv("BLUESKY_HANDLE"),
+				os.Getenv("BLUESKY_APP_PASSWORD"),
+			)
+		default:
 			provider = social.NewTwitterProvider(
 				os.Getenv("TWITTER_API_KEY"),
 				os.Getenv("TWITTER_API_SECRET"),

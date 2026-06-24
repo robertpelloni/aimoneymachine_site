@@ -33,7 +33,7 @@ func NewEcommerceModule(orch *orchestrator.Orchestrator, broker *orchestrator.A2
 func (e *EcommerceModule) DiscoverProducts(niche string) ([]Product, error) {
 	fmt.Printf("[Ecommerce] Discovering products for niche: %s\n", niche)
 
-	searcher := research.NewResearchSearch(research.Tavily, e.Orch, e.Broker)
+	searcher := research.NewResearchSearch(research.DuckDuckGo, e.Orch, e.Broker)
 	results, err := searcher.Query(fmt.Sprintf("trending products %s 2026", niche))
 	if err != nil {
 		return nil, err

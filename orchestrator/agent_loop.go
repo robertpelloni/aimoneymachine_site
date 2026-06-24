@@ -8,16 +8,16 @@ import (
 
 // AgentLoopState tracks the state of an autonomous agent loop
 type AgentLoopState struct {
-	AgentID     string    `json:"agent_id"`
-	HustleType  string    `json:"hustle_type"`
-	Iterations  int       `json:"iterations"`
-	MaxIter     int       `json:"max_iter"`
-	LastAction  string    `json:"last_action"`
-	LastResult  string    `json:"last_result"`
-	StartTime   time.Time `json:"start_time"`
-	Status      string    `json:"status"` // running, paused, completed, failed
-	Errors      int       `json:"errors"`
-	Successes   int       `json:"successes"`
+	AgentID    string    `json:"agent_id"`
+	HustleType string    `json:"hustle_type"`
+	Iterations int       `json:"iterations"`
+	MaxIter    int       `json:"max_iter"`
+	LastAction string    `json:"last_action"`
+	LastResult string    `json:"last_result"`
+	StartTime  time.Time `json:"start_time"`
+	Status     string    `json:"status"` // running, paused, completed, failed
+	Errors     int       `json:"errors"`
+	Successes  int       `json:"successes"`
 }
 
 // AgentLoop runs a continuous LLM-driven decision loop for a hustle type.
@@ -156,7 +156,7 @@ Your job is to decide the NEXT ACTION to take. You must respond with a SINGLE hu
 Available modules and their parameters:
 - hustle://research?query=TOPIC — Search the web for intelligence on a topic
 - hustle://curation?topic=TOPIC — Curate and summarize content on a topic
-- hustle://social?platform=PLATFORM&topic=TOPIC — Generate and post content (platform: Twitter, LinkedIn)
+- hustle://social?platform=PLATFORM&topic=TOPIC — Generate and post content (platform: Twitter, LinkedIn, Bluesky)
 - hustle://trading?symbol=SYMBOL — Execute trading strategy for a crypto symbol
 - hustle://content?topic=TOPIC&type=TYPE — Generate monetizable content (type: blog, newsletter, seo, thread, tool)
 - hustle://content?topic=TOPIC&type=TYPE&publish=true — Generate AND publish content to WordPress/Newsletter

@@ -95,26 +95,26 @@ func getEnvDefault(key, def string) string {
 
 // symbolToCoinGeckoID maps common tickers to CoinGecko API IDs.
 var symbolToCoinGeckoID = map[string]string{
-	"BTC":  "bitcoin",
-	"ETH":  "ethereum",
-	"SOL":  "solana",
-	"DOGE": "dogecoin",
-	"XRP":  "ripple",
-	"ADA":  "cardano",
-	"DOT":  "polkadot",
-	"AVAX": "avalanche-2",
-	"LINK": "chainlink",
+	"BTC":   "bitcoin",
+	"ETH":   "ethereum",
+	"SOL":   "solana",
+	"DOGE":  "dogecoin",
+	"XRP":   "ripple",
+	"ADA":   "cardano",
+	"DOT":   "polkadot",
+	"AVAX":  "avalanche-2",
+	"LINK":  "chainlink",
 	"MATIC": "matic-network",
-	"UNI":  "uniswap",
-	"ATOM": "cosmos",
-	"LTC":  "litecoin",
-	"BCH":  "bitcoin-cash",
-	"FIL":  "filecoin",
-	"APT":  "aptos",
-	"SUI":  "sui",
-	"ARB":  "arbitrum",
-	"OP":   "optimism",
-	"NEAR": "near",
+	"UNI":   "uniswap",
+	"ATOM":  "cosmos",
+	"LTC":   "litecoin",
+	"BCH":   "bitcoin-cash",
+	"FIL":   "filecoin",
+	"APT":   "aptos",
+	"SUI":   "sui",
+	"ARB":   "arbitrum",
+	"OP":    "optimism",
+	"NEAR":  "near",
 }
 
 // GetPrice fetches the current USD price for a symbol.
@@ -307,20 +307,17 @@ func (t *TradingModule) ExecuteStrategy() error {
 
 	fmt.Printf("[Trading] Executing strategy for Symbol: %s\n", t.Symbol)
 
-	// CONFLUENCE 2.0: Sentiment Analysis via Research Module
+	// CONFLUENCE 2.0: Real sentiment from Fear & Greed Index or CoinGecko
 	sentiment := "NEUTRAL"
-	searcher := research.NewResearchSearch(research.Tavily, t.Orchestrator, t.Broker)
+	searcher := research.NewResearchSearch(research.DuckDuckGo, t.Orchestrator, t.Broker)
 	results, err := searcher.Query(t.Symbol + " price sentiment news")
 	if err == nil && len(results) > 0 {
-		var combinedSnippet string
-		for _, r := range results { combinedSnippet += r.Snippet + " " }
-
-		prompt := fmt.Sprintf("Analyze the market sentiment for %s based on these news snippets: %s. Respond with ONLY 'BULLISH', 'BEARISH', or 'NEUTRAL'.", t.Symbol, combinedSnippet)
-		resp, _ := t.Orchestrator.LLM.Generate(prompt)
-		if strings.Contains(strings.ToUpper(resp), "BULLISH") {
-			sentiment = "BULLISH"
-		} else if strings.Contains(strings.ToUpper(resp), "BEARISH") {
-			sentiment = "BEARISH"
+		// Use the Sentiment field directly from research sources
+		for _, r := range results {
+			if r.Sentiment != "" {
+				sentiment = r.Sentiment
+				break
+			}
 		}
 	}
 	fmt.Printf("[Trading] Live Sentiment Confluence: %s\n", sentiment)
@@ -488,7 +485,9 @@ func (t *TradingModule) calculateRSI(period int) float64 {
 	var gains, losses float64
 	// Start loop from index that ensures i-1 is valid
 	startIdx := len(t.History) - period
-	if startIdx < 1 { startIdx = 1 }
+	if startIdx < 1 {
+		startIdx = 1
+	}
 
 	for i := startIdx; i < len(t.History); i++ {
 		change := t.History[i] - t.History[i-1]

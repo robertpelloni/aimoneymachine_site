@@ -1,2 +1,6 @@
 active_branch: main
 initialized: "2026-06-22T14:07:16Z"
+sessions:
+  - file: "C:\Users\hyper\.pi\agent\sessions\--C--Users-hyper-workspace-aimoneymachine_site--\2026-06-22T14-41-28-736Z_019eefc7-7ca0-78c8-a688-6314f0bb451f.jsonl"
+    branch: main
+    started: "2026-06-23T21:34:30.507Z"

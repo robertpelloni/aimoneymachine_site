@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/dghubble/oauth1"
@@ -311,10 +312,27 @@ func NewLinkedInProvider(accessToken, authorURN string) *LinkedInProvider {
 func GenerateContent(orch *orchestrator.Orchestrator, topic string) string {
 	prompt := fmt.Sprintf("Create a short, revolutionary social media post about %s with hashtags.", topic)
 	content, err := orch.LLM.Generate(prompt)
-	if err != nil {
-		return fmt.Sprintf("Revolutionary insights on %s! #hustle #ai", topic)
+
+	// Validate LLM output — reject junk: prompt echo, metadata, JSON, short garbage
+	if err != nil || content == "" || len(content) < 20 ||
+		strings.Contains(content, "Create a short") ||
+		strings.Contains(content, "[Model:") ||
+		strings.Contains(content, "Generated content") ||
+		strings.Contains(content, "```json") ||
+		strings.Contains(content, "```") ||
+		strings.Contains(content, "gt-oss") ||
+		strings.Contains(content, "[assistant") ||
+		strings.Contains(content, "<|assistant|") {
+		fallback := fmt.Sprintf("Revolutionary insights on %s! #hustle #ai", topic)
+		if err != nil {
+			fmt.Printf("[Social] LLM error, using fallback: %v\n", err)
+		} else {
+			fmt.Printf("[Social] LLM returned invalid content, using fallback: %q\n", content)
+		}
+		return fallback
 	}
-	return content
+
+	return strings.TrimSpace(content)
 }
 
 func FormatForPlatform(content, platform string) string {

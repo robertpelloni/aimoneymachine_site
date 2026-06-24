@@ -20,7 +20,7 @@ func DiscoverLeads(orch *orchestrator.Orchestrator, topic string) ([]Lead, error
 	fmt.Printf("[LeadGen] Hunting for leads related to: %s\n", topic)
 
 	// 1. Perform research to get context
-	searcher := NewResearchSearch(Tavily, orch, nil)
+	searcher := NewResearchSearch(DuckDuckGo, orch, nil)
 	results, err := searcher.Query(topic + " companies needs automation")
 	if err != nil {
 		return nil, fmt.Errorf("research failed: %v", err)

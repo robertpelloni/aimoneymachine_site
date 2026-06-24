@@ -1,0 +1,49 @@
+/* NAV OVERRIDE — compact, horizontal, no squish */
+.wp-block-navigation.is-vertical {
+	flex-direction: row !important;
+	flex-wrap: nowrap !important;
+	padding: 0.15rem 0.3rem !important;
+	border-radius: 30px !important;
+	margin-left: auto !important;
+	width: auto !important;
+	flex-shrink: 0 !important;
+}
+.wp-block-navigation a {
+	padding: 0.2rem 0.6rem !important;
+	font-size: 0.65rem !important;
+	letter-spacing: 0.08em !important;
+}
+.wp-block-navigation
+	.wp-block-navigation-item
+	+ .wp-block-navigation-item::before {
+	display: none !important;
+}
+.wp-block-navigation__container {
+	flex-direction: row !important;
+	flex-wrap: nowrap !important;
+	gap: 0 !important;
+}
+.wp-block-site-title {
+	font-size: 1.2rem !important;
+	flex-shrink: 0 !important;
+	white-space: nowrap !important;
+	max-width: 60% !important;
+	overflow: hidden !important;
+	text-overflow: ellipsis !important;
+}
+.wp-block-site-title::before,
+.wp-block-site-title::after {
+	display: none !important;
+}
+.wp-block-site-tagline {
+	font-size: 0.8rem !important;
+	margin-top: 0 !important;
+}
+.wp-block-template-part:first-child .wp-block-group.alignwide {
+	display: flex !important;
+	flex-direction: row !important;
+	flex-wrap: nowrap !important;
+	align-items: center !important;
+	justify-content: space-between !important;
+	gap: 0.5rem !important;
+}
