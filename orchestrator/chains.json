@@ -6,5 +6,12 @@
       "hustle://step1",
       "hustle://step2"
     ]
+  },
+  "mock_hustle": {
+    "name": "mock_hustle",
+    "description": "mock",
+    "steps": [
+      "hustle://research"
+    ]
   }
 }
