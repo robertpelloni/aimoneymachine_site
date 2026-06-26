@@ -1,3 +1,33 @@
+## [1.0.0-alpha.90] - 2026-06-23
+
+### Added
+- **Luxury Site Redesign**: Palace of Excess theme — 25 CSS sections, 39K chars custom styling
+- **Visual Effects**: Diamond rain, wealth rain emoji particles, golden celestial suns, sparkle bursts, wealth ticker marquee, liquid gold animations, crown ornaments, corner gemstones
+- **Content Audit Service** (aimm-audit): FreeLLM-powered quality checking of all 276 posts, auto-queues FAIL/REWRITE posts for re-expansion
+- **Watchdog Service** (aimm-watchdog): Monitors all services every 60s, auto-restarts failures, healthcheck timer every 5min
+- **Hustle Generator Engine** (aimm-hustle-gen): Scans bookmark databases for money-making opportunities, outputs structured JSON
+- **Batch Content Publisher** (aimm-publisher): Auto-generates 24 diverse articles across 9 categories via FreeLLM
+- **Deep Bookmark Scan**: 509 money-related URLs extracted from 15MB+ of research data
+- **Affiliate Marketing Module**: Amazon product scrape → LLM review → auto-post pipeline
+- **200+ Side Hustles Post**: Published comprehensive article with real revenue numbers
+- **Deep Scan Post**: Published findings from bookmark research database
+
+### Fixed
+- **Chain Discoverer**: Infinite feedback loop — added duplicate chain detection before registration
+- **Trading Bots**: Restored all 7 per-symbol bots (BTC, ETH, SOL, DOGE, XRP, ADA, LINK) with staggered 1-7min intervals
+- **CoinGecko**: Added API key for real price data — no more 429 rate limits
+- **FreeLLM Path**: Corrected API endpoint from /v1/ to /api/proxy/v1/
+- **LLM Timeouts**: Bumped from 120s to 600s across all providers
+- **Version Display**: Fixed empty version in API status response
+- **Social Error Logging**: Added visible success/failure indicators for post results
+- **Git Conflicts**: Resolved across 10+ files, cleaned all merge artifacts
+- **Journald Log Spam**: Capped at 200MB, disabled syslog forwarding to prevent disk fill-up
+- **Hustle Generator**: Fixed KeyError by using .get() safe access throughout
+
+### Changed
+- **Theme**: Complete visual overhaul — gold foil, glass morphism, wealth aesthetic
+- **Retry Logic**: All LLM calls now use indefinite retry with exponential backoff
+- **Orchestrator Binary**: Fresh cross-compile with all fixes included
 ## [1.1.4-dev] - 2026-07-03
 
 ### Added
