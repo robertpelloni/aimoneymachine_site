@@ -307,67 +307,6 @@ func main() {
 		return runSyncProtocol()
 	})
 
-	// NEW: Synergistic Hustle: Lead Discovery Loop
-	// Research -> Personalize Pitch -> Outreach
-	protocol.Register("synergy_leadgen", func(p url.Values) error {
-		niche := p.Get("niche")
-		if niche == "" {
-			niche = "B2B SaaS"
-		}
-		topic := p.Get("topic")
-		if topic == "" {
-			topic = "AI Automation Implementation"
-		}
-
-		fmt.Printf("\n[Synergy] 🚀 Initiating Lead Discovery Loop for: %s\n", niche)
-
-		// 1. Research phase
-		searcher := research.NewResearchSearch(research.Tavily, orch, broker)
-		_, err := searcher.Query(niche + " companies")
-		if err != nil {
-			fmt.Printf("[Synergy] ⚠️ Research phase failed: %v\n", err)
-			return err
-		}
-
-		// 2. Discover Leads
-		lg := research.NewLeadGenerator(orch)
-		leads, err := lg.FindLeads(niche)
-		if err != nil || len(leads) == 0 {
-			fmt.Printf("[Synergy] ⚠️ Lead generation phase failed or found no leads.\n")
-			return err
-		}
-		fmt.Printf("[Synergy] Found %d leads.\n", len(leads))
-
-		// 3. Draft & Dispatch Outreach
-		campaign := research.NewOutreachCampaign(orch)
-		for _, lead := range leads {
-			fmt.Printf("[Synergy] Personalizing pitch for %s...\n", lead.Name)
-			body, err := campaign.PersonalizePitch(lead, topic)
-			if err != nil {
-				fmt.Printf("[Synergy] ⚠️ Failed to personalize pitch for %s: %v\n", lead.Name, err)
-				continue
-			}
-
-			subject := fmt.Sprintf("Quick question regarding %s", lead.Name)
-			err = campaign.SendEmail(lead, subject, body)
-			if err != nil {
-				fmt.Printf("[Synergy] ⚠️ Failed to send outreach to %s: %v\n", lead.Name, err)
-			}
-		}
-
-		fmt.Println("[Synergy] ✅ Lead Discovery Loop completed.")
-
-		// 4. Log completion to memory to drive continuous learning
-		orch.L2.Add(orchestrator.MemoryEntry{
-			ID:        fmt.Sprintf("synergy-leadgen-%d", time.Now().Unix()),
-			Content:   fmt.Sprintf("Successfully executed synergistic leadgen loop for %s targeting %s.", niche, topic),
-			Timestamp: time.Now(),
-			Tags:      []string{"synergy", "leadgen", "success"},
-		})
-
-		return nil
-	})
-
 	// ── Mesh Seed ──
 	if *seedURL != "" {
 		fmt.Printf("[Swarm] Joining mesh via seed: %s\n", *seedURL)
@@ -489,11 +428,6 @@ func main() {
 		})
 		scheduler.Register("Heartbeat", 5*time.Minute, func(o *orchestrator.Orchestrator) error {
 			return orchestrator.WriteStatusReport(version, "Active", "Scheduler Heartbeat", o.Ledger)
-		})
-
-		// NEW: Add Synergistic Hustle Loop to Daemon
-		scheduler.Register("SynergisticLeadGen", 8*time.Hour, func(o *orchestrator.Orchestrator) error {
-			return protocol.HandleURI("hustle://synergy_leadgen?niche=E-commerce&topic=Automated+Customer+Service")
 		})
 
 		fmt.Println("Orchestrator running in Daemon mode.")
@@ -685,7 +619,6 @@ func runInteractiveMenu(orch *orchestrator.Orchestrator, protocol *orchestrator.
 		fmt.Println("21. 🆕 RSS Feed Management")
 		fmt.Println("22. 🆕 View Task History (SQLite)")
 		fmt.Println("23. 🆕 Configure Collective Wealth Goal")
-		fmt.Println(" 24. 🆕 Launch Synergistic LeadGen Loop")
 		fmt.Println(" q. Quit")
 		fmt.Print("Select an option: ")
 
@@ -843,8 +776,6 @@ func runInteractiveMenu(orch *orchestrator.Orchestrator, protocol *orchestrator.
 			} else {
 				fmt.Println("Invalid amount. Goal unchanged.")
 			}
-		case "24":
-			protocol.HandleURI("hustle://synergy_leadgen?niche=E-commerce&topic=Automated+Customer+Service")
 		case "q":
 			fmt.Println("Exiting...")
 			return
