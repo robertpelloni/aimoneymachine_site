@@ -41,7 +41,7 @@ func ShowDashboard(orch *Orchestrator) {
 	contentEntries := orch.L1.Search("content")
 	contentCount = len(contentEntries)
 	if contentCount > 0 {
-		fmt.Printf(" [CONTENT HUB]    Generated: %d pieces\n", contentCount)
+		fmt.Printf(" [📝 CONTENT HUB]  Generated: %d pieces\n", contentCount)
 	}
 
 	// Affiliate Metrics
@@ -55,6 +55,13 @@ func ShowDashboard(orch *Orchestrator) {
 	mediaEntries := orch.L1.Search("media_shorts")
 	if len(mediaEntries) > 0 {
 		fmt.Printf(" [SHORTS FACTORY] Generated: %d scripts\n", len(mediaEntries))
+	}
+
+	// ── Digital Products Metrics ──
+	productEntries := orch.L1.Search("digital_product")
+	if len(productEntries) > 0 {
+		fmt.Printf(" [📦 PRODUCT ARCHIVE] Templates Generated: %d [Gumroad API Stubbed]\n", len(productEntries))
+		fmt.Printf("   💡 Tooltip: Auto-generates Notion templates and code boilerplates for passive income.\n")
 	}
 
 	// Agent Observability
