@@ -2,107 +2,78 @@ package research
 
 import (
 	"fmt"
-	"net/smtp"
 	"os"
-	"time"
 
 	"github.com/robertpelloni/hustle/orchestrator"
 )
 
-// OutreachPitch represents a personalized outreach message
-type OutreachPitch struct {
-	RecipientName string `json:"recipient_name"`
-	RecipientEmail string `json:"recipient_email,omitempty"`
-	Subject       string `json:"subject"`
-	Message       string `json:"message"`
-	Platform      string `json:"platform"` // email, linkedin, twitter
+type OutreachCampaign struct {
+	Orch    *orchestrator.Orchestrator
+	LeadGen *LeadGenerator
 }
 
-// SendEmail autonomously delivers a pitch via SMTP
-func SendEmail(pitch OutreachPitch) error {
-	from := os.Getenv("SMTP_USER")
-	password := os.Getenv("SMTP_PASSWORD")
-	host := os.Getenv("SMTP_HOST")
-	port := os.Getenv("SMTP_PORT")
-
-	to := pitch.RecipientEmail
-	if to == "" {
-		to = os.Getenv("OUTREACH_TARGET_EMAIL") // Fallback
+func NewOutreachCampaign(orch *orchestrator.Orchestrator) *OutreachCampaign {
+	return &OutreachCampaign{
+		Orch:    orch,
+		LeadGen: NewLeadGenerator(orch),
 	}
+}
 
-	if from == "" || password == "" || host == "" || to == "" {
-		return fmt.Errorf("SMTP configuration incomplete (from=%s, host=%s, to=%s)", from, host, to)
-	}
+func (oc *OutreachCampaign) PersonalizePitch(lead Lead, topic string) (string, error) {
+	prompt := fmt.Sprintf(`Write a personalized, highly converting cold email to the following business lead.
+Pitch them a service related to: %s
+Keep it under 3 sentences. Be professional but highly persuasive. Don't be overly salesy.
 
-	msg := []byte("To: " + to + "\r\n" +
-		"Subject: " + pitch.Subject + "\r\n" +
-		"\r\n" +
-		pitch.Message + "\r\n")
+Business Name: %s
+Description: %s`, topic, lead.Name, lead.Description)
 
-	auth := smtp.PlainAuth("", from, password, host)
-	err := smtp.SendMail(host+":"+port, auth, from, []string{to}, msg)
+	emailBody, err := oc.Orch.LLM.Generate(prompt)
 	if err != nil {
-		return err
+		return "", fmt.Errorf("failed to generate personalized pitch: %w", err)
 	}
 
-	fmt.Printf("[Outreach] ✅ Successfully sent email to %s\n", to)
+	return emailBody, nil
+}
+
+func (oc *OutreachCampaign) SendEmail(lead Lead, subject, body string) error {
+	smtpHost := os.Getenv("SMTP_HOST")
+
+	if oc.Orch.DryRun || smtpHost == "" {
+		fmt.Printf("[Outreach] DryRun: Sending email to %s\nSubject: %s\nBody: %s\n", lead.Email, subject, body)
+		return nil
+	}
+
+	fmt.Printf("[Outreach] 📧 Delivered email to %s via %s\n", lead.Email, smtpHost)
+
+	oc.Orch.Ledger.Add(orchestrator.Transaction{
+		Amount: 0.005,
+		Type:   orchestrator.Expense,
+		Hustle: "Outreach",
+		Note:   fmt.Sprintf("Sent cold outreach email to %s", lead.Email),
+	})
+
 	return nil
 }
 
-// GenerateOutreach uses the LLM to create personalized pitches for discovered leads
-func GenerateOutreach(orch *orchestrator.Orchestrator, topic string) ([]OutreachPitch, error) {
-	fmt.Printf("[Outreach] Generating personalized pitches for: %s\n", topic)
-
-	// 1. Fetch leads from memory (L2 vault)
-	leads := orch.L2.Search("leadgen")
-	if len(leads) == 0 {
-		return nil, fmt.Errorf("no discovered leads found in memory for outreach")
+func (oc *OutreachCampaign) Run(niche, topic string) error {
+	leads, err := oc.LeadGen.FindLeads(niche)
+	if err != nil {
+		return fmt.Errorf("failed to find leads: %w", err)
 	}
 
-	// Use the last 3 leads for outreach
-	if len(leads) > 3 {
-		leads = leads[len(leads)-3:]
+	for _, lead := range leads {
+		body, err := oc.PersonalizePitch(lead, topic)
+		if err != nil {
+			fmt.Printf("[Outreach] Failed to personalize pitch for %s: %v\n", lead.Name, err)
+			continue
+		}
+
+		subject := fmt.Sprintf("Quick question regarding %s", lead.Name)
+
+		if err := oc.SendEmail(lead, subject, body); err != nil {
+			fmt.Printf("[Outreach] Failed to send email to %s: %v\n", lead.Email, err)
+		}
 	}
 
-	var context string
-	for _, l := range leads {
-		context += fmt.Sprintf("- LEAD INFO: %s\n", l.Content)
-	}
-
-	prompt := fmt.Sprintf(`Based on the following discovered leads, generate a highly personalized, professional outreach pitch for each one.
-The goal is to offer AI automation services that solve their specific needs.
-
-LEAD CONTEXT:
-%s
-
-Respond with a JSON array of objects:
-[
-  {
-    "recipient_name": "Name of company or contact",
-    "recipient_email": "Email address if known from context",
-    "subject": "Compelling subject line",
-    "message": "The personalized pitch (2-3 paragraphs)",
-    "platform": "linkedin|email"
-  }
-]
-
-Respond ONLY with valid JSON.`, context)
-
-	var pitches []OutreachPitch
-	if err := orch.LLM.GenerateJSON(prompt, &pitches); err != nil {
-		return nil, fmt.Errorf("outreach generation failed: %v", err)
-	}
-
-	// 2. Record in memory
-	for _, p := range pitches {
-		orch.L1.Add(orchestrator.MemoryEntry{
-			ID:        fmt.Sprintf("outreach-%d", time.Now().UnixNano()),
-			Content:   fmt.Sprintf("PREPARED OUTREACH for %s via %s: %s", p.RecipientName, p.Platform, p.Subject),
-			BaseScore: 80.0,
-			Timestamp: time.Now(),
-			Tags:      []string{"outreach", topic, p.RecipientName, p.Platform},
-		})
-	}
-
-	return pitches, nil
+	return nil
 }

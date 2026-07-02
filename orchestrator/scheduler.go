@@ -3,7 +3,6 @@ package orchestrator
 import (
 	"encoding/json"
 	"fmt"
-	"math/rand"
 	"os"
 	"sort"
 	"strings"
@@ -149,9 +148,6 @@ func (s *Scheduler) ReevaluateStrategy(recommendation string) {
 func (s *Scheduler) Start() {
 	fmt.Println("Starting Task Scheduler...")
 	for {
-		// Autonomous Strategy Optimization
-		s.autonomousOptimization()
-
 		// Check for ROI corrections in memory
 		s.checkROICorrections()
 
@@ -160,15 +156,8 @@ func (s *Scheduler) Start() {
 
 		s.mu.Lock()
 		for _, task := range s.Tasks {
-			interval := task.Interval
-			if s.Orchestrator.StealthMode {
-				// Add random jitter (±15%) for stealth execution
-				jitter := time.Duration(float64(interval) * (rand.Float64()*0.3 - 0.15))
-				interval += jitter
-			}
-
-			if time.Since(task.LastRun) >= interval {
-				fmt.Printf("Running task: %s (Stealth: %v)\n", task.Name, s.Orchestrator.StealthMode)
+			if time.Since(task.LastRun) >= task.Interval {
+				fmt.Printf("Running task: %s\n", task.Name)
 				s.mu.Unlock()
 				start := time.Now()
 				err := task.Execute(s.Orchestrator)
@@ -222,21 +211,6 @@ func (s *Scheduler) updateMetadata() {
 		queue = append(queue, fmt.Sprintf("%s (%v)", sorted[i].name, sorted[i].remaining.Round(time.Second)))
 	}
 	s.Orchestrator.TaskQueue = queue
-}
-
-func (s *Scheduler) autonomousOptimization() {
-	// Look for Leaderboard insights in L1
-	leaderboard := s.Orchestrator.L1.Search("leaderboard")
-	if len(leaderboard) == 0 { return }
-
-	// Identify highest profit peer strategies
-	strategies := s.Orchestrator.L1.Search("collective_strategy")
-	for _, st := range strategies {
-		if strings.Contains(st.Content, "COLLECTIVE_ALPHA") {
-			// Recommendation format: "COLLECTIVE_ALPHA: Recommendation: Focus on [TaskName] ..."
-			s.ReevaluateStrategy(st.Content)
-		}
-	}
 }
 
 func (s *Scheduler) checkROICorrections() {

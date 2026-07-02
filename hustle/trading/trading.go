@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"math"
 	"math/rand"
 	"net/http"
 	"os"
@@ -13,7 +12,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/robertpelloni/hustle/hustle/research"
 	"github.com/robertpelloni/hustle/orchestrator"
 )
 
@@ -241,64 +239,15 @@ func min(a, b int) int {
 	return b
 }
 
-type TradeExecutor interface {
-	ExecuteOrder(symbol, side, orderType string, quantity float64) error
-	GetPrice(symbol string) (float64, error)
-}
-
-type MockExecutor struct{}
-
-func (m *MockExecutor) ExecuteOrder(symbol, side, orderType string, quantity float64) error {
-	fmt.Printf("[MockExecutor] Simulating %s %s for %f\n", side, symbol, quantity)
-	return nil
-}
-
-func (m *MockExecutor) GetPrice(symbol string) (float64, error) {
-	return 50000.0, nil
-}
-
 type TradingModule struct {
 	Orchestrator *orchestrator.Orchestrator
 	Broker       *orchestrator.A2ABroker
 	Symbol       string
 	Fetcher      PriceFetcher
-	Executor     TradeExecutor
 	History      []float64
 	RSIHistory   []float64
-	MACDHistory  []float64
 	Watchlist    []string
 	mu           sync.Mutex
-}
-
-// ScanArbitrage compares prices across Binance and Kraken
-func (t *TradingModule) ScanArbitrage() error {
-	binance := NewBinanceExecutor()
-	kraken := NewKrakenExecutor()
-
-	p1, err1 := binance.GetPrice(t.Symbol)
-	p2, err2 := kraken.GetPrice(t.Symbol)
-
-	if err1 != nil || err2 != nil {
-		return fmt.Errorf("arbitrage scan failed: binance=%v, kraken=%v", err1, err2)
-	}
-
-	diff := math.Abs(p1 - p2)
-	pct := (diff / ((p1 + p2) / 2)) * 100
-
-	fmt.Printf("[Arbitrage] %s: Binance=$%.2f, Kraken=$%.2f | Diff=$%.2f (%.2f%%)\n", t.Symbol, p1, p2, diff, pct)
-
-	if pct > 0.5 {
-		fmt.Printf("[Arbitrage] 🚨 PROFIT OPPORTUNITY DETECTED for %s\n", t.Symbol)
-		t.Orchestrator.L2.Add(orchestrator.MemoryEntry{
-			ID:        fmt.Sprintf("arb-%s-%d", t.Symbol, time.Now().Unix()),
-			Content:   fmt.Sprintf("Arbitrage Opportunity: %s price gap %.2f%% ($%.2f)", t.Symbol, pct, diff),
-			BaseScore: 90.0,
-			Timestamp: time.Now(),
-			Tags:      []string{"trading", "arbitrage", "alpha", t.Symbol},
-		})
-	}
-
-	return nil
 }
 
 func (t *TradingModule) ExecuteStrategy() error {
@@ -306,21 +255,6 @@ func (t *TradingModule) ExecuteStrategy() error {
 	defer t.mu.Unlock()
 
 	fmt.Printf("[Trading] Executing strategy for Symbol: %s\n", t.Symbol)
-
-	// CONFLUENCE 2.0: Real sentiment from Fear & Greed Index or CoinGecko
-	sentiment := "NEUTRAL"
-	searcher := research.NewResearchSearch(research.DuckDuckGo, t.Orchestrator, t.Broker)
-	results, err := searcher.Query(t.Symbol + " price sentiment news")
-	if err == nil && len(results) > 0 {
-		// Use the Sentiment field directly from research sources
-		for _, r := range results {
-			if r.Sentiment != "" {
-				sentiment = r.Sentiment
-				break
-			}
-		}
-	}
-	fmt.Printf("[Trading] Live Sentiment Confluence: %s\n", sentiment)
 
 	price, err := t.Fetcher.GetPrice(t.Symbol)
 	if err != nil {
@@ -339,35 +273,21 @@ func (t *TradingModule) ExecuteStrategy() error {
 
 	fmt.Printf("[Trading] Indicators -> SMA(5): $%.2f | RSI(14): %.2f\n", sma, rsi)
 
-	// Bollinger Bands (20, 2)
-	bbUpper, bbLower := t.calculateBollingerBands(20, 2.0)
-
-	// MACD
-	macd, signal, hist := t.calculateMACD()
-	t.MACDHistory = append(t.MACDHistory, macd)
-
-	fmt.Printf("[Trading] Indicators -> BB: (U:%.2f, L:%.2f) | MACD: %.2f (S:%.2f, H:%.2f)\n", bbUpper, bbLower, macd, signal, hist)
-
 	divergence := t.detectDivergence()
 	if divergence != "" {
 		fmt.Printf("[Trading] DIVERGENCE DETECTED: %s\n", divergence)
 	}
 
 	decision := "HOLD"
-	if len(t.History) >= 26 {
-		// Complex Decision Engine with Technical + Sentiment Confluence
-		isTechnicalBuy := (rsi < 35 && price < sma && price <= bbLower) || divergence == "BULLISH"
-		isTechnicalSell := (rsi > 65 && price > sma && price >= bbUpper) || divergence == "BEARISH"
-
-		if isTechnicalBuy && sentiment == "BULLISH" {
+	if len(t.History) >= 14 {
+		// Complex Decision Engine with Confluence
+		if (rsi < 30 && price < sma) || divergence == "BULLISH" {
 			decision = "BUY"
-		} else if isTechnicalSell && sentiment == "BEARISH" {
+		} else if (rsi > 70 && price > sma) || divergence == "BEARISH" {
 			decision = "SELL"
-		} else if isTechnicalBuy || isTechnicalSell {
-			fmt.Printf("[Trading] Technical signal rejected by %s sentiment.\n", sentiment)
 		}
 	} else {
-		fmt.Println("[Trading] Insufficient history for complex indicators (need 26 for MACD), defaulting to HOLD.")
+		fmt.Println("[Trading] Insufficient history for complex indicators, defaulting to HOLD.")
 	}
 
 	fmt.Printf("[Trading] Strategy Decision: %s\n", decision)
@@ -375,27 +295,12 @@ func (t *TradingModule) ExecuteStrategy() error {
 	// Persist to memory
 	t.Orchestrator.L1.Add(orchestrator.MemoryEntry{
 		ID:        fmt.Sprintf("trade-%s-%d", t.Symbol, time.Now().Unix()),
-		Content:   fmt.Sprintf("Trade Decision for %s: %s at $%.2f (SMA: $%.2f, RSI: %.2f, BB-L: %.2f, MACD: %.2f)", t.Symbol, decision, price, sma, rsi, bbLower, macd),
+		Content:   fmt.Sprintf("Trade Decision for %s: %s at $%.2f (SMA: $%.2f, RSI: %.2f, Div: %s)", t.Symbol, decision, price, sma, rsi, divergence),
 		Timestamp: time.Now(),
 		Tags:      []string{"trading", t.Symbol, decision},
 	})
 
 	if decision != "HOLD" {
-		// Execution of real or mock trade
-		if t.Executor != nil {
-			// Naive quantity logic for autonomous engine (0.001 BTC equivalent)
-			qty := 0.001
-			if strings.Contains(t.Symbol, "ETH") {
-				qty = 0.01
-			} else if strings.Contains(t.Symbol, "SOL") {
-				qty = 0.1
-			}
-
-			if err := t.Executor.ExecuteOrder(t.Symbol, decision, "MARKET", qty); err != nil {
-				fmt.Printf("[Trading] ❌ Execution failed: %v\n", err)
-			}
-		}
-
 		t.Orchestrator.Ledger.Add(orchestrator.Transaction{
 			Amount: 0.10, // Simulating execution fee
 			Type:   orchestrator.Expense,
@@ -477,24 +382,17 @@ func (t *TradingModule) calculateSMA(period int) float64 {
 }
 
 func (t *TradingModule) calculateRSI(period int) float64 {
-	// Guard against empty history or history shorter than period + 1 (for first change)
 	if len(t.History) <= period {
 		return 50.0 // Neutral default
 	}
 
 	var gains, losses float64
-	// Start loop from index that ensures i-1 is valid
-	startIdx := len(t.History) - period
-	if startIdx < 1 {
-		startIdx = 1
-	}
-
-	for i := startIdx; i < len(t.History); i++ {
+	for i := len(t.History) - period; i < len(t.History); i++ {
 		change := t.History[i] - t.History[i-1]
 		if change > 0 {
 			gains += change
 		} else {
-			losses -= math.Abs(change)
+			losses -= change
 		}
 	}
 
@@ -502,52 +400,6 @@ func (t *TradingModule) calculateRSI(period int) float64 {
 		return 100.0
 	}
 
-	// RSI uses absolute values for average loss
-	absLosses := math.Abs(losses)
-	rs := (gains / float64(period)) / (absLosses / float64(period))
+	rs := (gains / float64(period)) / (losses / float64(period))
 	return 100.0 - (100.0 / (1.0 + rs))
-}
-
-func (t *TradingModule) calculateBollingerBands(period int, stdDevMultiplier float64) (upper, lower float64) {
-	if len(t.History) < period {
-		return 0, 0
-	}
-
-	sma := t.calculateSMA(period)
-	variance := 0.0
-	for i := len(t.History) - period; i < len(t.History); i++ {
-		diff := t.History[i] - sma
-		variance += diff * diff
-	}
-	stdDev := math.Sqrt(variance / float64(period))
-
-	upper = sma + (stdDevMultiplier * stdDev)
-	lower = sma - (stdDevMultiplier * stdDev)
-	return upper, lower
-}
-
-func (t *TradingModule) calculateEMA(period int, data []float64) float64 {
-	if len(data) < period {
-		return 0
-	}
-	multiplier := 2.0 / (float64(period) + 1.0)
-	ema := data[len(data)-period]
-	for i := len(data) - period + 1; i < len(data); i++ {
-		ema = (data[i]-ema)*multiplier + ema
-	}
-	return ema
-}
-
-func (t *TradingModule) calculateMACD() (macd, signal, histogram float64) {
-	if len(t.History) < 26 {
-		return 0, 0, 0
-	}
-	ema12 := t.calculateEMA(12, t.History)
-	ema26 := t.calculateEMA(26, t.History)
-	macd = ema12 - ema26
-
-	signal = t.calculateEMA(9, t.MACDHistory)
-	histogram = macd - signal
-
-	return macd, signal, histogram
 }

@@ -1,0 +1,15 @@
+--- orchestrator/dashboard.go
++++ orchestrator/dashboard.go
+@@ -42,6 +42,12 @@
+		fmt.Printf(" [AFFILIATE HUB]  Injected Links: %d (Monetized Posts)\n", affiliateCount)
+	}
+
++	// Media/Shorts Metrics
++	mediaEntries := orch.L1.Search("media_shorts")
++	if len(mediaEntries) > 0 {
++		fmt.Printf(" [SHORTS FACTORY] Generated: %d scripts\n", len(mediaEntries))
++	}
++
+	// Agent Observability
+	agentEntries := orch.L1.Search("agent_loop")
+	if len(agentEntries) > 0 {

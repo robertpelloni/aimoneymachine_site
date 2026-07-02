@@ -113,27 +113,3 @@ func (l *Ledger) Load(filepath string) error {
 	}
 	return json.Unmarshal(data, l)
 }
-
-// TransferCapital handles mesh-wide capital reallocation (Self-Funding Swarm)
-func (l *Ledger) TransferCapital(amount float64, targetPeerID string, note string) {
-	l.Add(Transaction{
-		Amount:    amount,
-		Type:      Expense,
-		Hustle:    "swarm_funding",
-		Note:      fmt.Sprintf("Capital transfer to %s: %s", targetPeerID, note),
-		Timestamp: time.Now(),
-	})
-	fmt.Printf("[Ledger] Authorized $%.2f capital transfer to peer %s\n", amount, targetPeerID)
-}
-
-// ReceiveCapital handles inbound mesh funding
-func (l *Ledger) ReceiveCapital(amount float64, sourcePeerID string, note string) {
-	l.Add(Transaction{
-		Amount:    amount,
-		Type:      Revenue,
-		Hustle:    "swarm_funding",
-		Note:      fmt.Sprintf("Inbound funding from %s: %s", sourcePeerID, note),
-		Timestamp: time.Now(),
-	})
-	fmt.Printf("[Ledger] Received $%.2f capital injection from peer %s\n", amount, sourcePeerID)
-}

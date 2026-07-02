@@ -1,41 +1,62 @@
-# AI Hustle Machine - ROADMAP
+# Project Roadmap
 
-## v1.2.x - The Confluence Era
-- **Synergistic Hustles**: Automating the interaction between disparate modules (Research -> SaaS -> Marketing).
-- **Self-Funding Swarm**: Autonomous capital reallocation to ensure mesh-wide survival.
-- **Advanced Identity**: Fully decentralized DIDs for all node communications.
+## Phase 1: Federated Foundation (v1.0.0-alpha.1 – v1.0.0-alpha.30) ✅ COMPLETE
+- Tiered Memory (L1/L2/L3)
+- Basic Multi-Agent Council
+- Agent-to-Agent (A2A) Broker
+- Initial Hustle Modules (Research, Social, Curation)
+- hustle:// Protocol routing
 
-## v1.3.0 - The Physical Bridge
-- **Retail Arbitrage 2.0**: Integration with local inventory APIs for physical flipping.
-- **Real Estate Management**: Full automated guest communication and pricing for STR.
-- **Physical Fulfillment**: Partnerships with 3PL providers for POD and Dropshipping.
+## Phase 2: Intelligence & Autonomy (v1.0.0-alpha.31 – v1.0.0-alpha.43) ✅ COMPLETE
+- Delta-Sync Memory Swarming
+- Chain Orchestration & Discovery
+- Autonomous Luxury Logic
+- Mesh Aggregation & Status Scaling
+- Wealth Preservation (ROI auditing → auto-termination)
 
-## v1.5.0 - The Autonomous DAO
-- **On-chain Governance**: Moving mesh decisions to a decentralized ledger.
-- **Proof of Profit**: Cryptographic verification of hustle performance.
-- **Mesh Scaling**: Support for 10,000+ simultaneous nodes.
+## Phase 3: Real AI Integration (v1.0.0-alpha.44 – v1.0.0-alpha.66) ✅ COMPLETE
+- OpenAI-compatible LLM provider (LM Studio, Ollama, vLLM)
+- Real embedding provider (Nomic via LM Studio)
+- Agent Loop (Observe → Think → Act → Learn → Evaluate)
+- Multi-Agent Orchestrator (concurrent agent loops)
+- Content Hustle module (blog, newsletter, SEO, social thread)
+- HustlePlan strategic planner (LLM-generated plans)
+- Interactive menu with all 5 hustle modules
+- Agent mode CLI flag (`-agent`, `-autoplan`)
+- Refactored Healer with LLM-verification
 
-## v2.0.0 - The Singularity
-- **Self-Evolving Agents**: Agents that can modify their own source code to optimize for ROI.
-- **Universal Value Extraction**: Automating every possible digital and physical value chain.
-## Milestones
+## Phase 4: Production Hustle Operations (v1.0.0-alpha.67 – v1.0.0-alpha.78) ✅ COMPLETE
+- [x] **Real Research API** — Tavily integration for live intelligence (v1.0.0-alpha.68)
+- [x] **Graceful Shutdown** — State persistence on SIGINT/SIGTERM (v1.0.0-alpha.67)
+- [x] **Git Rollback** — Automated recovery to stable commits (v1.0.0-alpha.69)
+- [x] **Mesh UI** — Federated profit and status observability (v1.0.0-alpha.70)
+- [x] **API Expansion** — REST endpoints for remote orchestration (v1.0.0-alpha.72)
+- [x] **Safety Modes** — Social dry-run and manual diagnostics (v1.0.0-alpha.73)
+- [x] **Dynamic RSS** — User-managed feed lists for curation (v1.0.0-alpha.74)
+- [x] **Wealth Goals** — Mesh-wide financial targets and leaderboards (v1.0.0-alpha.75)
 
-- [x] v1.0.0-alpha.89 — Luxury site redesign, content audit, watchdog, chain discoverer fix
-- [x] v1.0.0-alpha.90 — Batch publisher, hustle generator, deep bookmark scan, logging fix
-- [ ] v1.1.0 — Twitter/X auto-posting working, affiliate marketing engine live
-- [ ] v1.2.0 — YouTube Shorts factory, multi-platform content pipeline
-- [ ] v2.0.0 — Fully autonomous income generation across all modules
+## Phase 5: Advanced Autonomy & Scaling (v1.0.0-alpha.78 – v1.0.0-beta.10) 🔧 IN PROGRESS
+- [ ] **Real Social API Integration** — Twitter/X and LinkedIn OAuth2/API calls
+- [ ] **Trading with real CoinGecko data** — verified in daemon mode with -real-prices
+- [ ] **Content output pipeline** — automated hosting/deployment of generated markdown
+- [ ] **Windows CGO build fix** — Migrate to `modernc.org/sqlite`
 
-## Running Services (Hetzner)
+## Phase 5: Advanced Autonomy (v1.0.0-beta.11 – v1.0.0-rc.1) 📋 PLANNED
+- [x] **Self-optimizing prompts** — A/B test prompt variations, track win rates
+- [ ] **Advanced trading indicators** — MACD, Bollinger Bands, volume analysis
+- [ ] **Multi-exchange trading** — Binance, Kraken exchange plugins
+- [ ] **Cross-hustle feedback** — research discoveries feed content topics, content feeds social
+- [x] **LLM response cache** — content-addressable cache for identical prompts
 
-| Service | Status | Purpose |
-|---------|--------|---------|
-| aimm-orchestrator | ✅ | 7 trading bots + daemon scheduler |
-| aimm-freellm | ✅ | LLM proxy with 35+ providers |
-| aimm-dashboard | ✅ | Web UI at :8083 |
-| aimm-content | ✅ | Content expansion to 100K chars |
-| aimm-watchdog | ✅ | Service monitoring every 60s |
-| aimm-audit | ✅ | Content quality auditing |
-| aimm-hustle-gen | ✅ | Idea generator engine |
-| aimm-publisher | ✅ | Batch content publishing |
-| sales-bot | ✅ | TormentNexus sales automation |
+## Phase 6: Federation & Scale (v1.0.0-rc.2 – v1.0.0) 📋 PLANNED
+- [ ] **Multi-node cluster testing** — 10+ peers with real mesh sync
+- [ ] **Global profit leaderboard** — mesh-wide ranking via A2A topic
+- [ ] **Decentralized identity** — DID for peer verification
+- [ ] **Adaptive sync intervals** — sync more during volatility, less during calm
+
+## Phase 7: Fully Automated Digital Real Estate Engine 🚀 PLANNED
+- [ ] **Programmatic SEO (pSEO) Content Factory**: Auto-generating and indexing high-intent long-tail keyword landing pages
+- [ ] **API-as-a-Service**: Dynamic micro-tools with token-based rate limiting (Leaky Bucket) and micro-billing
+- [ ] **Digital Product Archive Generator**: LLM-generated templates, boilerplate code, and clean datasets listed dynamically on an internal storefront
+- [ ] **Dynamic Data Arbitrage & Lead Capture**: Aggregating and summarizing public/API data into actionable, subscription-paywalled insights
+- [ ] **Affiliate Marketing Engine**: Fetch trending products, generate LLM reviews, and auto-post to Twitter and Blog

@@ -23,17 +23,7 @@ func NewHealer(o *Orchestrator) *Healer {
 func (h *Healer) Diagnose(issue string) string {
 	fmt.Printf("Diagnosing issue: %s\n", issue)
 
-	// Collaborative Healing: Search mesh memory for similar issues
-	meshFixes := h.Orchestrator.L2.Search("resolution")
-	var fixContext string
-	if len(meshFixes) > 0 {
-		fixContext = "\nRECENT MESH RESOLUTIONS:\n"
-		for _, f := range meshFixes {
-			fixContext += fmt.Sprintf("- %s\n", f.Content)
-		}
-	}
-
-	prompt := fmt.Sprintf("Act as a system architect. Diagnose the following system issue: %s. Provide a concise explanation of the root cause. %s", issue, fixContext)
+	prompt := fmt.Sprintf("Act as a system architect. Diagnose the following system issue: %s. Provide a concise explanation of the root cause.", issue)
 	diagnosis, err := h.Orchestrator.LLM.Generate(prompt)
 	if err != nil {
 		diagnosis = "Unable to generate AI diagnosis; defaulting to 'Incomplete system state'."
@@ -52,19 +42,6 @@ func (h *Healer) Diagnose(issue string) string {
 func (h *Healer) Fix(diagnosis string) bool {
 	h.RetryCount++
 	fmt.Printf("Applying fix attempt %d/%d based on diagnosis.\n", h.RetryCount, h.RetryLimit)
-
-	// Collaborative Swarm Healing: Broadcast error to mesh
-	if h.Orchestrator.Broker != nil {
-		fmt.Println("[Healer] Broadcasting error to mesh for Collaborative Swarm Healing...")
-		h.Orchestrator.Broker.Publish(Message{
-			ID:        fmt.Sprintf("err-%d", time.Now().Unix()),
-			Source:    "healer-module",
-			Type:      Command,
-			Topic:     "swarm_fix",
-			Payload:   diagnosis,
-			Timestamp: time.Now(),
-		})
-	}
 
 	prompt := fmt.Sprintf("Based on this diagnosis: %s, generate a step-by-step fix strategy for the system.", diagnosis)
 	fixStrategy, err := h.Orchestrator.LLM.Generate(prompt)
@@ -99,52 +76,6 @@ func (h *Healer) Verify(fix string) bool {
 	return strings.Contains(strings.ToUpper(response), "SUCCESS")
 }
 
-// OptimizePrompts analyzes content performance and proposes prompt improvements
-func (h *Healer) OptimizePrompts() {
-	fmt.Println("[Healer] Running Prompt Self-Optimization loop...")
-
-	// Analyze L2 successes vs Revenue
-	revenue := h.Orchestrator.Ledger.TotalRevenue()
-	if revenue < 10 {
-		return // Not enough data yet
-	}
-
-	successes := h.Orchestrator.L2.Search("content")
-	if len(successes) == 0 {
-		return
-	}
-
-	prompt := fmt.Sprintf(`Act as a conversion optimization expert. Analyze the following content generation history and total revenue ($%.2f), and propose an IMPROVED system prompt for content generation.
-
-HISTORY:
-%d successful content pieces generated.
-
-Current default prompt: "Write a comprehensive blog post about [topic]..."
-
-Respond with a JSON object:
-{
-  "optimized_prompt": "The new, high-conversion prompt instruction",
-  "reasoning": "why this will work better"
-}
-
-Respond ONLY with valid JSON.`, revenue, len(successes))
-
-	var result struct {
-		OptimizedPrompt string `json:"optimized_prompt"`
-		Reasoning      string `json:"reasoning"`
-	}
-
-	if err := h.Orchestrator.LLM.GenerateJSON(prompt, &result); err == nil {
-		fmt.Printf("[Healer] Optimized Prompt Discovered: %s\n", result.Reasoning)
-		h.Orchestrator.L3.Add(MemoryEntry{
-			ID:        "optimized-prompt-content",
-			Content:   result.OptimizedPrompt,
-			Timestamp: time.Now(),
-			Tags:      []string{"optimization", "prompt", "content"},
-		})
-	}
-}
-
 // WealthPreservation analyzes active hustles and terminates underperforming ones
 func (h *Healer) WealthPreservation() {
 	fmt.Println("[Healer] Running Wealth Preservation ROI Audit...")
@@ -164,21 +95,6 @@ func (h *Healer) WealthPreservation() {
 	} else {
 		fmt.Println("[Healer] All active hustles meet ROI thresholds.")
 	}
-}
-
-// ApplyPatch applies a verified fix received from the swarm
-func (h *Healer) ApplyPatch(patch string) bool {
-	fmt.Printf("[Healer] Applying Swarm Patch: %s\n", patch)
-
-	// Log swarm fix to memory
-	h.Orchestrator.L1.Add(MemoryEntry{
-		ID:        fmt.Sprintf("swarm-patch-%d", time.Now().Unix()),
-		Content:   fmt.Sprintf("Applied Swarm Patch: %s", patch),
-		Timestamp: time.Now(),
-		Tags:      []string{"healer", "swarm_fix", "patch"},
-	})
-
-	return h.Verify(patch)
 }
 
 func (h *Healer) Loop(issue string) {

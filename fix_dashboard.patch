@@ -1,0 +1,16 @@
+--- orchestrator/dashboard.go
++++ orchestrator/dashboard.go
+@@ -37,6 +37,13 @@
+		fmt.Printf(" [CONTENT HUB]    Generated: %d pieces\n", contentCount)
+	}
+
++	// Affiliate Metrics
++	affiliateEntries := orch.L1.Search("affiliate")
++	affiliateCount := len(affiliateEntries)
++	if affiliateCount > 0 {
++		fmt.Printf(" [AFFILIATE HUB]  Injected Links: %d (Monetized Posts)\n", affiliateCount)
++	}
++
+	// Agent Observability
+	agentEntries := orch.L1.Search("agent_loop")
+	if len(agentEntries) > 0 {

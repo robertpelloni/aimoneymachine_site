@@ -14,7 +14,7 @@ import (
 func TestLinkedInProvider_Post(t *testing.T) {
 	mockOrch := &orchestrator.Orchestrator{}
 
-	t.Run("Missing Credentials", func(t *testing.T) {
+	t.Run("Missing Env Vars", func(t *testing.T) {
 		p := NewLinkedInProvider("", "")
 		err := p.Post(mockOrch, "LinkedIn", "Test content")
 		if err == nil {
@@ -23,6 +23,7 @@ func TestLinkedInProvider_Post(t *testing.T) {
 	})
 
 	t.Run("Successful Post", func(t *testing.T) {
+		// Create a mock HTTP server
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			if r.Method != "POST" {
 				t.Errorf("Expected POST request, got %s", r.Method)
@@ -52,6 +53,7 @@ func TestLinkedInProvider_Post(t *testing.T) {
 	})
 
 	t.Run("API Error Response", func(t *testing.T) {
+		// Create a mock HTTP server returning 401 Unauthorized
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusUnauthorized)
 			fmt.Fprint(w, `{"message": "Unauthorized"}`)
@@ -86,6 +88,7 @@ func TestTwitterProvider_DryRun(t *testing.T) {
 
 func TestTwitterProvider_MissingEnv(t *testing.T) {
 	provider := NewTwitterProvider("", "", "", "")
+
 	orch := orchestrator.NewOrchestrator()
 	err := provider.Post(orch, "Twitter", "Test Content")
 	if err == nil {
