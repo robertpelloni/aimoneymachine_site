@@ -1,4 +1,12 @@
 {
+  "research_affiliate_social": {
+    "name": "research_affiliate_social",
+    "description": "Synergistic Hustle: Discover a niche, run the affiliate engine (which discovers products and posts to social), then verify.",
+    "steps": [
+      "hustle://research?query=trending+technology+products",
+      "hustle://affiliate?action=run&niche=trending+technology+products"
+    ]
+  },
   "curation": {
     "name": "curation",
     "description": "Curate AI news and post to Twitter",

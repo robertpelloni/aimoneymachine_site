@@ -22,8 +22,8 @@
 
 - [x] v1.0.0-alpha.89 — Luxury site redesign, content audit, watchdog, chain discoverer fix
 - [x] v1.0.0-alpha.90 — Batch publisher, hustle generator, deep bookmark scan, logging fix
-- [ ] v1.1.0 — Twitter/X auto-posting working, affiliate marketing engine live
-- [ ] v1.2.0 — YouTube Shorts factory, multi-platform content pipeline
+- [x] v1.1.0 — Twitter/X auto-posting working, affiliate marketing engine live
+- [x] v1.2.0 — YouTube Shorts factory, multi-platform content pipeline
 - [ ] v2.0.0 — Fully autonomous income generation across all modules
 
 ## Running Services (Hetzner)

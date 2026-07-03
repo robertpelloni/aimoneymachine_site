@@ -436,3 +436,28 @@ func parseJSONStrings(data string, target *[]string) error {
 	}
 	return nil
 }
+
+// ExpandContent iteratively expands an article to reach target character length
+func (c *ContentModule) ExpandContent(topic, initialContent string, targetChars int) (string, error) {
+	fmt.Printf("[Content] Expanding content for topic '%s' to target %d chars...\n", topic, targetChars)
+
+	expanded := initialContent
+	iterations := 0
+
+	for len(expanded) < targetChars && iterations < 5 {
+		prompt := fmt.Sprintf("You are an expert content expander. The following article is currently %d characters long. Expand on it by adding deep-dive case studies, statistical breakdowns, historical context, and comprehensive practical examples. Do NOT repeat yourself. Add at least 1500 words of NEW, valuable insight. \n\nCURRENT ARTICLE:\n%s", len(expanded), expanded)
+
+		addition, err := c.Orch.LLM.Generate(prompt)
+		if err != nil {
+			return expanded, fmt.Errorf("expansion iteration %d failed: %w", iterations, err)
+		}
+
+		// Very basic string append - in reality we'd want to intelligently merge sections
+		expanded = expanded + "\n\n" + addition
+		iterations++
+		fmt.Printf("[Content] Iteration %d: Length is now %d chars\n", iterations, len(expanded))
+	}
+
+	fmt.Printf("[Content] Final expanded length: %d chars (Target: %d)\n", len(expanded), targetChars)
+	return expanded, nil
+}

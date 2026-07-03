@@ -167,6 +167,7 @@ Available modules and their parameters:
 - hustle://healer?issue=DESCRIPTION — Diagnose and fix a problem
 - hustle://ecommerce?action=ads&platform=TikTok — Generate social ads for products
 - hustle://ecommerce?action=fulfill — Fulfill pending dropshipping orders
+- hustle://affiliate?action=run — Scrape affiliate products, review, and auto-post to social media
 - hustle://saas?action=ideate — Generate new micro-SaaS MVPs
 - hustle://automation?action=build — Architect business process workflows
 - hustle://finance?action=classify — Automate client bookkeeping
@@ -300,6 +301,9 @@ func (a *AgentLoop) evaluate() bool {
 // defaultAction returns a heuristic action when LLM thinking fails
 func (a *AgentLoop) defaultAction() string {
 	actions := []string{
+		"hustle://chain?name=luxury_content_trading", // Synergistic Hustle chain
+		"hustle://chain?name=luxury_chain_name", // Another generated chain
+		"hustle://affiliate?action=run", // Synergistic Hustle: Affiliate + Social
 		"hustle://content?topic=AI+automation+trends+2026&type=blog",
 		"hustle://research?query=AI+automation+trends+2026",
 		"hustle://curation?topic=AI+agents",

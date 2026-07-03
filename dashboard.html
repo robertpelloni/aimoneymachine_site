@@ -303,6 +303,48 @@
         function renderSystem() {
           const grid = document.getElementById("systemGrid");
           grid.innerHTML = `
+            <div class="card">
+        <h3><span title="Automates affiliate product discovery and promotion">Affiliate Engine</span></h3>
+        <div class="value" id="affiliate-revenue" title="Real-time commissions tracking from affiliate sales">$0.00</div>
+        <div class="sub">Commissions Earned</div>
+        <div style="margin-top: 10px; font-size: 11px; color: #94a3b8;">Recent Campaigns</div>
+        <div style="font-size: 12px; color: #cbd5e1; margin-bottom: 10px;">
+            <div><span style="color: #4ade80;">●</span> AI productivity tools</div>
+            <div><span style="color: #60a5fa;">●</span> Hosting</div>
+        </div>
+        <div style="display: flex; gap: 8px;">
+            <button onclick="dispatchAction('hustle://affiliate?action=run&niche=AI+productivity+tools')" class="action-btn" style="flex:1; padding: 4px; font-size:11px;" title="Scrape products, review, and auto-post to social">Run Pipeline</button>
+            <button onclick="dispatchAction('hustle://affiliate?action=discover')" class="action-btn" style="flex:1; padding: 4px; font-size:11px;" title="Find new affiliate programs for a niche">Discover</button>
+        </div>
+      </div>
+
+
+
+      <div class="card">
+        <h3><span title="Manage auto-publishing of content to WordPress, Newsletter, etc.">Content Pipeline</span></h3>
+        <div class="value" id="content-queue-size" title="Items waiting to be published">0</div>
+        <div class="sub">Pending Queue</div>
+        <div style="margin-top: 10px; font-size: 11px; color: #94a3b8;">Recent Actions</div>
+        <div style="font-size: 12px; color: #cbd5e1; margin-bottom: 10px;">
+            <div id="content-status"><span style="color: #4ade80;">●</span> Standing by</div>
+        </div>
+        <div style="display: flex; gap: 8px;">
+            <button onclick="dispatchAction('hustle://calendar?action=process')" class="action-btn" style="flex:1; padding: 4px; font-size:11px;" title="Process the pending content calendar and publish all queued items">Process Queue</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3><span title="Automates YouTube Shorts script writing and prompt generation">Shorts Factory</span></h3>
+        <div class="value" id="shorts-queue-size" title="Shorts waiting to be rendered">0</div>
+        <div class="sub">Pending Queue</div>
+        <div style="margin-top: 10px; font-size: 11px; color: #94a3b8;">Recent Actions</div>
+        <div style="font-size: 12px; color: #cbd5e1; margin-bottom: 10px;">
+            <div id="shorts-status"><span style="color: #4ade80;">●</span> Standing by</div>
+        </div>
+        <div style="display: flex; gap: 8px;">
+            <button onclick="dispatchAction('hustle://media?action=shorts&topic=AI+Automation')" class="action-btn" style="flex:1; padding: 4px; font-size:11px;" title="Generate a script and image prompts for a Short">Run Shorts Pipeline</button>
+        </div>
+      </div>
       <div class="card"><h3>Orchestrator</h3><div><span class="status-dot on"></span>Running</div></div>
       <div class="card"><h3>FreeLLM</h3><div><span class="status-dot on"></span>Online</div></div>
       <div class="card"><h3>Website</h3><div><span class="status-dot on"></span>HTTP 200</div></div>

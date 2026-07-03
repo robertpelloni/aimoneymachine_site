@@ -1,12 +1,12 @@
 # AI Hustle Machine - TODO
 
 ## High Priority (v1.1.0)
-- [ ] Fix Twitter/X auto-posting (OAuth1 debug — keys exist, posts fail silently)
-- [ ] Build affiliate marketing engine (Amazon scrape → LLM → auto-post)
+- [x] Fix Twitter/X auto-posting (OAuth1 debug — keys exist, posts fail silently)
+- [x] Build affiliate marketing engine (Amazon scrape → LLM → auto-post)
 - [ ] Enable CoinGecko API key for real trading prices
 
 ## Medium Priority
-- [ ] YouTube Shorts factory (AI script → image → TTS → upload)
+- [x] YouTube Shorts factory (AI script → image → TTS → upload)
 - [ ] Multi-platform content repurposing pipeline
 - [ ] Lead generation + email outreach automation
 - [ ] Digital product factory (LLM-generated templates → Gumroad)

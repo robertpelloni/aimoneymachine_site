@@ -9,11 +9,13 @@ import (
 	"os"
 	"os/exec"
 	"os/signal"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"syscall"
 	"time"
 
+	"github.com/robertpelloni/hustle/hustle/affiliate"
 	"github.com/robertpelloni/hustle/hustle/bi"
 	"github.com/robertpelloni/hustle/hustle/careers"
 	"github.com/robertpelloni/hustle/hustle/confluence"
@@ -765,7 +767,62 @@ func main() {
 	})
 
 	protocol.Register("content", func(p url.Values) error {
+		action := p.Get("action")
 		topic := p.Get("topic")
+
+		if action == "expand" {
+			targetChars := 100000 // 100K target
+
+			// Try reading existing content
+			initial := "This is the initial short content about " + topic + ". We need to expand this significantly to reach our deep-dive 100K character milestone for maximum SEO dominance."
+
+			files, err := os.ReadDir(contentModule.OutputDir)
+			if err == nil {
+				for _, file := range files {
+					if !file.IsDir() && strings.HasSuffix(file.Name(), ".md") && strings.Contains(strings.ToLower(file.Name()), strings.ToLower(strings.ReplaceAll(topic, " ", "-"))) {
+						path := filepath.Join(contentModule.OutputDir, file.Name())
+						data, readErr := os.ReadFile(path)
+						if readErr == nil {
+							initial = string(data)
+							fmt.Printf("[Content] Loaded existing file for expansion: %s\n", path)
+							break
+						}
+					}
+				}
+			}
+
+			expanded, err := contentModule.ExpandContent(topic, initial, targetChars)
+			if err != nil {
+				return err
+			}
+
+			// Auto-insert affiliate links after expansion
+			affModule := affiliate.NewAffiliateModule(orch)
+			// Ensure links are fresh
+			affModule.DiscoverProducts(topic)
+			inserter := publisher.NewAffiliateInserter()
+			expandedWithLinks := inserter.ProcessContent(expanded)
+
+			// Wire content generation directly to social publisher for automated batch posting
+			go func(finalContent string) {
+				provider := social.NewTwitterProvider(
+					os.Getenv("TWITTER_API_KEY"),
+					os.Getenv("TWITTER_API_SECRET"),
+					os.Getenv("TWITTER_ACCESS_TOKEN"),
+					os.Getenv("TWITTER_ACCESS_SECRET"),
+				)
+				socialStr := finalContent
+				runes := []rune(socialStr)
+				if len(runes) > 280 {
+					socialStr = string(runes[:277]) + "..."
+				}
+				provider.Post(orch, "Twitter", socialStr)
+			}(expandedWithLinks)
+
+			fmt.Printf("[Content] Expansion and affiliate insertion complete. Auto-posting queued. Final size: %d bytes\n", len(expandedWithLinks))
+			return nil
+		}
+
 		if topic == "" {
 			topic = "AI automation trends"
 		}
@@ -913,6 +970,7 @@ func main() {
 
 	protocol.Register("chain", func(p url.Values) error {
 		action := p.Get("action")
+
 		if action == "discover" {
 			_, err := discoverer.Discover()
 			return err
@@ -954,9 +1012,22 @@ func main() {
 			niche = "AI productivity tools"
 		}
 
+		if action == "run" {
+			affiliateModule := affiliate.NewAffiliateModule(orch)
+			return affiliateModule.Run(niche)
+		}
 		if action == "discover" {
 			inserter := publisher.NewAffiliateInserter()
 			return inserter.DiscoverAffiliatePrograms(orch, niche)
+		}
+
+		if action == "batch_insert" {
+			dir := p.Get("dir")
+			if dir == "" {
+				dir = "content/posts" // Default blog directory
+			}
+			affiliateModule := affiliate.NewAffiliateModule(orch)
+			return affiliateModule.InsertAffiliateLinksIntoContent(dir)
 		}
 		return fmt.Errorf("unknown affiliate action: %s", action)
 	})

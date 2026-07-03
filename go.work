@@ -1,13 +1,14 @@
 go 1.24.3
 
 use (
+	./hustle/affiliate
 	./hustle/automation
 	./hustle/bi
 	./hustle/careers
 	./hustle/confluence
 	./hustle/content
-	./hustle/curation
 	./hustle/crm
+	./hustle/curation
 	./hustle/design
 	./hustle/devagency
 	./hustle/domains
