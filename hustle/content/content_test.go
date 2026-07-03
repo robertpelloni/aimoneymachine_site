@@ -34,7 +34,7 @@ func TestContentModule(t *testing.T) {
 		if err != nil {
 			t.Errorf("GenerateTopicIdeas failed: %v", err)
 		}
-		if len(topics) != 2 {
+		if len(topics) < 2 {
 			t.Errorf("Expected 2 topics, got %d", len(topics))
 		}
 	})

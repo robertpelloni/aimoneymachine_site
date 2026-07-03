@@ -120,7 +120,7 @@ func (s *ResearchSearch) Query(q string) ([]SearchResult, error) {
 		}}
 	}
 
-	s.processResults(results)
+
 	return results, nil
 }
 

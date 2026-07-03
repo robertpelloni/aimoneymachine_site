@@ -8,7 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"os/signal"
-	"strconv"
+
 	"strings"
 	"syscall"
 	"time"
@@ -16,6 +16,7 @@ import (
 	"github.com/robertpelloni/hustle/hustle/content"
 	"github.com/robertpelloni/hustle/hustle/curation"
 	"github.com/robertpelloni/hustle/hustle/research"
+	"github.com/robertpelloni/hustle/hustle/affiliate"
 	"github.com/robertpelloni/hustle/hustle/social"
 	"github.com/robertpelloni/hustle/hustle/trading"
 	"github.com/robertpelloni/hustle/orchestrator"
@@ -71,7 +72,7 @@ func main() {
 	// Auto-detect and test the LLM connection
 	if model, err := llmProvider.DetectModel(); err == nil {
 		fmt.Printf("[LLM] ✅ Connected to local LLM: %s\n", model)
-		orch.LLM = orchestrator.NewCachingLLM(llmProvider)
+		orch.LLM = llmProvider
 		// Also set up real embeddings
 		orch.Embedder = orchestrator.NewOpenAICompatEmbedder()
 	} else {
@@ -80,7 +81,7 @@ func main() {
 	}
 
 	protocol := orchestrator.NewHustleProtocol()
-	orch.Protocol = protocol
+
 	chainManager := orchestrator.NewChainManager(orch, protocol)
 	chainManager.LoadState("chains.json")
 	discoverer := orchestrator.NewChainDiscoverer(orch, chainManager)
@@ -201,8 +202,36 @@ func main() {
 			return provider.Post(orch, platform, contentStr)
 		}
 
-		social.SchedulePost(orch, provider, platform, topic)
-		return nil
+		generatedContent := social.GenerateContent(orch, topic)
+
+		// Inject affiliate link
+		affModule := affiliate.NewModule(orch)
+		generatedContent = affModule.InjectAffiliateLink(generatedContent, topic)
+
+		generatedContent = social.FormatForPlatform(generatedContent, platform)
+		fmt.Printf("Scheduling post for %s: %s\n", platform, generatedContent)
+
+		err := provider.Post(orch, platform, generatedContent)
+		if err == nil {
+			fmt.Printf("[Social] ✅ Successfully posted to %s\n", platform)
+			orch.L1.Add(orchestrator.MemoryEntry{
+				ID:        fmt.Sprintf("social-%s-%d", platform, time.Now().Unix()),
+				Content:   fmt.Sprintf("Posted to %s: %s", platform, generatedContent),
+				Timestamp: time.Now(),
+				Tags:      []string{"social", platform},
+			})
+
+			orch.Ledger.Add(orchestrator.Transaction{
+				Amount: 0.01,
+				Type:   orchestrator.Expense,
+				Hustle: "SocialMedia",
+				Note:   fmt.Sprintf("API post to %s", platform),
+			})
+		} else {
+			fmt.Printf("[Social] ❌ Failed to post to %s: %v\n", platform, err)
+		}
+
+		return err
 	})
 
 	protocol.Register("trading", func(p url.Values) error {

@@ -1,11 +1,12 @@
 go 1.25.0
 
 use (
+	./hustle/affiliate
 	./hustle/content
 	./hustle/curation
+	./hustle/publisher
 	./hustle/research
 	./hustle/social
 	./hustle/trading
-	./hustle/publisher
 	./orchestrator
 )
