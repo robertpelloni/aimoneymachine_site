@@ -30,7 +30,7 @@
 - [x] **CoinGecko Fetcher Hardening** (v1.0.0-alpha.83) — Caching, retry, rate-limit, API key, 14 tests
 
 ## 🟣 Fully Automated Real Estate Engine
-- [ ] **Affiliate Marketing Engine** — Scrape hot products, LLM review, auto-tweet, and blog.
+- [x] **Affiliate Marketing Engine** — Scrape hot products, LLM review, auto-tweet, and blog.
 - [ ] **Lead Generation + Outreach** — Scrape Google Maps, LLM personalize pitch, SMTP rate-limited delivery.
 - [ ] **Digital Product Factory** — Generate Notion templates, presets, guides, auto-list on Gumroad via API.
 - [ ] **YouTube Shorts Factory** — Script -> Image generation -> TTS -> Auto Upload.

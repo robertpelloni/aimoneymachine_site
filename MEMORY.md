@@ -38,3 +38,6 @@ The project is built in **Go 1.25.0** using a `go.work` monorepo structure. It m
 *   **Pure Go SQLite**: Shifted from `go-sqlite3` to `modernc.org/sqlite` to permanently fix Windows CGO compilation blockers.
 *   **The Executive Protocol (`sync.sh`)**: A rigid bash script used to maintain repository hygiene. It handles upstream tracking, intelligent dual-direction merging between feature branches and `main`, submodule updates, and version synchronization before pushing.
 *   **Documentation Governance**: The project relies heavily on strict markdown file maintenance. `TODO.md`, `ROADMAP.md`, `CHANGELOG.md`, `VISION.md`, `HANDOFF.md`, and `VERSION.md` are the ground truth for system state and cross-agent communication. Any version bumps require atomic commits documenting the exact version string.
+
+## 7. Affiliate Marketing & LeadGen Pipeline
+*   **Affiliate Injection**: Social media posts (`hustle://social`) and content generation dynamically embed monetization links from `affiliate_links.json`. The LLM identifies relevance based on topic and appends the links prior to publishing via Twitter or LinkedIn APIs.
