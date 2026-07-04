@@ -41,3 +41,10 @@ The project is built in **Go 1.25.0** using a `go.work` monorepo structure. It m
 
 ## 7. Affiliate Marketing & LeadGen Pipeline
 *   **Affiliate Injection**: Social media posts (`hustle://social`) and content generation dynamically embed monetization links from `affiliate_links.json`. The LLM identifies relevance based on topic and appends the links prior to publishing via Twitter or LinkedIn APIs.
+
+## 9. Unified Revenue Strategy (Affiliate + LeadGen)
+*   **Strategy Proposal**: The recent injection of affiliate hooks into social channels (`hustle://social`) provides passive traffic monetization. When paired with the synergistic lead generation workflow (`hustle://research`), the orchestrator can autonomously parse high-value B2B queries and instantly dispatch content with relevant software recommendations (e.g., VPNs, Hostings).
+*   **Unified Execution URI**: `hustle://chain?name=luxury_leadgen_affiliate`
+
+## 10. unified execution
+* Verified cross-pollinated hustle strategy utilizing content generation injected with `hustle/affiliate` links and auto-published to output pipelines.
