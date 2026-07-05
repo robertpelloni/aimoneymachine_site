@@ -374,6 +374,49 @@ func main() {
 		return nil
 	})
 
+	protocol.Register("synergy_leadgen", func(p url.Values) error {
+		topic := p.Get("topic")
+		if topic == "" {
+			topic = "AI automation services"
+		}
+		niche := p.Get("niche")
+		if niche == "" {
+			niche = "B2B SaaS"
+		}
+
+		fmt.Printf("Starting deterministic synergy lead generation for niche: %s\n", niche)
+
+		// Run Outreach
+		campaign := research.NewOutreachCampaign(orch)
+		if err := campaign.Run(niche, topic); err != nil {
+			return err
+		}
+
+		// Follow up with social posting leveraging affiliate logic
+		affModule := affiliate.NewModule(orch)
+		socialContent := social.GenerateContent(orch, topic)
+		socialContent = affModule.InjectAffiliateLink(socialContent, topic)
+		socialContent = social.FormatForPlatform(socialContent, "Twitter")
+
+		provider := social.NewTwitterProvider(
+			os.Getenv("TWITTER_API_KEY"),
+			os.Getenv("TWITTER_API_SECRET"),
+			os.Getenv("TWITTER_ACCESS_TOKEN"),
+			os.Getenv("TWITTER_ACCESS_SECRET"),
+		)
+
+		if *dryRun {
+			provider.SetDryRun(true)
+		}
+
+		if err := provider.Post(orch, "Twitter", socialContent); err != nil {
+			fmt.Printf("[Social] Failed to post synergy tweet: %v\n", err)
+			return err
+		}
+
+		return nil
+	})
+
 	protocol.Register("healer", func(p url.Values) error {
 		issue := p.Get("issue")
 		if issue == "" {

@@ -55,3 +55,6 @@ The project is built in **Go 1.25.0** using a `go.work` monorepo structure. It m
 
 ## 12. Landing Page & Phase 5 Readiness
 *   **Landing Page Overhaul**: Upgraded `hustle/content/deploy.go` to inject a proper Phase 5 advanced autonomy CTA into generated HTML sites. The new layout emphasizes federated architecture ("Spin Up Your AI Hustle Machine"), embeds real-time mesh node health indicators, and reflects current Phase 5 deliverables (e.g. Affiliate Engine, Outreach).
+
+## 13. Synergy LeadGen Hardening
+*   The `hustle://synergy_leadgen` routing mechanism has been hardened from an LLM-level prompt spoof into a compiled, deterministic `SynergyHandler` inside the `orchestrator/cmd/orchestrator/main.go` protocol router. This ensures that the agent logic properly interfaces with the outreach module and executes the social affiliate cascade without relying entirely on prompt engineering.
