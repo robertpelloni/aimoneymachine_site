@@ -72,3 +72,7 @@ The project is built in **Go 1.25.0** using a `go.work` monorepo structure. It m
 
 ## 17. Final Phase 5 Sign-off
 *   All Phase 5 goals (`hustle/affiliate`, `hustle/outreach`, and advanced content auto-publishing) are confirmed fully integrated and stable. The build script `./build.sh` successfully compiles `bin/orchestrator` and all subordinate hustle binaries. The federated UI elements now dynamically generate per the latest site templates, readying the project for the upcoming Phase 6 multi-node cluster testing.
+
+## 18. Overseer & Affiliate ROI Auditing
+*   **Self-Correcting Profit Instincts**: Added `AnalyzeAffiliatePerformance(niche)` to `Ledger` to track zero-profit thresholds on targeted niches.
+*   **Evaluate Cycle Hooks**: The `AgentLoop.evaluate()` routine now acts as an Overseer for the `hustle://outreach` and `general` streams. If `ZERO_PROFIT_WARNING` is flagged after $N$ evaluations (5 transactions with zero revenue), the Healer autonomously intervenes, logs a systemic shift to L1 episodic memory, and reroutes the agent dynamically to `hustle://research` to discover a new, better-performing affiliate product.

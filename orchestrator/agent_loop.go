@@ -276,6 +276,24 @@ func (a *AgentLoop) evaluate() bool {
 		return false
 	}
 
+	// Audit Affiliate Links for Zero-Profit
+	if a.State.HustleType == "outreach" || a.State.HustleType == "general" {
+		niche := "B2B SaaS" // could be dynamic
+		perf := a.Orch.Ledger.AnalyzeAffiliatePerformance(niche)
+		if perf == "ZERO_PROFIT_WARNING" {
+			fmt.Printf("[AgentLoop] ⚠️ Healer Audit: Affiliate links for %s are yielding zero profit. Rerouting agent to research a new product.\n", niche)
+			a.Orch.L1.Add(MemoryEntry{
+				ID:        fmt.Sprintf("healer-audit-%d", time.Now().Unix()),
+				Content:   fmt.Sprintf("Audited affiliate links for %s: ZERO_PROFIT_WARNING. Need new product.", niche),
+				Timestamp: time.Now(),
+				Tags:      []string{"healer", "audit", "affiliate"},
+			})
+			a.State.HustleType = "research"
+			// Overwrite next action heuristic
+			a.State.LastAction = "hustle://research?query=trending+b2b+software+affiliate+programs"
+		}
+	}
+
 	return true
 }
 
