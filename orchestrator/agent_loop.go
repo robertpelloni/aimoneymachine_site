@@ -288,6 +288,14 @@ func (a *AgentLoop) evaluate() bool {
 				Timestamp: time.Now(),
 				Tags:      []string{"healer", "audit", "affiliate"},
 			})
+
+			// Log ROI metrics to L3 memory for autonomous optimization
+			a.Orch.L3.Add(MemoryEntry{
+				ID:        fmt.Sprintf("roi-metrics-%s-%d", niche, time.Now().Unix()),
+				Content:   fmt.Sprintf("Affiliate ROI Audit: Niche %s generated $0.00 profit over multiple cycles. Strategy marked for autonomous divestment.", niche),
+				Timestamp: time.Now(),
+				Tags:      []string{"roi", "metrics", "affiliate", "optimization"},
+			})
 			a.State.HustleType = "research"
 			// Overwrite next action heuristic
 			a.State.LastAction = "hustle://research?query=trending+b2b+software+affiliate+programs"
