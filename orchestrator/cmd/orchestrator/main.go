@@ -361,49 +361,6 @@ func main() {
 		return outModule.ScheduleCadence(target, platform, template)
 	})
 
-	protocol.Register("synergy_leadgen", func(p url.Values) error {
-		topic := p.Get("topic")
-		if topic == "" {
-			topic = "AI automation services"
-		}
-		niche := p.Get("niche")
-		if niche == "" {
-			niche = "B2B SaaS"
-		}
-
-		fmt.Printf("Starting synergy lead generation for niche: %s\n", niche)
-
-		// Run Outreach
-		campaign := research.NewOutreachCampaign(orch)
-		if err := campaign.Run(niche, topic); err != nil {
-			return err
-		}
-
-		// Follow up with social posting leveraging affiliate logic
-		affModule := affiliate.NewModule(orch)
-		socialContent := social.GenerateContent(orch, topic)
-		socialContent = affModule.InjectAffiliateLink(socialContent, topic)
-		socialContent = social.FormatForPlatform(socialContent, "Twitter")
-
-		provider := social.NewTwitterProvider(
-			os.Getenv("TWITTER_API_KEY"),
-			os.Getenv("TWITTER_API_SECRET"),
-			os.Getenv("TWITTER_ACCESS_TOKEN"),
-			os.Getenv("TWITTER_ACCESS_SECRET"),
-		)
-
-		if *dryRun {
-			provider.SetDryRun(true)
-		}
-
-		if err := provider.Post(orch, "Twitter", socialContent); err != nil {
-			fmt.Printf("[Social] Failed to post synergy tweet: %v\n", err)
-			return err
-		}
-
-		return nil
-	})
-
 	protocol.Register("outreach", func(p url.Values) error {
 		platform := p.Get("platform")
 		if platform == "" {
@@ -445,10 +402,20 @@ func main() {
 
 		fmt.Printf("Starting deterministic synergy lead generation for niche: %s\n", niche)
 
-		// Run Outreach
-		campaign := research.NewOutreachCampaign(orch)
-		if err := campaign.Run(niche, topic); err != nil {
+		// Instead of just finding leads, use the new dedicated outreach module
+		// to fully schedule the cadence and track it appropriately.
+		outModule := outreach.NewModule(orch)
+
+		// Find targets via research module
+		leadGen := research.NewLeadGenerator(orch)
+		leads, err := leadGen.FindLeads(niche)
+		if err != nil {
 			return err
+		}
+
+		for _, lead := range leads {
+			template, _ := outModule.GenerateTemplate("Email", niche, topic)
+			outModule.ScheduleCadence(lead.Email, "Email", template)
 		}
 
 		// Follow up with social posting leveraging affiliate logic

@@ -66,3 +66,6 @@ The project is built in **Go 1.25.0** using a `go.work` monorepo structure. It m
 
 ## 15. Outreach Campaign Module
 *   The `hustle/outreach` module has been built and successfully wired to `hustle://outreach`. This separates the cold outreach logic from the research module and establishes a dedicated cadence pipeline for both Email and LinkedIn messaging templates.
+
+## 16. Unified Outreach & Synergy Integration
+*   The `hustle://synergy_leadgen` workflow has been updated to officially pipe targets found by the `research` module into the newly built `hustle/outreach` module for professional cadence scheduling. This centralizes the outreach strategy for both standalone tasks (`hustle://outreach`) and unified synergy operations.
