@@ -6,11 +6,11 @@ require (
 	github.com/dghubble/oauth1 v0.7.3
 	github.com/robertpelloni/hustle/orchestrator v0.0.0
 	golang.org/x/oauth2 v0.27.0
-	modernc.org/sqlite v1.31.1
 )
 
 require (
 	github.com/dustin/go-humanize v1.0.1 // indirect
+	github.com/google/go-cmp v0.6.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/hashicorp/golang-lru/v2 v2.0.7 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
@@ -25,11 +25,6 @@ require (
 	modernc.org/sqlite v1.33.1 // indirect
 	modernc.org/strutil v1.2.1 // indirect
 	modernc.org/token v1.1.0 // indirect
-)
-
-require (
-	github.com/dghubble/oauth1 v0.7.3
-	golang.org/x/time v0.10.0 // indirect
 )
 
 replace github.com/robertpelloni/hustle/orchestrator => ../../orchestrator

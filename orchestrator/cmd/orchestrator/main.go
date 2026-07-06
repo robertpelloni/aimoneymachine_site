@@ -15,6 +15,7 @@ import (
 
 	"github.com/robertpelloni/hustle/hustle/content"
 	"github.com/robertpelloni/hustle/hustle/curation"
+	"github.com/robertpelloni/hustle/hustle/outreach"
 	"github.com/robertpelloni/hustle/hustle/research"
 	"github.com/robertpelloni/hustle/hustle/affiliate"
 	"github.com/robertpelloni/hustle/hustle/social"
@@ -331,6 +332,35 @@ func main() {
 		return chainManager.Execute(name)
 	})
 
+	protocol.Register("outreach", func(p url.Values) error {
+		platform := p.Get("platform")
+		if platform == "" {
+			platform = "Email"
+		}
+		niche := p.Get("niche")
+		if niche == "" {
+			niche = "B2B SaaS"
+		}
+		topic := p.Get("topic")
+		if topic == "" {
+			topic = "AI Automation Integration"
+		}
+
+		outModule := outreach.NewModule(orch)
+		template, err := outModule.GenerateTemplate(platform, niche, topic)
+		if err != nil {
+			return err
+		}
+
+		// Schedule a dummy target cadence
+		target := "prospect@example.com"
+		if platform == "LinkedIn" {
+			target = "linkedin.com/in/prospect"
+		}
+
+		return outModule.ScheduleCadence(target, platform, template)
+	})
+
 	protocol.Register("synergy_leadgen", func(p url.Values) error {
 		topic := p.Get("topic")
 		if topic == "" {
@@ -372,6 +402,35 @@ func main() {
 		}
 
 		return nil
+	})
+
+	protocol.Register("outreach", func(p url.Values) error {
+		platform := p.Get("platform")
+		if platform == "" {
+			platform = "Email"
+		}
+		niche := p.Get("niche")
+		if niche == "" {
+			niche = "B2B SaaS"
+		}
+		topic := p.Get("topic")
+		if topic == "" {
+			topic = "AI Automation Integration"
+		}
+
+		outModule := outreach.NewModule(orch)
+		template, err := outModule.GenerateTemplate(platform, niche, topic)
+		if err != nil {
+			return err
+		}
+
+		// Schedule a dummy target cadence
+		target := "prospect@example.com"
+		if platform == "LinkedIn" {
+			target = "linkedin.com/in/prospect"
+		}
+
+		return outModule.ScheduleCadence(target, platform, template)
 	})
 
 	protocol.Register("synergy_leadgen", func(p url.Values) error {

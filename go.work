@@ -4,6 +4,7 @@ use (
 	./hustle/affiliate
 	./hustle/content
 	./hustle/curation
+	./hustle/outreach
 	./hustle/publisher
 	./hustle/research
 	./hustle/social
