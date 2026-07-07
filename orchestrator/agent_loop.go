@@ -276,6 +276,31 @@ func (a *AgentLoop) evaluate() bool {
 		return false
 	}
 
+	// Autonomous Evolution: Analyze self-performance metrics and adapt chains
+	if a.State.Iterations%5 == 0 && a.State.Iterations > 0 {
+		fmt.Printf("[AgentLoop] 🧬 Initiating Autonomous Evolution Protocol...\n")
+		profit := a.Orch.Ledger.Profit()
+		successRate := float64(a.State.Successes) / float64(a.State.Iterations)
+
+		prompt := fmt.Sprintf(`As the Autonomous Evolution Engine, analyze the agent's recent 5-iteration performance block.
+Profit: $%.2f
+Success Rate: %.2f%%
+
+Based on this performance, generate a NEW mutated sequence of hustle URIs that optimizes for higher ROI and better stability.
+Respond ONLY with a JSON array of up to 3 URIs. Example: ["hustle://research?query=AI", "hustle://content?topic=AI&type=blog"]`, profit, successRate*100)
+
+		evolvedChains, err := a.Orch.LLM.Generate(prompt)
+		if err == nil {
+			a.Orch.L2.Add(MemoryEntry{
+				ID:        fmt.Sprintf("evolution-%d", time.Now().Unix()),
+				Content:   fmt.Sprintf("Evolved new protocol chain based on %.2f%% success rate and $%.2f profit: %s", successRate*100, profit, evolvedChains),
+				Timestamp: time.Now(),
+				Tags:      []string{"evolution", "optimization", a.State.HustleType},
+			})
+			fmt.Printf("[AgentLoop] 🧬 Successfully evolved new workflow variants into L2 memory.\n")
+		}
+	}
+
 	// Audit Affiliate Links for Zero-Profit
 	if a.State.HustleType == "outreach" || a.State.HustleType == "general" {
 		niche := "B2B SaaS" // could be dynamic

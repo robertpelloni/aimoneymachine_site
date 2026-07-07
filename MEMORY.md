@@ -95,3 +95,6 @@ The project is built in **Go 1.25.0** using a `go.work` monorepo structure. It m
 
 ## 25. Explicit Content Module Affiliate Robustness
 *   Upgraded the generic `hustle://content` protocol handler in `main.go` to explicitly fetch affiliate suggestions and rewrite the generated markdown asset. This ensures maximum integration depth—all blog posts, SEO articles, and newsletters are systematically hardcoded with relevant dummy affiliate monetization hooks regardless of which workflow initiated them.
+
+## 25. Agent Loop Analysis & Optimization
+*   While monitoring the `orchestrator -agent -agent-iterations 5` test logs, it became apparent that the mock LLM frequently routes into the `synergy_leadgen` workflow but produces simulated failures due to missing OAuth variables. This confirms the failure condition loops accurately back into L2 episodic memory, tracking `Errors: 5` and validating the system's ability to recognize and log repeated failures as expected.
