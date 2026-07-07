@@ -270,7 +270,21 @@ func main() {
 			TargetWords: 800,
 			Niche:       niche,
 		}
-		_, err := contentModule.Generate(req)
+
+		result, err := contentModule.Generate(req)
+		if err == nil && result != nil {
+			// Ensure robust affiliate injection into the final output asset
+			affModule := affiliate.NewModule(orch)
+			injectedBody := affModule.InjectAffiliateLink(result.Body, topic)
+
+			// Overwrite the file with injected content
+			frontmatter := fmt.Sprintf("---\ntitle: %q\ntype: %s\ndate: %s\nkeywords: [%s]\nexcerpt: %q\n---\n\n",
+				result.Title, result.Type, result.CreatedAt.Format("2006-01-02"), strings.Join(result.Keywords, ", "), result.Excerpt)
+
+			fullContent := frontmatter + injectedBody
+			os.WriteFile(result.Filepath, []byte(fullContent), 0644)
+		}
+
 		return err
 	})
 
