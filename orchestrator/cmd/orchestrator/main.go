@@ -39,6 +39,7 @@ func main() {
 	agentIter := flag.Int("agent-iterations", 20, "Max iterations for agent loop")
 	autoPlan := flag.Bool("autoplan", false, "LLM generates and executes a strategic hustle plan")
 	dryRun := flag.Bool("dry-run", false, "Execute in dry-run mode (no external mutations)")
+	safetyMode := flag.Bool("safety-mode", false, "Alias for dry-run to ensure read-only execution")
 	flag.Parse()
 
 	// Source version from VERSION.md
@@ -194,7 +195,7 @@ func main() {
 			)
 		}
 
-		if *dryRun {
+		if *dryRun || *safetyMode {
 			provider.SetDryRun(true)
 		}
 
@@ -436,7 +437,7 @@ func main() {
 			os.Getenv("TWITTER_ACCESS_SECRET"),
 		)
 
-		if *dryRun {
+		if *dryRun || *safetyMode {
 			provider.SetDryRun(true)
 		}
 
