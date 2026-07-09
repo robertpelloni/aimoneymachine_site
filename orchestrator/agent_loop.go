@@ -161,6 +161,7 @@ Available modules and their parameters:
 - hustle://trading?symbol=SYMBOL — Execute trading strategy for a crypto symbol
 - hustle://content?topic=TOPIC&type=TYPE — Generate monetizable content (type: blog, newsletter, seo, thread)
 - hustle://content?topic=TOPIC&type=blog&niche=NICHE&keywords=KW1,KW2 — Generate SEO-optimized blog post
+- hustle://outreach?target=TARGET&offer=OFFER — Generate and dispatch cold email sequences with embedded affiliate links
 - hustle://chain?name=CHAIN_NAME — Execute a multi-step workflow chain
 - hustle://chain?action=discover — Discover and create new high-ROI workflow chains
 - hustle://healer?issue=DESCRIPTION — Diagnose and fix a problem
