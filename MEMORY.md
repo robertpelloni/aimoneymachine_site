@@ -153,3 +153,6 @@ The project is built in **Go 1.25.0** using a `go.work` monorepo structure. It m
 
 ## 41. Next Cycle Instructions
 * All integrations are wired. The agent is continuously outputting high-yield content across social and outreach pipelines.
+
+## 42. Curation Affiliate Verification
+* The `hustle://curation` protocol handler has been fully upgraded to route generated newsletter summaries through the Affiliate Engine (`affiliate.InjectAffiliateLink`). All RSS-based aggregation streams now contain automatic tracking links and are pushed directly to memory where social modules can subsequently broadcast them.
