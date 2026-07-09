@@ -237,7 +237,7 @@ func SchedulePost(orch *orchestrator.Orchestrator, provider Provider, platform, 
 			ID:        fmt.Sprintf("social-%s-%d", platform, time.Now().Unix()),
 			Content:   fmt.Sprintf("Posted to %s: %s", platform, content),
 			Timestamp: time.Now(),
-			Tags:      []string{"social", platform},
+			Tags:      []string{"social", platform, "posted"},
 		})
 
 		orch.Ledger.Add(orchestrator.Transaction{
@@ -245,6 +245,14 @@ func SchedulePost(orch *orchestrator.Orchestrator, provider Provider, platform, 
 			Type:   orchestrator.Expense,
 			Hustle: "SocialMedia",
 			Note:   fmt.Sprintf("API post to %s", platform),
+		})
+
+		// Setup engagement tracking expectation
+		orch.L2.Add(orchestrator.MemoryEntry{
+			ID:        fmt.Sprintf("social-engagement-%s-%d", platform, time.Now().Unix()),
+			Content:   fmt.Sprintf("Tracking engagement metrics for %s post: %s", platform, content),
+			Timestamp: time.Now().Add(24 * time.Hour), // Audit tomorrow
+			Tags:      []string{"social", "engagement", "audit_pending"},
 		})
 	} else {
 		fmt.Printf("[Social] ❌ Failed to post to %s: %v\n", platform, err)
