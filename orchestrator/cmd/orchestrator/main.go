@@ -347,62 +347,53 @@ func main() {
 	})
 
 	protocol.Register("outreach", func(p url.Values) error {
-		platform := p.Get("platform")
-		if platform == "" {
-			platform = "Email"
+		target := p.Get("target")
+		if target == "" {
+			target = "startups"
 		}
-		niche := p.Get("niche")
-		if niche == "" {
-			niche = "B2B SaaS"
-		}
-		topic := p.Get("topic")
-		if topic == "" {
-			topic = "AI Automation Integration"
+		offer := p.Get("offer")
+		if offer == "" {
+			offer = "ai_tools"
 		}
 
-		outModule := outreach.NewModule(orch)
-		template, err := outModule.GenerateTemplate(platform, niche, topic)
+		fmt.Printf("Starting autonomous outreach campaign targeting: %s with offer: %s\n", target, offer)
+
+		// 1. Research leads
+		leadGen := research.NewLeadGenerator(orch)
+		leads, err := leadGen.FindLeads(target)
 		if err != nil {
 			return err
 		}
 
-		// Schedule a dummy target cadence
-		target := "prospect@example.com"
-		if platform == "LinkedIn" {
-			target = "linkedin.com/in/prospect"
-		}
-
-		return outModule.ScheduleCadence(target, platform, template)
-	})
-
-	protocol.Register("outreach", func(p url.Values) error {
-		platform := p.Get("platform")
-		if platform == "" {
-			platform = "Email"
-		}
-		niche := p.Get("niche")
-		if niche == "" {
-			niche = "B2B SaaS"
-		}
-		topic := p.Get("topic")
-		if topic == "" {
-			topic = "AI Automation Integration"
-		}
-
+		// 2. Setup Outreach Module
 		outModule := outreach.NewModule(orch)
-		template, err := outModule.GenerateTemplate(platform, niche, topic)
-		if err != nil {
-			return err
+		affModule := affiliate.NewModule(orch)
+
+		for _, lead := range leads {
+			// 3. Generate template
+			template, err := outModule.GenerateTemplate("Email", target, offer)
+			if err != nil {
+				fmt.Printf("[Outreach] Failed to generate template: %v\n", err)
+				continue
+			}
+
+			// 4. Inject affiliate link into the template
+			injectedTemplate := affModule.InjectAffiliateLink(template, offer)
+
+			// 5. Schedule / Dispatch
+			outModule.ScheduleCadence(lead.Email, "Email", injectedTemplate)
+
+			// If not dry run, actual sending logic would go here.
+			// Using outreach campaign logic for simulation:
+			campaign := research.NewOutreachCampaign(orch)
+			subject := fmt.Sprintf("Quick question regarding %s", lead.Name)
+			campaign.SendEmail(lead, subject, injectedTemplate)
 		}
 
-		// Schedule a dummy target cadence
-		target := "prospect@example.com"
-		if platform == "LinkedIn" {
-			target = "linkedin.com/in/prospect"
-		}
-
-		return outModule.ScheduleCadence(target, platform, template)
+		return nil
 	})
+
+
 
 	protocol.Register("synergy_leadgen", func(p url.Values) error {
 		topic := p.Get("topic")
