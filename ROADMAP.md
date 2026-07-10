@@ -52,6 +52,7 @@
 - [x] **LLM response cache** — content-addressable cache for identical prompts
 
 ## Phase 6: Federation & Scale (v1.0.0-rc.2 – v1.0.0) 📋 PLANNED
+- [x] **Affiliate Engine Curation Integration**
 - [ ] **Multi-node cluster testing** — 10+ peers with real mesh sync
 - [ ] **Global profit leaderboard** — mesh-wide ranking via A2A topic
 - [ ] **Decentralized identity** — DID for peer verification
