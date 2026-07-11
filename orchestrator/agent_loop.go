@@ -161,7 +161,6 @@ Available modules and their parameters:
 - hustle://trading?symbol=SYMBOL — Execute trading strategy for a crypto symbol
 - hustle://content?topic=TOPIC&type=TYPE — Generate monetizable content (type: blog, newsletter, seo, thread)
 - hustle://content?topic=TOPIC&type=blog&niche=NICHE&keywords=KW1,KW2 — Generate SEO-optimized blog post
-- hustle://outreach?target=TARGET&offer=OFFER — Generate and dispatch cold email sequences with embedded affiliate links
 - hustle://chain?name=CHAIN_NAME — Execute a multi-step workflow chain
 - hustle://chain?action=discover — Discover and create new high-ROI workflow chains
 - hustle://healer?issue=DESCRIPTION — Diagnose and fix a problem
@@ -275,57 +274,6 @@ func (a *AgentLoop) evaluate() bool {
 		fmt.Printf("[AgentLoop] ⛔ Wealth preservation triggered. Profit: $%.2f. Stopping.\n", a.Orch.Ledger.Profit())
 		a.State.Status = "wealth_preservation"
 		return false
-	}
-
-	// Autonomous Evolution: Analyze self-performance metrics and adapt chains
-	if a.State.Iterations%5 == 0 && a.State.Iterations > 0 {
-		fmt.Printf("[AgentLoop] 🧬 Initiating Autonomous Evolution Protocol...\n")
-		profit := a.Orch.Ledger.Profit()
-		successRate := float64(a.State.Successes) / float64(a.State.Iterations)
-
-		prompt := fmt.Sprintf(`As the Autonomous Evolution Engine, analyze the agent's recent 5-iteration performance block.
-Profit: $%.2f
-Success Rate: %.2f%%
-
-Based on this performance, generate a NEW mutated sequence of hustle URIs that optimizes for higher ROI and better stability.
-Respond ONLY with a JSON array of up to 3 URIs. Example: ["hustle://research?query=AI", "hustle://content?topic=AI&type=blog"]`, profit, successRate*100)
-
-		evolvedChains, err := a.Orch.LLM.Generate(prompt)
-		if err == nil {
-			a.Orch.L2.Add(MemoryEntry{
-				ID:        fmt.Sprintf("evolution-%d", time.Now().Unix()),
-				Content:   fmt.Sprintf("Evolved new protocol chain based on %.2f%% success rate and $%.2f profit: %s", successRate*100, profit, evolvedChains),
-				Timestamp: time.Now(),
-				Tags:      []string{"evolution", "optimization", a.State.HustleType},
-			})
-			fmt.Printf("[AgentLoop] 🧬 Successfully evolved new workflow variants into L2 memory.\n")
-		}
-	}
-
-	// Audit Affiliate Links for Zero-Profit
-	if a.State.HustleType == "outreach" || a.State.HustleType == "general" {
-		niche := "B2B SaaS" // could be dynamic
-		perf := a.Orch.Ledger.AnalyzeAffiliatePerformance(niche)
-		if perf == "ZERO_PROFIT_WARNING" {
-			fmt.Printf("[AgentLoop] ⚠️ Healer Audit: Affiliate links for %s are yielding zero profit. Rerouting agent to research a new product.\n", niche)
-			a.Orch.L1.Add(MemoryEntry{
-				ID:        fmt.Sprintf("healer-audit-%d", time.Now().Unix()),
-				Content:   fmt.Sprintf("Audited affiliate links for %s: ZERO_PROFIT_WARNING. Need new product.", niche),
-				Timestamp: time.Now(),
-				Tags:      []string{"healer", "audit", "affiliate"},
-			})
-
-			// Log ROI metrics to L3 memory for autonomous optimization
-			a.Orch.L3.Add(MemoryEntry{
-				ID:        fmt.Sprintf("roi-metrics-%s-%d", niche, time.Now().Unix()),
-				Content:   fmt.Sprintf("Affiliate ROI Audit: Niche %s generated $0.00 profit over multiple cycles. Strategy marked for autonomous divestment.", niche),
-				Timestamp: time.Now(),
-				Tags:      []string{"roi", "metrics", "affiliate", "optimization"},
-			})
-			a.State.HustleType = "research"
-			// Overwrite next action heuristic
-			a.State.LastAction = "hustle://research?query=trending+b2b+software+affiliate+programs"
-		}
 	}
 
 	return true

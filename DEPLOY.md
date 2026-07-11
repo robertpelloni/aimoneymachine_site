@@ -106,21 +106,3 @@ The Orchestrator includes a self-healing `sync` protocol. To trigger manually:
 ```bash
 ./bin/orchestrator -uri "hustle://sync"
 ```
-
-## Local LLM Setup Guide (Phase 5)
-To operate the AI Hustle Machine at zero API cost, you must connect a local inference server using OpenAI-compatible endpoints.
-
-### Option A: LM Studio (Recommended for Desktop)
-1. Download and install [LM Studio](https://lmstudio.ai/).
-2. Search and download a capable model (e.g., `Meta-Llama-3-8B-Instruct` or `Qwen-2.5`).
-3. Navigate to the **Local Server** tab (the `<->` icon).
-4. Ensure the port is set to `1234`.
-5. Click **Start Server**.
-6. The AI Hustle Machine will automatically detect the server on `http://localhost:1234/v1` at boot.
-
-### Option B: Ollama (Recommended for Headless/Linux)
-1. Install Ollama: `curl -fsSL https://ollama.com/install.sh | sh`
-2. Pull your desired model: `ollama pull qwen2.5:14b`
-3. Serve Ollama in the background: `ollama serve &`
-4. Before starting the orchestrator, export the environment variable to point to Ollama's default port:
-   `export LLM_BASE_URL="http://localhost:11434/v1"`

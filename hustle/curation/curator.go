@@ -61,8 +61,7 @@ func (c *CurationModule) Curate(topic string) error {
 
 	fmt.Printf("Newsletter blurb: %s\n", summary)
 
-	// The caller (like main.go) can intercept and inject affiliate links
-	// before publishing. But we save the original summary to memory.
+	// Persist to memory
 	c.Orchestrator.L1.Add(orchestrator.MemoryEntry{
 		ID:        fmt.Sprintf("curation-%s-%d", topic, time.Now().Unix()),
 		Content:   summary,

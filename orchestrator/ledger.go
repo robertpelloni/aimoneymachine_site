@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"strings"
 	"time"
 )
 
@@ -60,28 +59,6 @@ func (l *Ledger) TotalExpenses() float64 {
 
 func (l *Ledger) Profit() float64 {
 	return l.TotalRevenue() - l.TotalExpenses()
-}
-
-
-func (l *Ledger) AnalyzeAffiliatePerformance(niche string) string {
-
-	var totalRev float64
-	var count int
-
-	for _, tx := range l.Transactions {
-		if tx.Hustle == "Affiliate" && strings.Contains(strings.ToLower(tx.Note), strings.ToLower(niche)) {
-			count++
-			if tx.Type == Revenue {
-				totalRev += tx.Amount
-			}
-		}
-	}
-
-	if count > 5 && totalRev == 0 {
-		return "ZERO_PROFIT_WARNING"
-	}
-
-	return "PROFITABLE"
 }
 
 func (l *Ledger) AnalyzeProfitability() string {

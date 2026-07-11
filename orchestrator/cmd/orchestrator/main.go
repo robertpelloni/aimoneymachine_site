@@ -15,9 +15,8 @@ import (
 
 	"github.com/robertpelloni/hustle/hustle/content"
 	"github.com/robertpelloni/hustle/hustle/curation"
-	"github.com/robertpelloni/hustle/hustle/outreach"
-	"github.com/robertpelloni/hustle/hustle/research"
 	"github.com/robertpelloni/hustle/hustle/affiliate"
+	"github.com/robertpelloni/hustle/hustle/research"
 	"github.com/robertpelloni/hustle/hustle/social"
 	"github.com/robertpelloni/hustle/hustle/trading"
 	"github.com/robertpelloni/hustle/orchestrator"
@@ -39,7 +38,6 @@ func main() {
 	agentIter := flag.Int("agent-iterations", 20, "Max iterations for agent loop")
 	autoPlan := flag.Bool("autoplan", false, "LLM generates and executes a strategic hustle plan")
 	dryRun := flag.Bool("dry-run", false, "Execute in dry-run mode (no external mutations)")
-	safetyMode := flag.Bool("safety-mode", false, "Alias for dry-run to ensure read-only execution")
 	flag.Parse()
 
 	// Source version from VERSION.md
@@ -146,7 +144,7 @@ func main() {
 		return err
 	})
 
-	protocol.Register("curation", func(p url.Values) error {
+		protocol.Register("curation", func(p url.Values) error {
 		topic := p.Get("topic")
 		if topic == "" {
 			topic = "AI"
@@ -182,7 +180,6 @@ func main() {
 				fmt.Printf("[Curation] Monetized Summary:\n%s\n", injectedSummary)
 			}
 		}
-
 		return err
 	})
 
@@ -218,7 +215,7 @@ func main() {
 			)
 		}
 
-		if *dryRun || *safetyMode {
+		if *dryRun {
 			provider.SetDryRun(true)
 		}
 
@@ -294,21 +291,7 @@ func main() {
 			TargetWords: 800,
 			Niche:       niche,
 		}
-
-		result, err := contentModule.Generate(req)
-		if err == nil && result != nil {
-			// Ensure robust affiliate injection into the final output asset
-			affModule := affiliate.NewModule(orch)
-			injectedBody := affModule.InjectAffiliateLink(result.Body, topic)
-
-			// Overwrite the file with injected content
-			frontmatter := fmt.Sprintf("---\ntitle: %q\ntype: %s\ndate: %s\nkeywords: [%s]\nexcerpt: %q\n---\n\n",
-				result.Title, result.Type, result.CreatedAt.Format("2006-01-02"), strings.Join(result.Keywords, ", "), result.Excerpt)
-
-			fullContent := frontmatter + injectedBody
-			os.WriteFile(result.Filepath, []byte(fullContent), 0644)
-		}
-
+		_, err := contentModule.Generate(req)
 		return err
 	})
 
@@ -370,55 +353,6 @@ func main() {
 		return chainManager.Execute(name)
 	})
 
-	protocol.Register("outreach", func(p url.Values) error {
-		target := p.Get("target")
-		if target == "" {
-			target = "startups"
-		}
-		offer := p.Get("offer")
-		if offer == "" {
-			offer = "ai_tools"
-		}
-
-		fmt.Printf("Starting autonomous outreach campaign targeting: %s with offer: %s\n", target, offer)
-
-		// 1. Research leads
-		leadGen := research.NewLeadGenerator(orch)
-		leads, err := leadGen.FindLeads(target)
-		if err != nil {
-			return err
-		}
-
-		// 2. Setup Outreach Module
-		outModule := outreach.NewModule(orch)
-		affModule := affiliate.NewModule(orch)
-
-		for _, lead := range leads {
-			// 3. Generate template
-			template, err := outModule.GenerateTemplate("Email", target, offer)
-			if err != nil {
-				fmt.Printf("[Outreach] Failed to generate template: %v\n", err)
-				continue
-			}
-
-			// 4. Inject affiliate link into the template
-			injectedTemplate := affModule.InjectAffiliateLink(template, offer)
-
-			// 5. Schedule / Dispatch
-			outModule.ScheduleCadence(lead.Email, "Email", injectedTemplate)
-
-			// If not dry run, actual sending logic would go here.
-			// Using outreach campaign logic for simulation:
-			campaign := research.NewOutreachCampaign(orch)
-			subject := fmt.Sprintf("Quick question regarding %s", lead.Name)
-			campaign.SendEmail(lead, subject, injectedTemplate)
-		}
-
-		return nil
-	})
-
-
-
 	protocol.Register("synergy_leadgen", func(p url.Values) error {
 		topic := p.Get("topic")
 		if topic == "" {
@@ -429,22 +363,12 @@ func main() {
 			niche = "B2B SaaS"
 		}
 
-		fmt.Printf("Starting deterministic synergy lead generation for niche: %s\n", niche)
+		fmt.Printf("Starting synergy lead generation for niche: %s\n", niche)
 
-		// Instead of just finding leads, use the new dedicated outreach module
-		// to fully schedule the cadence and track it appropriately.
-		outModule := outreach.NewModule(orch)
-
-		// Find targets via research module
-		leadGen := research.NewLeadGenerator(orch)
-		leads, err := leadGen.FindLeads(niche)
-		if err != nil {
+		// Run Outreach
+		campaign := research.NewOutreachCampaign(orch)
+		if err := campaign.Run(niche, topic); err != nil {
 			return err
-		}
-
-		for _, lead := range leads {
-			template, _ := outModule.GenerateTemplate("Email", niche, topic)
-			outModule.ScheduleCadence(lead.Email, "Email", template)
 		}
 
 		// Follow up with social posting leveraging affiliate logic
@@ -460,7 +384,7 @@ func main() {
 			os.Getenv("TWITTER_ACCESS_SECRET"),
 		)
 
-		if *dryRun || *safetyMode {
+		if *dryRun {
 			provider.SetDryRun(true)
 		}
 

@@ -13,10 +13,6 @@
   - Synergy LeadGen Loop (`hustle/research/leadgen.go` & `outreach.go`)
   - YouTube Shorts Factory (`hustle/media`)
 - Wired all new modules into the agent loop and verified stability locally.
-- Phase 5 deliverables finalized: Affiliate Marketing Engine fully wired into social/content modules.
-- Landing page overhauled to reflect Phase 5 Advanced Autonomy goals and federated mesh integrations.
-- Outreach module separated and fully integrated into the `hustle://outreach` and `synergy_leadgen` workflows.
-- Implemented `Ledger.AnalyzeAffiliatePerformance()` into the Agent Loop to dynamically reroute campaigns if zero profit is returned.
 
 ### Next Steps / Remaining Work
 - Further refine cross-hustle feedback. Research discoveries feeding content, content feeding social.

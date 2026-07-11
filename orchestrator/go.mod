@@ -3,7 +3,6 @@ module github.com/robertpelloni/hustle/orchestrator
 go 1.25.0
 
 require (
-	github.com/robertpelloni/hustle/hustle/affiliate v0.0.0-00010101000000-000000000000
 	github.com/robertpelloni/hustle/hustle/content v0.0.0-00010101000000-000000000000
 	github.com/robertpelloni/hustle/hustle/curation v0.0.0-00010101000000-000000000000
 	github.com/robertpelloni/hustle/hustle/research v0.0.0-00010101000000-000000000000
@@ -42,7 +41,6 @@ require (
 	github.com/PuerkitoBio/goquery v1.8.0 // indirect
 	github.com/andybalholm/cascadia v1.3.1 // indirect
 	github.com/dghubble/oauth1 v0.7.3 // indirect
-	github.com/robertpelloni/hustle/hustle/outreach v0.0.0-00010101000000-000000000000
 	github.com/robertpelloni/hustle/hustle/publisher v0.0.0-00010101000000-000000000000 // indirect
 )
 
@@ -57,7 +55,5 @@ replace github.com/robertpelloni/hustle/hustle/social => ../hustle/social
 replace github.com/robertpelloni/hustle/hustle/trading => ../hustle/trading
 
 replace github.com/robertpelloni/hustle/hustle/publisher => ../hustle/publisher
-
-replace github.com/robertpelloni/hustle/hustle/outreach => ../hustle/outreach
 
 replace github.com/robertpelloni/hustle/hustle/affiliate => ../hustle/affiliate

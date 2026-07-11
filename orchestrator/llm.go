@@ -36,7 +36,7 @@ func (m *MockLLM) Generate(prompt string) (string, error) {
 		return m.GenerateFunc(prompt)
 	}
 	if strings.Contains(prompt, "Respond with ONLY the hustle:// URI") {
-		return "hustle://curation?topic=AI", nil
+		return "hustle://synergy_leadgen", nil
 	}
 
 	if strings.Contains(prompt, "Respond with a JSON array") {

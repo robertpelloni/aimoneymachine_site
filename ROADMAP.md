@@ -35,16 +35,13 @@
 - [x] **Dynamic RSS** — User-managed feed lists for curation (v1.0.0-alpha.74)
 - [x] **Wealth Goals** — Mesh-wide financial targets and leaderboards (v1.0.0-alpha.75)
 
-## Phase 5: Advanced Autonomy & Scaling (v1.0.0-alpha.78 – v1.0.0-beta.10) ✅ COMPLETE
-- [x] **Affiliate Engine Curation Integration** — wire affiliate into hustle://curation
-- [x] **Verified Curation Integration** — agent dry-run verified successfully
-- [x] **ALL CURATION TASKS COMPLETE**
-- [x] **Real Social API Integration** — Twitter/X and LinkedIn OAuth2/API calls
-- [x] **Trading with real CoinGecko data** — verified in daemon mode with -real-prices
-- [x] **Content output pipeline** — automated hosting/deployment of generated markdown
-- [x] **Windows CGO build fix** — Migrate to `modernc.org/sqlite`
+## Phase 5: Advanced Autonomy & Scaling (v1.0.0-alpha.78 – v1.0.0-beta.10) 🔧 IN PROGRESS
+- [ ] **Real Social API Integration** — Twitter/X and LinkedIn OAuth2/API calls
+- [ ] **Trading with real CoinGecko data** — verified in daemon mode with -real-prices
+- [ ] **Content output pipeline** — automated hosting/deployment of generated markdown
+- [ ] **Windows CGO build fix** — Migrate to `modernc.org/sqlite`
 
-## Phase 5: Advanced Autonomy (v1.0.0-beta.11 – v1.0.0-rc.1) 🔧 IN PROGRESS
+## Phase 5: Advanced Autonomy (v1.0.0-beta.11 – v1.0.0-rc.1) 📋 PLANNED
 - [x] **Self-optimizing prompts** — A/B test prompt variations, track win rates
 - [ ] **Advanced trading indicators** — MACD, Bollinger Bands, volume analysis
 - [ ] **Multi-exchange trading** — Binance, Kraken exchange plugins
@@ -52,7 +49,6 @@
 - [x] **LLM response cache** — content-addressable cache for identical prompts
 
 ## Phase 6: Federation & Scale (v1.0.0-rc.2 – v1.0.0) 📋 PLANNED
-- [x] **Affiliate Engine Curation Integration**
 - [ ] **Multi-node cluster testing** — 10+ peers with real mesh sync
 - [ ] **Global profit leaderboard** — mesh-wide ranking via A2A topic
 - [ ] **Decentralized identity** — DID for peer verification
@@ -64,6 +60,3 @@
 - [ ] **Digital Product Archive Generator**: LLM-generated templates, boilerplate code, and clean datasets listed dynamically on an internal storefront
 - [ ] **Dynamic Data Arbitrage & Lead Capture**: Aggregating and summarizing public/API data into actionable, subscription-paywalled insights
 - [x] **Affiliate Marketing Engine**: Fetch trending products, generate LLM reviews, and auto-post to Twitter and Blog
-
-## Phase 8: Autonomous Evolution 🧬
-- [x] **Agent Self-Evolution Loop**: Agent analyzes its own block iterations (success rate vs profit) to dynamically "breed" new chain combinations and insert them directly into L2 episodic memory.
