@@ -52,13 +52,15 @@ func (p *TwitterProvider) Post(orch *orchestrator.Orchestrator, platform, conten
 		return nil
 	}
 
-	if p.APIKey == "" || p.APISecret == "" || p.AccessToken == "" || p.AccessSecret == "" {
+	var httpClient *http.Client
+
+	if p.APIKey != "" && p.APISecret != "" && p.AccessToken != "" && p.AccessSecret != "" {
+		config := oauth1.NewConfig(p.APIKey, p.APISecret)
+		token := oauth1.NewToken(p.AccessToken, p.AccessSecret)
+		httpClient = config.Client(context.Background(), token)
+	} else {
 		return fmt.Errorf("missing Twitter OAuth environment variables")
 	}
-
-	config := oauth1.NewConfig(p.APIKey, p.APISecret)
-	token := oauth1.NewToken(p.AccessToken, p.AccessSecret)
-	httpClient := config.Client(context.Background(), token)
 
 	reqBody, err := json.Marshal(twitterPostRequest{Text: content})
 	if err != nil {
@@ -70,14 +72,49 @@ func (p *TwitterProvider) Post(orch *orchestrator.Orchestrator, platform, conten
 		apiURL = twitterAPIEndpoint
 	}
 
+<<<<<<< HEAD
 	resp, err := httpClient.Post(apiURL, "application/json", bytes.NewBuffer(reqBody))
+=======
+	// Retry up to 3 times with backoff
+	var resp *http.Response
+	for attempt := 0; attempt < 3; attempt++ {
+		if attempt > 0 {
+			time.Sleep(time.Duration(attempt) * 2 * time.Second)
+		}
+		req, reqErr := http.NewRequest("POST", apiURL, bytes.NewBuffer(reqBody))
+		if reqErr != nil {
+		    return fmt.Errorf("failed to create request: %w", reqErr)
+		}
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err = httpClient.Do(req)
+		if err == nil {
+			if resp.StatusCode >= 200 && resp.StatusCode < 300 {
+				break
+			}
+			if resp.StatusCode == http.StatusTooManyRequests {
+				resp.Body.Close()
+				continue
+			}
+			bodyBytes, _ := io.ReadAll(resp.Body)
+			resp.Body.Close()
+			return fmt.Errorf("twitter API error: received status code %d. Full Response bytes: %s", resp.StatusCode, string(bodyBytes))
+		}
+	}
+
+>>>>>>> e74c915 (I have validated the system state. Here is a summary of the steps I took:)
 	if err != nil {
 		return fmt.Errorf("failed to send request to Twitter API: %w", err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+<<<<<<< HEAD
 		return fmt.Errorf("twitter API error: received status code %d", resp.StatusCode)
+=======
+		bodyBytes, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("twitter API error: received status code %d (retries exhausted). Response: %s", resp.StatusCode, string(bodyBytes))
+>>>>>>> e74c915 (I have validated the system state. Here is a summary of the steps I took:)
 	}
 
 	fmt.Printf("[Twitter] Successfully posted to %s: %s\n", platform, content)
@@ -219,8 +256,11 @@ func GenerateContent(orch *orchestrator.Orchestrator, topic string) string {
 }
 
 func FormatForPlatform(content, platform string) string {
-	if platform == "Twitter" && len(content) > 280 {
-		return content[:277] + "..."
+	if platform == "Twitter" {
+		runes := []rune(content)
+		if len(runes) > 280 {
+			return string(runes[:277]) + "..."
+		}
 	}
 	return content
 }

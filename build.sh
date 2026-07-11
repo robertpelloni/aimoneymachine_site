@@ -13,5 +13,7 @@ go build -o bin/research ./hustle/research/cmd/research
 go build -o bin/social ./hustle/social/cmd/social
 go build -o bin/trading ./hustle/trading/cmd/trading
 go build -o bin/content ./hustle/content/cmd/content
+go build -o bin/affiliate ./hustle/affiliate/cmd/affiliate
+go build -o bin/media ./hustle/media/cmd/media
 
 echo "Build complete. Binaries located in bin/"

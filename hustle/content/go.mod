@@ -7,6 +7,8 @@ require (
 	github.com/robertpelloni/hustle/orchestrator v0.0.0-00010101000000-000000000000
 )
 
+require golang.org/x/tools v0.41.0 // indirect
+
 require (
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/google/uuid v1.6.0 // indirect
@@ -20,7 +22,11 @@ require (
 	modernc.org/libc v1.72.3 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.11.0 // indirect
+<<<<<<< HEAD
 	modernc.org/sqlite v1.33.1 // indirect
+=======
+	modernc.org/sqlite v1.31.1 // indirect
+>>>>>>> e74c915 (I have validated the system state. Here is a summary of the steps I took:)
 	modernc.org/strutil v1.2.1 // indirect
 	modernc.org/token v1.1.0 // indirect
 )

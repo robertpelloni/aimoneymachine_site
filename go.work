@@ -2,8 +2,29 @@ go 1.25.0
 
 use (
 	./hustle/affiliate
+<<<<<<< HEAD
 	./hustle/content
 	./hustle/curation
+=======
+	./hustle/automation
+	./hustle/bi
+	./hustle/careers
+	./hustle/confluence
+	./hustle/content
+	./hustle/crm
+	./hustle/curation
+	./hustle/design
+	./hustle/devagency
+	./hustle/domains
+	./hustle/ecommerce
+	./hustle/finance
+	./hustle/legal
+	./hustle/localization
+	./hustle/marketing
+	./hustle/media
+	./hustle/pod
+	./hustle/production/cmd/cluster
+>>>>>>> e74c915 (I have validated the system state. Here is a summary of the steps I took:)
 	./hustle/publisher
 	./hustle/research
 	./hustle/social

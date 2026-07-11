@@ -1,5 +1,6 @@
 # Todo List
 
+<<<<<<< HEAD
 ## 🔴 Blockers
 - [x] **Fix Windows CGO build** (v1.0.0-alpha.78) — Migrate `go-sqlite3` to `modernc.org/sqlite` (pure Go).
 - [x] **Real Social Posting** (v1.0.0-alpha.82) — Real Twitter/LinkedIn API integrations (OAuth1, Bearer token) with DryRun support, error handling, and production tests.
@@ -8,6 +9,18 @@
 - [x] **Real Trading Data** (v1.0.0-alpha.83) — CoinGecko fetcher production-hardened with caching, retry, rate-limit handling, and API key support.
 - [x] **Markdown CMS** (v1.0.0-alpha.82) — Static site generator in `hustle/content/deploy.go` with RSS feed, responsive CSS, and local preview server.
 - [x] **Content Deployment Pipeline** — Automated deploy to WordPress or GitHub Pages from the content output.
+=======
+## High Priority (v1.1.0)
+- [x] Fix Twitter/X auto-posting (OAuth1 debug — keys exist, posts fail silently)
+- [x] Build affiliate marketing engine (Amazon scrape → LLM → auto-post)
+- [ ] Enable CoinGecko API key for real trading prices
+
+## Medium Priority
+- [x] YouTube Shorts factory (AI script → image → TTS → upload)
+- [ ] Multi-platform content repurposing pipeline
+- [ ] Lead generation + email outreach automation
+- [ ] Digital product factory (LLM-generated templates → Gumroad)
+>>>>>>> e74c915 (I have validated the system state. Here is a summary of the steps I took:)
 
 ## 🟡 Medium Priority
 - [x] **Dashboard Styling** (v1.0.0-alpha.78) — Add color codes to the terminal UI (green for profit, red for error).
