@@ -541,42 +541,14 @@ func generateIndexHTML(pages []SitePage, config SiteConfig) string {
   <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-  <header style="background: linear-gradient(135deg, #1f2937, #111827); padding: 40px 20px; border-bottom: 2px solid #374151;">
-    <div style="max-width: 800px; margin: 0 auto; text-align: center;">
-      <h1 style="font-size: 2.5rem; margin-bottom: 10px; color: #f3f4f6;">%s</h1>
-      <p style="font-size: 1.2rem; color: #9ca3af; margin-bottom: 20px;">%s</p>
-
-      <!-- Phase 5 Roadmap Callout -->
-      <div style="background: rgba(0,0,0,0.3); border: 1px solid #374151; border-radius: 8px; padding: 20px; margin: 20px 0; text-align: left;">
-        <h3 style="color: #60a5fa; margin-top: 0;">🚀 Phase 5: Advanced Autonomy & Scaling (v1.0.0-beta.10 target)</h3>
-        <ul style="color: #d1d5db; line-height: 1.6; padding-left: 20px; font-size: 0.95rem;">
-          <li>✓ <strong>Affiliate Marketing Engine</strong>: LLM reviews + Auto-tweet + Blog injection</li>
-          <li>✓ <strong>Lead Generation + Outreach</strong>: Automated cold outreach via SMTP</li>
-          <li>✓ <strong>Real Social API</strong>: Full Twitter OAuth and automated posting</li>
-          <li>⏳ <strong>Multi-node cluster testing</strong>: Mesh syncing with 10+ peers</li>
-          <li>⏳ <strong>Performance Benchmarking</strong>: LLM caching & self-optimizing prompt wins</li>
-        </ul>
-      </div>
-
-      <!-- Mesh Observability Mockup Area -->
-      <div style="display: flex; gap: 10px; justify-content: center; margin-bottom: 20px; font-family: monospace; font-size: 0.9rem;">
-        <span style="background: #064e3b; color: #34d399; padding: 5px 12px; border-radius: 99px;">● Mesh Node Active</span>
-        <span style="background: #1e3a8a; color: #60a5fa; padding: 5px 12px; border-radius: 99px;">✓ LLM Ready</span>
-        <span style="background: #701a75; color: #f472b6; padding: 5px 12px; border-radius: 99px;">Total Profit: $428.10</span>
-      </div>
-
-      <a href="https://github.com/robertpelloni/fully_automated_gay_luxury_space_communism" style="display: inline-block; background: #3b82f6; color: white; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: bold; font-size: 1.1rem; transition: background 0.2s;">
-        Spin Up Your AI Hustle Machine
-      </a>
-      <p style="margin-top:20px"><a href="feed.xml" style="color: #9ca3af; text-decoration: underline;">📡 Subscribe via RSS (%d articles published)</a></p>
-    </div>
+  <header>
+    <h1>🏭 %s</h1>
+    <p>%s — %d articles</p>
+    <p style="margin-top:8px"><a href="feed.xml">📡 RSS Feed</a></p>
   </header>
 
-  <main style="max-width: 800px; margin: 40px auto; padding: 0 20px;">
-    <h2 style="border-bottom: 1px solid #374151; padding-bottom: 10px; margin-bottom: 20px;">Latest Autonomous Dispatch</h2>
-    <ul class="articles" style="list-style: none; padding: 0;">
-%s    </ul>
-  </main>
+  <ul class="articles">
+%s  </ul>
 
   <footer>
     <p>Generated autonomously on %s by %s</p>
