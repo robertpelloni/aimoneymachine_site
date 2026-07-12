@@ -15,8 +15,8 @@ import (
 
 	"github.com/robertpelloni/hustle/hustle/content"
 	"github.com/robertpelloni/hustle/hustle/curation"
-	"github.com/robertpelloni/hustle/hustle/affiliate"
 	"github.com/robertpelloni/hustle/hustle/research"
+	"github.com/robertpelloni/hustle/hustle/affiliate"
 	"github.com/robertpelloni/hustle/hustle/social"
 	"github.com/robertpelloni/hustle/hustle/trading"
 	"github.com/robertpelloni/hustle/orchestrator"
@@ -144,7 +144,7 @@ func main() {
 		return err
 	})
 
-				protocol.Register("curation", func(p url.Values) error {
+	protocol.Register("curation", func(p url.Values) error {
 		topic := p.Get("topic")
 		if topic == "" {
 			topic = "AI"
@@ -158,37 +158,7 @@ func main() {
 			Fetcher:      curation.NewRSSFetcher(),
 			Feeds:        feeds,
 		}
-
-		err := c.Curate(topic)
-		if err == nil {
-			// Find the summary from L1 memory
-			entries := orch.L1.Search("curation")
-			if len(entries) > 0 {
-				lastEntry := entries[len(entries)-1]
-
-				// Inject Affiliate Links
-				affModule := affiliate.NewModule(orch)
-				injectedSummary := affModule.InjectAffiliateLink(lastEntry.Content, topic)
-
-				// Save the injected summary to L3 memory so the LLM can use it
-				orch.L3.Add(orchestrator.MemoryEntry{
-					ID:        fmt.Sprintf("curation-affiliate-%s-%d", topic, time.Now().Unix()),
-					Content:   injectedSummary,
-					Timestamp: time.Now(),
-					Tags:      []string{"curation", "affiliate", topic},
-				})
-
-				// Re-save the injected summary to L1 so social module can pick it up
-				orch.L1.Add(orchestrator.MemoryEntry{
-					ID:        fmt.Sprintf("curation-affiliate-%s-%d", topic, time.Now().Unix()),
-					Content:   injectedSummary,
-					Timestamp: time.Now(),
-					Tags:      []string{"curation", topic, "monetized"},
-				})
-				fmt.Printf("[Curation] Monetized Summary:\n%s\n", injectedSummary)
-			}
-		}
-		return err
+		return c.Curate(topic)
 	})
 
 	protocol.Register("social", func(p url.Values) error {

@@ -35,18 +35,13 @@
 - [x] **Dynamic RSS** — User-managed feed lists for curation (v1.0.0-alpha.74)
 - [x] **Wealth Goals** — Mesh-wide financial targets and leaderboards (v1.0.0-alpha.75)
 
-## Phase 5: Advanced Autonomy & Scaling (v1.0.0-alpha.78 – v1.0.0-beta.10) ✅ COMPLETE
-- [x] **Real Social API Integration** — Twitter/X and LinkedIn OAuth2/API calls
-- [x] **Trading with real CoinGecko data** — verified in daemon mode with -real-prices
-- [x] **Content output pipeline** — automated hosting/deployment of generated markdown
-- [x] **Windows CGO build fix** — Migrate to `modernc.org/sqlite`
+## Phase 5: Advanced Autonomy & Scaling (v1.0.0-alpha.78 – v1.0.0-beta.10) 🔧 IN PROGRESS
+- [ ] **Real Social API Integration** — Twitter/X and LinkedIn OAuth2/API calls
+- [ ] **Trading with real CoinGecko data** — verified in daemon mode with -real-prices
+- [ ] **Content output pipeline** — automated hosting/deployment of generated markdown
+- [ ] **Windows CGO build fix** — Migrate to `modernc.org/sqlite`
 
-## Phase 5: Advanced Autonomy (v1.0.0-beta.11 – v1.0.0-rc.1) 🔧 IN PROGRESS
-- [x] **Affiliate Engine Curation Integration** — wire affiliate into hustle://curation
-- [x] **Verified Curation Integration** — agent dry-run verified successfully
-- [x] **ALL CURATION TASKS COMPLETE**
-- [x] **Outreach Module** — `hustle/outreach` package for automated cold-email/DM generation
-
+## Phase 5: Advanced Autonomy (v1.0.0-beta.11 – v1.0.0-rc.1) 📋 PLANNED
 - [x] **Self-optimizing prompts** — A/B test prompt variations, track win rates
 - [ ] **Advanced trading indicators** — MACD, Bollinger Bands, volume analysis
 - [ ] **Multi-exchange trading** — Binance, Kraken exchange plugins
