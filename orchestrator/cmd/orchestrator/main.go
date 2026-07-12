@@ -144,7 +144,7 @@ func main() {
 		return err
 	})
 
-		protocol.Register("curation", func(p url.Values) error {
+			protocol.Register("curation", func(p url.Values) error {
 		topic := p.Get("topic")
 		if topic == "" {
 			topic = "AI"
@@ -169,6 +169,9 @@ func main() {
 				// Inject Affiliate Links
 				affModule := affiliate.NewModule(orch)
 				injectedSummary := affModule.InjectAffiliateLink(lastEntry.Content, topic)
+
+				// Save the injected summary to L3 memory so the LLM can use it
+				orch.L3.Store(fmt.Sprintf("curation_affiliate_%s", topic), injectedSummary, []string{"curation", "affiliate", topic})
 
 				// Re-save the injected summary to L1 so social module can pick it up
 				orch.L1.Add(orchestrator.MemoryEntry{
