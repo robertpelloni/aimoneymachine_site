@@ -1,150 +1,18 @@
-🛠️ ALPHA SOFTWARE UNDER CONSTRUCTION — Use at your own risk. Backwards compatibility not guaranteed.
+# aimoneymachine_site — "AI Money Machine"
 
-```text
-╔══════════════════════════════════════════════════════════════════════════════╗
-║                                                                              ║
-║                     ██╗   ██╗███╗   ██╗██████╗ ███████╗██████╗              ║
-║                     ██║   ██║████╗  ██║██╔══██╗██╔════╝██╔══██╗             ║
-║                     ██║   ██║██╔██╗ ██║██║  ██║█████╗  ██████╔╝             ║
-║                     ██║   ██║██║╚██╗██║██║  ██║██╔══╝  ██╔══██╗             ║
-║                     ╚██████╔╝██║ ╚████║██████╔╝███████╗██║  ██║             ║
-║                      ╚═════╝ ╚═╝  ╚═══╝╚═════╝ ╚══════╝╚═╝  ╚═╝             ║
-║                                                                              ║
-║                     ██████╗ ██████╗ ███╗   ██╗███████╗████████╗██████╗      ║
-║                    ██╔════╝██╔═══██╗████╗  ██║██╔════╝╚══██╔══╝██╔══██╗     ║
-║                    ██║     ██║   ██║██╔██╗ ██║███████╗   ██║   ██████╔╝     ║
-║                    ██║     ██║   ██║██║╚██╗██║╚════██║   ██║   ██╔══██╗     ║
-║                    ╚██████╗╚██████╔╝██║ ╚████║███████║   ██║   ██║  ██║     ║
-║                     ╚═════╝ ╚═════╝ ╚═╝  ╚═══╝╚══════╝   ╚═╝   ╚═╝  ╚═╝     ║
-║                                                                              ║
-║                     █████╗ ██╗     ██████╗ ██╗  ██╗ █████╗                  ║
-║                    ██╔══██╗██║     ██╔══██╗██║  ██║██╔══██╗                 ║
-║                    ███████║██║     ██████╔╝███████║███████║                 ║
-║                    ██╔══██║██║     ██╔═══╝ ██╔══██║██╔══██║                 ║
-║                    ██║  ██║███████╗██║     ██║  ██║██║  ██║                 ║
-║                    ╚═╝  ╚═╝╚══════╝╚═╝     ╚═╝  ╚═╝╚═╝  ╚═╝                 ║
-║                                                                              ║
-║                    ╔══════════════════════════════════════╗                  ║
-║                    ║     ⚠️  ALPHA SOFTWARE  ⚠️           ║                  ║
-║                    ║  EXPECT BREAKING CHANGES & BUGS     ║                  ║
-║                    ║  NOT READY FOR PRODUCTION USE       ║                  ║
-║                    ╚══════════════════════════════════════╝                  ║
-║                                                                              ║
-╚══════════════════════════════════════════════════════════════════════════════╝
-```
+A Go system for running autonomous, LLM-driven online revenue experiments ("hustles") — self-orchestrating agents that plan, execute, and iterate on money-making workflows — together with the website and the large research corpus the project accumulated. Version **1.0.0-alpha.81**; Go 1.25.
 
-# AI Hustle Machine — Fully Automated Luxury Protocol
+Despite the repo name, this is not just a website: the site is one output of the machine. The tree contains:
 
-A self-orchestrating, LLM-driven autonomous agent system that runs revenue-generating "hustles" using free local AI models. The machine thinks, acts, learns, and evolves — without human intervention.
+- **The agent system** — Go code for the orchestration loop (agents that think, act, and record what worked)
+- **The research corpus** — dozens of standing research documents at the root (`AGENT_AUTOMATABLE_SIDE_HUSTLES.md`, `AI_AGENTS_FRAMEWORKS.md`, `CONNECTIVITY_MCP_A2A.md`, `CODING_HARNESS_TOOLS.md`, `INFRASTRUCTURE_PROXY_LAYERS.md`, `MASTER_IDEAS.md`, and many more) covering agent frameworks, automatable business models, MCP/A2A connectivity, and tooling
+- **Ops/process state** — `AUDIT.md`, `CHANGELOG.md`, `HANDOFF.md`, `MEMORY.md`, per-assistant instruction files, and session directories from the bot-assisted development process. The domain `aimoneymachine.site` is served from the same production server as Robert's other projects (its admin mail forwards to him).
 
-**Current Version:** 1.0.0-alpha.81 · **Status:** Active Development · **Language:** Go 1.25.0
+## Status — the honest part
 
----
+Alpha, experimental, single-developer. "Fully automated revenue" is the *research goal*, not a measured result: no income figures are published or claimed here, because there are none worth claiming yet. Read the corpus as a well-organized research notebook attached to a working agent harness — that is what this repo verifiably is.
 
-## 🏗️ Architecture
+## Related
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    ORCHESTRATOR (Core)                       │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐   │
-│  │ hustle:// │  │  Agent   │  │  Memory  │  │  Ledger  │   │
-│  │ Protocol  │  │   Loop   │  │ L1/L2/L3 │  │  (ROI)   │   │
-│  └─────┬────┘  └─────┬────┘  └─────┬────┘  └─────┬────┘   │
-│        │             │             │             │          │
-│  ┌─────┴────┐  ┌─────┴────┐  ┌─────┴────┐  ┌─────┴────┐   │
-│  │ Scheduler │  │  Healer  │  │  Council │  │  A2A     │   │
-│  │ (Daemon)  │  │ (Fix)    │  │ (Debate) │  │  Mesh    │   │
-│  └──────────┘  └──────────┘  └──────────┘  └──────────┘   │
-│                                                             │
-│  ┌──────────────────────────────────────────────────────┐  │
-│  │              LLM Waterfall (Free → Paid)             │  │
-│  │  LM Studio → Ollama → OpenRouter Free → Paid APIs   │  │
-│  └──────────────────────────────────────────────────────┘  │
-└──────────────────────────┬──────────────────────────────────┘
-                           │ hustle:// URIs
-        ┌──────────┬───────┼───────┬──────────┐
-        ▼          ▼       ▼       ▼          ▼
-   ┌────────┐ ┌────────┐ ┌──────┐ ┌──────┐ ┌────────┐
-   │Research│ │Curation│ │Social│ │Trading│ │Content │
-   │(Search)│ │(RSS)   │ │(Post)│ │(Crypto)│ │(Blog)  │
-   └────────┘ └────────┘ └──────┘ └──────┘ └────────┘
-```
-
-## 🌐 API Reference
-
-The Orchestrator provides a REST API for remote monitoring and control.
-
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/status` | GET | Current system health, version, and profit |
-| `/agents` | GET | Status of all active specialized agents |
-| `/content` | GET | List of generated files in the content library |
-| `/chains` | GET | All registered workflow chains |
-| `/strategy`| GET | Shared alpha/strategies from the mesh |
-| `/dispatch`| POST | Execute a `hustle://` URI (JSON: `{"uri": "..."}`) |
-| `/healer` | POST | Trigger manual diagnosis (JSON: `{"issue": "..."}`) |
-| `/sync` | POST | Trigger repository synchronization |
-| `/register`| POST | Register a new mesh peer (JSON: `{"id": "...", "url": "..."}`) |
-
-## 🚀 Quick Start
-
-### Prerequisites
-- **Go 1.25.0** (required toolchain)
-- **LM Studio** (recommended) or **Ollama** for free local LLM
-- A loaded model (e.g., `gemma-4-26b`, `qwen3-27b`)
-
-### 1. Start Your Local LLM
-```bash
-# Option A: LM Studio — load a model and start the server (default port 1234)
-# Option B: Ollama
-ollama serve
-ollama pull gemma3:27b
-```
-
-### 2. Build & Run
-```bash
-git clone https://github.com/robertpelloni/fully_automated_gay_luxury_space_communism
-cd fully_automated_gay_luxury_space_communism
-go work sync
-./build.sh
-```
-
-### 3. Run Modes
-
-```bash
-# 🤖 AUTONOMOUS AGENT — LLM drives all decisions (the main event)
-./bin/orchestrator -agent -agent-type general -agent-iterations 50
-
-# 🧠 AUTO-PLAN — LLM generates strategy, then executes it
-./bin/orchestrator -autoplan
-
-# 🔁 DAEMON — Scheduled tasks run on timers (no LLM decision-making)
-./bin/orchestrator -daemon -real-prices
-
-# 🖥️ INTERACTIVE — Manual control menu
-./bin/orchestrator -interactive
-
-# 📊 DASHBOARD — Live terminal UI
-./bin/orchestrator -dashboard
-
-# 🌐 API SERVER — HTTP endpoints for remote control
-./bin/orchestrator -api 8080
-
-# 🧪 SINGLE TASK — Run one hustle directly
-./bin/orchestrator -hustle trading -real-prices
-./bin/orchestrator -uri "hustle://content?topic=AI+agents&type=blog"
-```
-
-## 🧩 Hustle Modules
-
-| Module | Protocol URI | What It Does | Revenue Model |
-|--------|-------------|-------------|---------------|
-| **Research** | `hustle://research?query=TOPIC` | Web search, sentiment extraction, alpha discovery | Feeds Trading + Content |
-| **Curation** | `hustle://curation?topic=TOPIC` | RSS aggregation, newsletter blurb generation | Ad revenue, subscribers |
-| **Social** | `hustle://social?platform=Twitter&topic=TOPIC` | LLM-generated posts with hashtags | Audience growth → monetization |
-| **Trading** | `hustle://trading?symbol=BTC` | Technical analysis (SMA, RSI, Divergence), strategy execution | Trade profits |
-| **Content** | `hustle://content?topic=X&type=blog` | Blog/newsletter/SEO article/social thread generation | Ads, affiliates, SEO traffic |
-
-## 📋 Status
-
-See [ROADMAP.md](ROADMAP.md) for the phased plan, [TODO.md](TODO.md) for task tracking, and [VISION.md](VISION.md) for the long-term vision.
+- [`HyperNexusLLC/HyperNexus`](https://github.com/HyperNexusLLC/HyperNexus) — the control plane this work feeds into
+- [`robertpelloni/marketing_agent`](https://github.com/robertpelloni/marketing_agent) — the Go outreach service that came out of the same line of work
