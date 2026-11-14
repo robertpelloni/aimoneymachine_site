@@ -23,6 +23,12 @@ func (p *HustleProtocol) Register(module string, handler HustleHandler) {
 	p.Handlers[strings.ToLower(module)] = handler
 }
 
+// Has reports whether a module name has a registered handler.
+func (p *HustleProtocol) Has(module string) bool {
+	_, ok := p.Handlers[strings.ToLower(module)]
+	return ok
+}
+
 // HandleURI parses a URI like hustle://research?query=AI+Trends and routes it
 func (p *HustleProtocol) HandleURI(rawURI string) error {
 	u, err := url.Parse(rawURI)

@@ -1,7 +1,7 @@
 {
-  "version": "1.6.1",
+  "version": "1.6.2",
   "status": "Running",
-  "message": "sqlite-vec log honesty + prod smoke sweep",
+  "message": "Chain step validation + smoke-gated deploy",
   "revenue": 171.6,
   "expenses": 1005,
   "profit": -833.4

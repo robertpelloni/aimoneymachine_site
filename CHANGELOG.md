@@ -352,3 +352,9 @@
 - scripts/smoke_prod.py: stdlib-only prod smoke sweep (dashboard, status+disk, chains, agents, content, strategy, progress, read-only dispatches) with pass/fail exit code. 11/11 on prod.
 ### Fixed
 - Removed the per-boot 'failed to load sqlite-vec: not authorized' false warning: the pure-Go modernc driver can never load the native vec0 extension, so the probe always failed. Boot now logs one accurate info line; vector search is Go-level cosine by design.
+
+## [1.6.2] - 2026-11-14
+### Fixed
+- ChainDiscoverer can no longer persist garbage chains: its prompt templated literal hustle://step1/step2 placeholders (which the LLM parroted into chains.json on prod) and listed only 6 of 13 modules. Prompt now uses a real example chain + the full module list, and Discover validates every step with ValidateChainSteps against registered protocol handlers before registering. Tests cover valid/invalid steps, placeholder rejection, valid registration.
+### Added
+- scripts/deploy-hetzner.sh now gates on scripts/smoke_prod.py: a deploy that fails smoke fails the script.

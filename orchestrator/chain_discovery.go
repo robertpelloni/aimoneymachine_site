@@ -3,9 +3,30 @@ package orchestrator
 import (
 	"encoding/json"
 	"fmt"
+	"net/url"
 	"strings"
 	"time"
 )
+
+// ValidateChainSteps rejects steps that are not hustle:// URIs for
+// registered modules. The discovery prompt once templated the literal
+// placeholders hustle://step1 / hustle://step2, and the LLM parroted them
+// into persisted chains that could only ever fail at execution time.
+func ValidateChainSteps(steps []string, p *HustleProtocol) error {
+	if len(steps) == 0 {
+		return fmt.Errorf("chain has no steps")
+	}
+	for _, s := range steps {
+		u, err := url.Parse(s)
+		if err != nil || u.Scheme != "hustle" || u.Host == "" {
+			return fmt.Errorf("invalid chain step %q: not a hustle:// URI", s)
+		}
+		if p != nil && !p.Has(u.Host) {
+			return fmt.Errorf("invalid chain step %q: unknown module %q", s, u.Host)
+		}
+	}
+	return nil
+}
 
 // DiscoveredChain includes scheduling information
 type DiscoveredChain struct {
@@ -41,7 +62,7 @@ func (d *ChainDiscoverer) Discover() (*DiscoveredChain, error) {
 	}
 
 	// 3. Construct Prompt for LLM
-	prompt := fmt.Sprintf("As the Swarm Evolution Engine, analyze the following system state and propose a NEW sequential workflow (Chain) of protocol URIs. Focus on LUXURY HUSTLES: high-ROI, low-maintenance, and passive income generation.\nFinancial Context: %s\nRecent Successes:\n%s\n\nExisting Protocol Modules: research (query), curation (topic), social (platform, topic, content), trading (symbol), healer (issue), ledger\n\nOutput a JSON object for the NEW Chain including a suggested execution interval in minutes:\n{\n  \"name\": \"luxury_chain_name\",\n  \"description\": \"brief luxury-focused description\",\n  \"steps\": [\"hustle://step1\", \"hustle://step2\"],\n  \"interval_minutes\": 60\n}", profitAnalysis, successContext)
+	prompt := fmt.Sprintf("As the Swarm Evolution Engine, analyze the following system state and propose a NEW sequential workflow (Chain) of protocol URIs. Focus on LUXURY HUSTLES: high-ROI, low-maintenance, and passive income generation.\nFinancial Context: %s\nRecent Successes:\n%s\n\nExisting Protocol Modules (use ONLY these, with real query parameters): research (query), curation (topic), social (platform, topic), trading (symbol), content (topic, type), affiliate (action, niche), media (topic), calendar (action), publisher (action), chain (name), swarm (action), synergy_leadgen (topic, niche), healer (issue)\n\nOutput a JSON object for the NEW Chain including a suggested execution interval in minutes. Every step MUST be a real hustle:// URI for one of the modules above — never invent placeholder steps:\n{\n  \"name\": \"short_snake_case_name\",\n  \"description\": \"brief luxury-focused description\",\n  \"steps\": [\"hustle://research?query=trending+AI+products\", \"hustle://affiliate?action=run&niche=AI+products\", \"hustle://social?platform=Twitter&topic=AI+products\"],\n  \"interval_minutes\": 60\n}", profitAnalysis, successContext)
 
 	response, err := d.Orchestrator.LLM.Generate(prompt)
 	if err != nil {
@@ -61,7 +82,13 @@ func (d *ChainDiscoverer) Discover() (*DiscoveredChain, error) {
 		return nil, fmt.Errorf("failed to unmarshal discovered chain: %v", err)
 	}
 
-	// 5. Register the discovery (skip if already exists)
+	// 5. Validate steps against the real protocol before persisting:
+	// a chain that can only fail at execution time must never register.
+	if err := ValidateChainSteps(discovered.Steps, d.Manager.Protocol); err != nil {
+		return nil, fmt.Errorf("discovered chain %q rejected: %w", discovered.Name, err)
+	}
+
+	// 6. Register the discovery (skip if already exists)
 	if _, exists := d.Manager.Chains[discovered.Name]; exists {
 		fmt.Printf("[ChainDiscoverer] Chain '%s' already exists, skipping duplicate\n", discovered.Name)
 		return nil, fmt.Errorf("chain '%s' already exists", discovered.Name)

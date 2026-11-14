@@ -19,8 +19,12 @@ scp orchestrator_linux_new $HOST:$APP/orchestrator.new
 scp orchestrator/dashboard.html $HOST:$BIN/dashboard.html
 scp dashboard_server.py $HOST:$BIN/dashboard.py
 scp VERSION.md STATUS.json chains.json $HOST:$APP/
+scp scripts/smoke_prod.py $HOST:$APP/smoke_prod.py
 ssh $HOST "chmod +x $APP/orchestrator.new && mv $APP/orchestrator.new $APP/orchestrator"
 
 echo "== Restart services =="
-ssh $HOST "nice -n 10 systemctl restart aimm-orchestrator; sleep 3; systemctl is-active aimm-orchestrator; curl -s http://localhost:8082/api/status; echo; curl -s -o /dev/null -w 'dashboard http:%{http_code}\n' http://localhost:8082/"
+ssh $HOST "nice -n 10 systemctl restart aimm-orchestrator; sleep 5; systemctl is-active aimm-orchestrator; curl -s http://localhost:8082/api/status; echo; curl -s -o /dev/null -w 'dashboard http:%{http_code}\n' http://localhost:8082/"
+
+echo "== Smoke gate (deploy fails if this fails) =="
+ssh $HOST "python3 $APP/smoke_prod.py"
 echo "== Deploy done ($STAMP). Logs: ssh $HOST journalctl -u aimm-orchestrator -f =="
