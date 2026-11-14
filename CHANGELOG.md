@@ -363,3 +363,7 @@
 ### Added
 - Multi-exchange price sources: BinancePriceFetcher adapts the existing full Binance ExchangeProvider (orders/account/websockets) to the PriceFetcher interface (SYMBOL/USDT last price, public endpoint - no keys needed, 60s cache + stale fallback like CoinGecko). Select with TRADING_PRICE_SOURCE=binance in the daemon env; default remains CoinGecko. Verified api.binance.us answers from prod (api.binance.com is geo-blocked there, and prod .env already points at .us). Kraken adapter is the remaining TODO.
 - TODO.md stale-checkbox cleanup (calendar, sync-test, services, 429s, shared-history items were done but unchecked/duplicated).
+
+## [1.7.1] - 2026-11-14
+### Added
+- Kraken price source (TRADING_PRICE_SOURCE=kraken): public Ticker endpoint, XBT pair mapping for BTC, Kraken error-array surfacing, same 60s cache + stale fallback contract. Multi-exchange price plugin TODO complete: CoinGecko (default, batched), Binance, Kraken - all three verified reachable from prod. Tests: pair mapping, cache, API-error and stale paths.

@@ -15,7 +15,7 @@
 
 ## 🟢 Lower Priority
 - [x] **Binance price source** (v1.7.0: BinancePriceFetcher over the existing exchange/binance provider, TRADING_PRICE_SOURCE=binance; public tickers, no keys needed, verified reachable from prod via api.binance.us)
-- [ ] **Kraken price source** - same PriceFetcher adapter pattern, public Ticker endpoint — Binance, Kraken plugins.
+- [x] **Kraken price source** (v1.7.1) - same PriceFetcher adapter pattern, public Ticker endpoint — Binance, Kraken plugins.
 - [x] **LLM response cache** — Content-addressable local cache.
 
 ## ✅ Completed

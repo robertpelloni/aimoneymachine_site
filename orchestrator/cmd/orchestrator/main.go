@@ -94,10 +94,14 @@ func main() {
 	// ── Initialize Trading Module ──
 	var fetcher trading.PriceFetcher = &trading.MockPriceFetcher{}
 	if *realPrices {
-		if strings.EqualFold(os.Getenv("TRADING_PRICE_SOURCE"), "binance") {
+		switch strings.ToLower(os.Getenv("TRADING_PRICE_SOURCE")) {
+		case "binance":
 			fmt.Println("[Trading] Real-world price fetching enabled via Binance (TRADING_PRICE_SOURCE=binance).")
 			fetcher = trading.NewBinancePriceFetcher()
-		} else {
+		case "kraken":
+			fmt.Println("[Trading] Real-world price fetching enabled via Kraken (TRADING_PRICE_SOURCE=kraken).")
+			fetcher = trading.NewKrakenPriceFetcher()
+		default:
 			fmt.Println("[Trading] Real-world price fetching enabled via CoinGecko.")
 			fetcher = trading.NewCoinGeckoFetcher()
 		fmt.Println("[Trading] COINGECKO_API_KEY " + mapBool(os.Getenv("COINGECKO_API_KEY") != "", "set", "not set — using free tier (rate limited)"))
