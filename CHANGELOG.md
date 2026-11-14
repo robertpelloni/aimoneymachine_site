@@ -308,3 +308,8 @@
 - Tests: TestHandleDashboardServesEmbeddedPage, TestHandleProgressDefaultsToEmpty.
 ### Fixed
 - RollbackHandler now requires an explicit Dir (NewRollbackHandlerInDir) that must be a git top level; a zero-value handler refuses. Healer passes its working directory explicitly.
+
+## [1.3.1] - 2026-11-14
+### Fixed
+- CoinGecko graceful degradation: one cache miss batch-fetches all 7 daemon symbols in a single /simple/price call and primes the cache (was 7 separate calls/cycle, causing 429 storms without an API key). When all retries fail, GetPrice now serves the last known (stale) price with a log line instead of failing the trading task; it still errors when no price was ever fetched.
+- Tests: TestCoinGeckoFetcher_BatchPrimesCache, TestCoinGeckoFetcher_StaleFallbackOnRateLimit; DifferentSymbols mock updated to answer multi-ID requests like the real API (same asserted prices).
