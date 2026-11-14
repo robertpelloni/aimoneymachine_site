@@ -94,10 +94,15 @@ func main() {
 	// ── Initialize Trading Module ──
 	var fetcher trading.PriceFetcher = &trading.MockPriceFetcher{}
 	if *realPrices {
-		fmt.Println("[Trading] Real-world price fetching enabled via CoinGecko.")
-		fetcher = trading.NewCoinGeckoFetcher()
+		if strings.EqualFold(os.Getenv("TRADING_PRICE_SOURCE"), "binance") {
+			fmt.Println("[Trading] Real-world price fetching enabled via Binance (TRADING_PRICE_SOURCE=binance).")
+			fetcher = trading.NewBinancePriceFetcher()
+		} else {
+			fmt.Println("[Trading] Real-world price fetching enabled via CoinGecko.")
+			fetcher = trading.NewCoinGeckoFetcher()
 		fmt.Println("[Trading] COINGECKO_API_KEY " + mapBool(os.Getenv("COINGECKO_API_KEY") != "", "set", "not set — using free tier (rate limited)"))
 		fmt.Println("[Trading] COINGECKO_API_URL: " + getEnvDefault("COINGECKO_API_URL", "https://api.coingecko.com/api/v3"))
+		}
 	}
 	traderModule := &trading.TradingModule{
 		Orchestrator: orch,

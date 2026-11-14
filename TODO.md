@@ -14,7 +14,8 @@
 - [x] **Task History** (v1.0.0-alpha.78) — Log task execution times and durations to SQLite.
 
 ## 🟢 Lower Priority
-- [ ] **Multi-exchange support** — Binance, Kraken plugins.
+- [x] **Binance price source** (v1.7.0: BinancePriceFetcher over the existing exchange/binance provider, TRADING_PRICE_SOURCE=binance; public tickers, no keys needed, verified reachable from prod via api.binance.us)
+- [ ] **Kraken price source** - same PriceFetcher adapter pattern, public Ticker endpoint — Binance, Kraken plugins.
 - [x] **LLM response cache** — Content-addressable local cache.
 
 ## ✅ Completed
@@ -33,22 +34,22 @@
 - [x] **Affiliate Marketing Engine** — Scrape hot products, LLM review, auto-tweet, and blog.
 - [ ] **Lead Generation + Outreach** — Scrape Google Maps, LLM personalize pitch, SMTP rate-limited delivery.
 - [ ] **Digital Product Factory** — Generate Notion templates, presets, guides, auto-list on Gumroad via API.
-- [ ] **YouTube Shorts Factory** — Script -> Image generation -> TTS -> Auto Upload.
+- [~] **YouTube Shorts Factory** - script->scenes->FFmpeg MP4 done (v1.4.x, verified on prod); TTS + upload remain, credential-blocked below — Script -> Image generation -> TTS -> Auto Upload.
 
 ## v1.2.0 Dashboard & Prod
-- [x] Consolidated one-page dashboard with dispatchAction() actually implemented (was undefined � buttons were dead)
-- [x] Removed fake hardcoded dashboard data ( balance, always-green status dots) � now live /api/status
-- [ ] Wire hustle://calendar + hustle://publisher handlers (publisher.PublishEntry exists)
-- [ ] Fix TestSyncProtocolIntegration on Windows (execs bash sync.sh � skip on GOOS=windows)
+- [x] Consolidated one-page dashboard with dispatchAction() actually implemented (was undefined  buttons were dead)
+- [x] Removed fake hardcoded dashboard data ( balance, always-green status dots)  now live /api/status
+- [x] Wire hustle://calendar + hustle://publisher handlers (v1.2.1)
+- [ ] Fix TestSyncProtocolIntegration on Windows (execs bash sync.sh  skip on GOOS=windows)
 - [ ] Regenerate X/Twitter API keys (401 in prod, docs/ai/maintenance-2026-08-01.md)
 - [ ] Move FreeLLM keys out of the systemd unit into an EnvironmentFile with 600 perms, then rotate
-- [ ] Re-enable + start all aimm-* services on Hetzner (found all inactive/disabled, 2026-11-13)
+- [x] Re-enable + start all aimm-* services on Hetzner (v1.2.0; all active, smoke-verified)
 - [x] Wire hustle://calendar + hustle://publisher handlers (v1.2.1)
 - [x] Fix TestRollback destroying uncommitted work: it ran git checkout/clean in the real repo; now uses a temp repo (v1.2.1)
-- [x] Fix TestSyncProtocolIntegration on Windows � skips without bash (v1.2.1)
-- [ ] CoinGecko 429s on prod (no COINGECKO_API_KEY set): trading tasks for XRP/ADA failing with rate limited after 3 retries. User: set a free CoinGecko Demo key in prod .env, or raise per-symbol intervals in daemon scheduler.
+- [x] Fix TestSyncProtocolIntegration on Windows  skips without bash (v1.2.1)
+- [x] CoinGecko 429s on prod - resolved v1.3.1 (batched fetch + stale fallback; a key was in fact present in prod .env). Binance is now an alternative source (v1.7.0, TRADING_PRICE_SOURCE=binance).
 - [x] Embed dashboard in Go binary, retire Python aimm-dashboard service (v1.3.0)
-- [ ] TradingModule keeps ONE shared History/RSIHistory across all symbols (orchestrator reuses a single traderModule and mutates .Symbol): SMA/RSI mix BTC/XRP/ADA prices, so indicators are meaningless across symbols. Fix: per-symbol history map in TradingModule (v1.3.1 observation from prod logs: ADA SMA $0.58 vs price $0.16).
+- [x] Per-symbol trading history (v1.3.3; the unchecked duplicate of this item above was stale).
 - [x] CoinGecko batch + stale fallback (v1.3.1)
 - [x] Per-symbol trading history (v1.3.3)
 - [x] Shorts FFmpeg render pipeline (v1.4.0/v1.4.1) - MP4 verified on prod: 1080x1920 h264+aac, 38s, drawtext cards

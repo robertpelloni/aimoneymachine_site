@@ -358,3 +358,8 @@
 - ChainDiscoverer can no longer persist garbage chains: its prompt templated literal hustle://step1/step2 placeholders (which the LLM parroted into chains.json on prod) and listed only 6 of 13 modules. Prompt now uses a real example chain + the full module list, and Discover validates every step with ValidateChainSteps against registered protocol handlers before registering. Tests cover valid/invalid steps, placeholder rejection, valid registration.
 ### Added
 - scripts/deploy-hetzner.sh now gates on scripts/smoke_prod.py: a deploy that fails smoke fails the script.
+
+## [1.7.0] - 2026-11-14
+### Added
+- Multi-exchange price sources: BinancePriceFetcher adapts the existing full Binance ExchangeProvider (orders/account/websockets) to the PriceFetcher interface (SYMBOL/USDT last price, public endpoint - no keys needed, 60s cache + stale fallback like CoinGecko). Select with TRADING_PRICE_SOURCE=binance in the daemon env; default remains CoinGecko. Verified api.binance.us answers from prod (api.binance.com is geo-blocked there, and prod .env already points at .us). Kraken adapter is the remaining TODO.
+- TODO.md stale-checkbox cleanup (calendar, sync-test, services, 429s, shared-history items were done but unchecked/duplicated).
