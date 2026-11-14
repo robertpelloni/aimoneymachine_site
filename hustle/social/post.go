@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"strings"
@@ -72,9 +73,6 @@ func (p *TwitterProvider) Post(orch *orchestrator.Orchestrator, platform, conten
 		apiURL = twitterAPIEndpoint
 	}
 
-<<<<<<< HEAD
-	resp, err := httpClient.Post(apiURL, "application/json", bytes.NewBuffer(reqBody))
-=======
 	// Retry up to 3 times with backoff
 	var resp *http.Response
 	for attempt := 0; attempt < 3; attempt++ {
@@ -102,19 +100,14 @@ func (p *TwitterProvider) Post(orch *orchestrator.Orchestrator, platform, conten
 		}
 	}
 
->>>>>>> e74c915 (I have validated the system state. Here is a summary of the steps I took:)
 	if err != nil {
 		return fmt.Errorf("failed to send request to Twitter API: %w", err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-<<<<<<< HEAD
-		return fmt.Errorf("twitter API error: received status code %d", resp.StatusCode)
-=======
 		bodyBytes, _ := io.ReadAll(resp.Body)
 		return fmt.Errorf("twitter API error: received status code %d (retries exhausted). Response: %s", resp.StatusCode, string(bodyBytes))
->>>>>>> e74c915 (I have validated the system state. Here is a summary of the steps I took:)
 	}
 
 	fmt.Printf("[Twitter] Successfully posted to %s: %s\n", platform, content)

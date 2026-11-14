@@ -8,24 +8,14 @@ import (
 	"os"
 	"os/exec"
 	"os/signal"
-<<<<<<< HEAD
-
-=======
 	"path/filepath"
-	"strconv"
->>>>>>> e74c915 (I have validated the system state. Here is a summary of the steps I took:)
 	"strings"
 	"syscall"
 	"time"
 
-<<<<<<< HEAD
-=======
-	"github.com/robertpelloni/hustle/hustle/affiliate"
-	"github.com/robertpelloni/hustle/hustle/bi"
-	"github.com/robertpelloni/hustle/hustle/careers"
-	"github.com/robertpelloni/hustle/hustle/confluence"
->>>>>>> e74c915 (I have validated the system state. Here is a summary of the steps I took:)
 	"github.com/robertpelloni/hustle/hustle/content"
+	"github.com/robertpelloni/hustle/hustle/media"
+	"github.com/robertpelloni/hustle/hustle/publisher"
 	"github.com/robertpelloni/hustle/hustle/curation"
 	"github.com/robertpelloni/hustle/hustle/research"
 	"github.com/robertpelloni/hustle/hustle/affiliate"
@@ -452,197 +442,28 @@ func main() {
 		return nil
 	})
 
-<<<<<<< HEAD
-=======
-	protocol.Register("leadgen", func(p url.Values) error {
-		topic := p.Get("topic")
-		if topic == "" {
-			topic = "AI automation"
-		}
-		leads, err := research.DiscoverLeads(orch, topic)
-		if err != nil {
-			return err
-		}
-		fmt.Printf("[LeadGen] ✅ Discovered %d leads for %s\n", len(leads), topic)
-		return nil
-	})
-
 	protocol.Register("affiliate", func(p url.Values) error {
 		action := p.Get("action")
 		niche := p.Get("niche")
-		if niche == "" {
-			niche = "AI productivity tools"
-		}
-
-		if action == "run" {
-			affiliateModule := affiliate.NewAffiliateModule(orch)
-			return affiliateModule.Run(niche)
-		}
-		if action == "discover" {
-			inserter := publisher.NewAffiliateInserter()
-			return inserter.DiscoverAffiliatePrograms(orch, niche)
-		}
-
-		if action == "batch_insert" {
+		if niche == "" { niche = "AI productivity tools" }
+		switch action {
+		case "run", "":
+			return affiliate.NewAffiliateModule(orch).Run(niche)
+		case "batch_insert":
 			dir := p.Get("dir")
-			if dir == "" {
-				dir = "content/posts" // Default blog directory
-			}
-			affiliateModule := affiliate.NewAffiliateModule(orch)
-			return affiliateModule.InsertAffiliateLinksIntoContent(dir)
+			if dir == "" { dir = "output/content" }
+			return affiliate.NewAffiliateModule(orch).InsertAffiliateLinksIntoContent(dir)
+		default:
+			return fmt.Errorf("unknown affiliate action: %s", action)
 		}
-		return fmt.Errorf("unknown affiliate action: %s", action)
 	})
 
-	protocol.Register("outreach", func(p url.Values) error {
+	protocol.Register("media", func(p url.Values) error {
 		topic := p.Get("topic")
-		if topic == "" {
-			topic = "AI automation services"
-		}
-		send := p.Get("send") == "true"
-
-		pitches, err := research.GenerateOutreach(orch, topic)
-		if err != nil {
-			return err
-		}
-		fmt.Printf("[Outreach] ✅ Prepared %d personalized pitches for %s\n", len(pitches), topic)
-
-		if send {
-			for _, pitch := range pitches {
-				if pitch.Platform == "email" {
-					if err := research.SendEmail(pitch); err != nil {
-						fmt.Printf("[Outreach] ❌ Failed to send email to %s: %v\n", pitch.RecipientName, err)
-					}
-				}
-			}
-		}
-
-		return nil
+		if topic == "" { topic = "AI Automation" }
+		return media.NewShortsFactory(orch).Run(topic)
 	})
 
-	protocol.Register("kdp", func(p url.Values) error {
-		action := p.Get("action")
-		niche := p.Get("niche")
-		if niche == "" {
-			niche = "gratitude journal"
-		}
-
-		kModule := publishing.NewKDPModule(orch, broker)
-
-		if action == "plan" {
-			plan, err := kModule.PlanInterior(niche)
-			if err != nil {
-				return err
-			}
-			fmt.Printf("[KDP] Interior Plan for %s:\n%s\n", niche, plan)
-		}
-		return nil
-	})
-
-	protocol.Register("retail", func(p url.Values) error {
-		buyPrice, _ := strconv.ParseFloat(p.Get("buy"), 64)
-		sellPrice, _ := strconv.ParseFloat(p.Get("sell"), 64)
-		cat := p.Get("cat")
-		if cat == "" {
-			cat = "electronics"
-		}
-
-		rModule := retail.NewRetailModule(orch, broker)
-		_, assessment, err := rModule.CalculateArbitrageROI(buyPrice, sellPrice, cat)
-		if err != nil {
-			return err
-		}
-		fmt.Printf("[Retail] Arb Assessment: %s\n", assessment)
-		return nil
-	})
-
-	protocol.Register("domains", func(p url.Values) error {
-		name := p.Get("name")
-		if name == "" {
-			name = "aimoney.site"
-		}
-
-		dModule := domains.NewDomainModule(orch, broker)
-		_, analysis, err := dModule.EvaluateDomain(name)
-		if err != nil {
-			return err
-		}
-		fmt.Printf("[Domains] Evaluation for %s:\n%s\n", name, analysis)
-		return nil
-	})
-
-	protocol.Register("domains_bid", func(p url.Values) error {
-		name := p.Get("name")
-		if name == "" {
-			name = "aimoney.site"
-		}
-		bid, _ := strconv.ParseFloat(p.Get("bid"), 64)
-		if bid == 0 {
-			bid = 100.0
-		}
-
-		dModule := domains.NewDomainModule(orch, broker)
-		strategy, err := dModule.AuctionBid(name, bid)
-		if err != nil {
-			return err
-		}
-		fmt.Printf("[Domains] Bidding Strategy for %s:\n%s\n", name, strategy)
-		return nil
-	})
-
-	protocol.Register("realestate", func(p url.Values) error {
-		rent, _ := strconv.ParseFloat(p.Get("rent"), 64)
-		rate, _ := strconv.ParseFloat(p.Get("rate"), 64)
-		loc := p.Get("loc")
-		if loc == "" {
-			loc = "Miami, FL"
-		}
-
-		reModule := realestate.NewRealEstateModule(orch, broker)
-		_, assessment, err := reModule.CalculateSTRProfit(rent, rate, loc)
-		if err != nil {
-			return err
-		}
-		fmt.Printf("[RealEstate] STR Assessment for %s:\n%s\n", loc, assessment)
-		return nil
-	})
-
-	protocol.Register("realestate_manage", func(p url.Values) error {
-		loc := p.Get("loc")
-		if loc == "" {
-			loc = "Miami, FL"
-		}
-		msg := p.Get("msg")
-		if msg == "" {
-			msg = "How do I access the parking?"
-		}
-
-		reModule := realestate.NewRealEstateModule(orch, broker)
-		response, err := reModule.ManageListing(loc, msg)
-		if err != nil {
-			return err
-		}
-		fmt.Printf("[RealEstate] Management Response for %s:\n%s\n", loc, response)
-		return nil
-	})
-
-	protocol.Register("calendar", func(p url.Values) error {
-		action := p.Get("action")
-		if action == "process" {
-			pending := contentCalendar.GetPendingEntries()
-			fmt.Printf("[Calendar] Processing %d pending entries\n", len(pending))
-			for _, entry := range pending {
-				if err := contentCalendar.PublishEntry(orch, &entry); err != nil {
-					fmt.Printf("[Calendar] ❌ Failed to publish %s: %v\n", entry.ID, err)
-				}
-			}
-		} else if action == "status" {
-			contentCalendar.PrintStatus()
-		}
-		return nil
-	})
-
->>>>>>> e74c915 (I have validated the system state. Here is a summary of the steps I took:)
 	protocol.Register("sync", func(p url.Values) error {
 		return runSyncProtocol()
 	})

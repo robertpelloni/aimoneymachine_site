@@ -1,6 +1,7 @@
 package media
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -87,7 +88,8 @@ Script:
 %s`, script)
 
 	var prompts []string
-	if err := f.Orch.LLM.GenerateJSON(prompt, &prompts); err != nil {
+	raw, gerr := f.Orch.LLM.Generate(prompt + "\n\nRespond ONLY with a valid JSON array of strings, no markdown fences.")
+	if gerr != nil || json.Unmarshal([]byte(raw), &prompts) != nil {
 		// Fallback mock prompts if JSON parsing fails
 		return []string{
 			"Cinematic establishing shot of " + truncateRunes(script, 20) + "...",

@@ -1,6 +1,7 @@
 package orchestrator
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 	"os"
@@ -8,6 +9,16 @@ import (
 
 type LLMProvider interface {
 	Generate(prompt string) (string, error)
+	GenerateJSON(prompt string, target interface{}) error
+}
+
+// GenerateJSONViaGenerate implements GenerateJSON on top of any Generate-only provider.
+func GenerateJSONViaGenerate(gen func(string) (string, error), prompt string, target interface{}) error {
+	raw, err := gen(prompt + "\n\nRespond ONLY with valid JSON, no markdown fences.")
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal([]byte(strings.TrimSpace(raw)), target)
 }
 
 type EmbeddingProvider interface {
@@ -28,6 +39,10 @@ func (m *MockEmbedder) Embed(text string) ([]float32, error) {
 type MockLLM struct {
 	Response     string
 	GenerateFunc func(prompt string) (string, error)
+}
+
+func (m *MockLLM) GenerateJSON(prompt string, target interface{}) error {
+	return GenerateJSONViaGenerate(m.Generate, prompt, target)
 }
 
 func (m *MockLLM) Generate(prompt string) (string, error) {
@@ -56,6 +71,10 @@ type AnthropicProvider struct {
 
 func NewAnthropicProvider() *AnthropicProvider {
 	return &AnthropicProvider{APIKey: os.Getenv("ANTHROPIC_API_KEY")}
+}
+
+func (p *AnthropicProvider) GenerateJSON(prompt string, target interface{}) error {
+	return GenerateJSONViaGenerate(p.Generate, prompt, target)
 }
 
 func (p *AnthropicProvider) Generate(prompt string) (string, error) {

@@ -163,27 +163,9 @@ Available modules and their parameters:
 - hustle://content?topic=TOPIC&type=blog&niche=NICHE&keywords=KW1,KW2 — Generate SEO-optimized blog post
 - hustle://chain?name=CHAIN_NAME — Execute a multi-step workflow chain
 - hustle://chain?action=discover — Discover and create new high-ROI workflow chains
+- hustle://affiliate?action=run&niche=NICHE — Run affiliate pipeline (discover, review, post)
+- hustle://media?action=shorts&topic=TOPIC — Generate YouTube Shorts script + image prompts
 - hustle://healer?issue=DESCRIPTION — Diagnose and fix a problem
-<<<<<<< HEAD
-=======
-- hustle://ecommerce?action=ads&platform=TikTok — Generate social ads for products
-- hustle://ecommerce?action=fulfill — Fulfill pending dropshipping orders
-- hustle://affiliate?action=run — Scrape affiliate products, review, and auto-post to social media
-- hustle://saas?action=ideate — Generate new micro-SaaS MVPs
-- hustle://automation?action=build — Architect business process workflows
-- hustle://finance?action=classify — Automate client bookkeeping
-- hustle://bi?action=report — Generate strategic business intelligence
-- hustle://legal?action=generate — Generate compliance documents
-- hustle://crm?action=update — Manage lead lifecycles
-- hustle://pod?action=plan — Plan Print-on-Demand designs
-- hustle://media?action=plan — Plan multimedia video production
-- hustle://careers?action=search — Discover job/contract opportunities
-- hustle://kdp?action=plan — Plan book interiors for Amazon KDP
-- hustle://retail?buy=PRICE&sell=PRICE — Scan Amazon FBA arbitrage ROI
-- hustle://domains?name=DOMAIN — Valuate domain names for flipping
-- hustle://realestate_manage — Manage guest comms for STR/Airbnb
-- hustle://stocks?action=analyze&symbol=TICKER — Quantitative stock analysis
->>>>>>> e74c915 (I have validated the system state. Here is a summary of the steps I took:)
 - hustle://swarm?action=sync — Synchronize memory with mesh peers
 - hustle://swarm?action=aggregate — Aggregate mesh-wide status
 
