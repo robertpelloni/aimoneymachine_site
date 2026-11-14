@@ -405,3 +405,7 @@
 ## [1.9.6] - 2026-11-14
 ### Fixed
 - Affiliate review generation timed out at 480s through FreeLLM: the prompt asked for an unbounded markdown review whose only destination is a 300-rune social post. It now asks for a max-240-character one-post recommendation. (Verified the timeout fired exactly at the configured 480s and was logged via Dispatch failed.)
+
+## [1.9.7] - 2026-11-14
+### Added
+- LLM waterfall fallback: when LLM_FALLBACK_BASE_URL is set (prod: Ollama direct http://localhost:11434/v1), the daemon wraps the primary provider in the existing WaterfallLLM so a primary that stalls to its client timeout (FreeLLM retrying dead upstreams for the full 480s, observed repeatedly) retries against the fallback instead of failing the generation. Boot logs 'Fallback provider ready' with the detected (non-embedding) model. Tests: fallback-after-failure and all-fail paths.

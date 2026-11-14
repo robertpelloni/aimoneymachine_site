@@ -81,6 +81,15 @@ func llmTimeout() time.Duration {
 
 func llmHTTPClient() *http.Client { return &http.Client{Timeout: llmTimeout()} }
 
+// NewOpenAICompatProviderWithBaseURL is NewOpenAICompatProvider pointed
+// at an explicit base URL (used for the waterfall fallback provider,
+// e.g. a direct Ollama at http://localhost:11434/v1).
+func NewOpenAICompatProviderWithBaseURL(baseURL string) *OpenAICompatProvider {
+	p := NewOpenAICompatProvider()
+	p.BaseURL = baseURL
+	return p
+}
+
 func NewOpenAICompatProvider() *OpenAICompatProvider {
 	baseURL := os.Getenv("LLM_BASE_URL")
 	if baseURL == "" {

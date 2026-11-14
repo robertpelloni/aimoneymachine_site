@@ -76,6 +76,20 @@ func main() {
 	if model, err := llmProvider.DetectModel(); err == nil {
 		fmt.Printf("[LLM] ✅ Connected to local LLM: %s\n", model)
 		orch.LLM = llmProvider
+		// Optional second-chance provider (LLM_FALLBACK_BASE_URL, e.g. a
+		// direct Ollama): when the primary proxy stalls until its client
+		// timeout - as FreeLLM did repeatedly on 2026-11-14, retrying dead
+		// upstream providers for the full 480s - the waterfall retries
+		// against the fallback instead of failing the whole generation.
+		if fbURL := os.Getenv("LLM_FALLBACK_BASE_URL"); fbURL != "" {
+			fb := orchestrator.NewOpenAICompatProviderWithBaseURL(fbURL)
+			if fbModel, ferr := fb.DetectModel(); ferr == nil {
+				fmt.Printf("[LLM] Fallback provider ready: %s (%s)\n", fbURL, fbModel)
+				orch.LLM = &orchestrator.WaterfallLLM{Providers: []orchestrator.LLMProvider{llmProvider, fb}}
+			} else {
+				fmt.Printf("[LLM] Fallback provider %s unavailable (%v); primary only.\n", fbURL, ferr)
+			}
+		}
 		// Also set up real embeddings
 		orch.Embedder = orchestrator.NewOpenAICompatEmbedder()
 	} else {
