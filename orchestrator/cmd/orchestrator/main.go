@@ -16,6 +16,7 @@ import (
 	"github.com/robertpelloni/hustle/hustle/content"
 	"github.com/robertpelloni/hustle/hustle/media"
 	"github.com/robertpelloni/hustle/hustle/publisher"
+	"github.com/robertpelloni/hustle/hustle/products"
 	"github.com/robertpelloni/hustle/hustle/curation"
 	"github.com/robertpelloni/hustle/hustle/research"
 	"github.com/robertpelloni/hustle/hustle/affiliate"
@@ -565,6 +566,22 @@ func main() {
 		default:
 			return fmt.Errorf("unknown publisher action: %s", p.Get("action"))
 		}
+	})
+
+	protocol.Register("products", func(p url.Values) error {
+		if action := p.Get("action"); action != "" && action != "generate" {
+			return fmt.Errorf("unknown products action: %s", action)
+		}
+		topic := p.Get("topic")
+		if topic == "" { topic = "AI productivity system" }
+		ptype := products.ProductType(p.Get("type"))
+		if ptype == "" { ptype = products.Template }
+		m, err := products.NewFactory(orch).Generate(topic, ptype)
+		if err != nil {
+			return err
+		}
+		fmt.Printf("[Products] %s listing=%s dir=%s\n", m.Slug, m.Listing.Status, m.Dir)
+		return nil
 	})
 
 	protocol.Register("sync", func(p url.Values) error {

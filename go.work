@@ -6,6 +6,7 @@ use (
 	./hustle/curation
 	./hustle/ecommerce
 	./hustle/media
+	./hustle/products
 	./hustle/publisher
 	./hustle/research
 	./hustle/social

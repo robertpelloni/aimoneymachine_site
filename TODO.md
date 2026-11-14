@@ -33,7 +33,7 @@
 ## 🟣 Fully Automated Real Estate Engine
 - [x] **Affiliate Marketing Engine** — Scrape hot products, LLM review, auto-tweet, and blog.
 - [~] **Lead Generation + Outreach** - web discovery + honest SMTP done (v1.8.0); Google Maps/Places discovery + email enrichment remain (need API key) — Scrape Google Maps, LLM personalize pitch, SMTP rate-limited delivery.
-- [ ] **Digital Product Factory** — Generate Notion templates, presets, guides, auto-list on Gumroad via API.
+- [x] **Digital Product Factory** (v1.9.0; Gumroad listing needs GUMROAD_ACCESS_TOKEN) — Generate Notion templates, presets, guides, auto-list on Gumroad via API.
 - [~] **YouTube Shorts Factory** - script->scenes->FFmpeg MP4 done (v1.4.x, verified on prod); TTS + upload remain, credential-blocked below — Script -> Image generation -> TTS -> Auto Upload.
 
 ## v1.2.0 Dashboard & Prod

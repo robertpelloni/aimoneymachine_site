@@ -373,3 +373,7 @@
 - Outreach no longer fakes delivery: SendEmail previously printed 'Delivered' and charged the ledger whenever SMTP_HOST was set, without sending anything. It now sends via net/smtp (PlainAuth from SMTP_USER/SMTP_PASS, SMTP_FROM/PORT env), charges only after server acceptance, refuses leads with no address, and dry-run (no SMTP_HOST or -dry-run) is labeled [DRY-RUN] and charges nothing.
 ### Added
 - Honest lead discovery: the two hardcoded leads are labeled Source demo-seed (never mistaken for prospects), and FindLeadsFromSearch discovers real businesses through the existing SearchInterface without inventing email addresses (delivery is refused until enrichment attaches one). Synergy lead-gen now tries web discovery first, demo seeds as fallback. Tests cover mapping, dry-run, delivery, refusal, and SMTP-failure paths.
+
+## [1.9.0] - 2026-11-14
+### Added
+- Digital Product Factory (hustle/products, hustle://products?type=template|guide|preset&topic=): LLM generates full product markdown + storefront listing copy + manifest under output/products/<slug>-<ts>/. Gumroad listing is real when GUMROAD_ACCESS_TOKEN is set (API v2 client, tested incl. 401 surfacing) and honestly recorded as not_configured otherwise. Wired into the agent prompt and the dashboard Money section. (An old HANDOFF claimed this module existed; it did not - now it does.)
