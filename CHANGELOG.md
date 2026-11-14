@@ -445,3 +445,7 @@
 - Scheduler executes due tasks concurrently (MaxConcurrent, default 3; a task never overlaps itself) instead of strictly serially - one 7-step LLM chain previously starved every minute-interval trading task behind it for tens of minutes. Added Scheduler.Stop(). Boot stagger unchanged.
 ### Fixed
 - Shared-state data races that concurrency would have exposed: Ledger, L1/L2/L3 memory tiers and the ChainManager registry are now RWMutex-guarded (RankedSearch uses an internal locked search; Orchestrator.Save marshals under read locks; /chains serves a Snapshot; WriteStatusReport takes *Ledger after vet copylocks). Proven with go test -race (concurrent state hammer + fast-task-not-starved test).
+
+## [1.9.16] - 2026-11-14
+### Added
+- Trading history persists across restarts: per-symbol price/RSI series are written atomically to trading_history.json every cycle and restored at boot (HistoryFile wired in the daemon). Every deploy previously wiped the 34+ points MACD needs, so the new indicators spent their lives warming up. Series are also capped at 500 points (they grew unboundedly). Tests: persistence roundtrip across a fresh module instance, missing-file fresh start, trim keeps the newest points.

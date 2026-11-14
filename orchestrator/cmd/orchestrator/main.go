@@ -127,6 +127,10 @@ func main() {
 		Orchestrator: orch,
 		Broker:       broker,
 		Fetcher:      fetcher,
+		HistoryFile:  "trading_history.json",
+	}
+	if err := traderModule.LoadHistory(); err != nil {
+		fmt.Printf("[Trading] Could not restore history (starting fresh): %v\n", err)
 	}
 
 	// ── Initialize Content Module ──

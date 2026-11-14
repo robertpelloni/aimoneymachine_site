@@ -340,7 +340,74 @@ type TradingModule struct {
 	histories    map[string][]float64
 	rsiHistories map[string][]float64
 	Watchlist    []string
-	mu           sync.Mutex
+	// HistoryFile, when set, persists histories/rsiHistories as JSON on
+	// every cycle (atomic write) and LoadHistory restores them — before
+	// this, every deploy restart wiped the 34+ points MACD needs and
+	// the indicators spent their lives warming up.
+	HistoryFile string
+	mu          sync.Mutex
+}
+
+// maxHistoryPoints bounds each per-symbol series (enough for MACD's
+// 34-point warmup many times over; the daemon appends ~1/min/symbol).
+const maxHistoryPoints = 500
+
+type historyState struct {
+	Histories    map[string][]float64 `json:"histories"`
+	RSIHistories map[string][]float64 `json:"rsi_histories"`
+}
+
+// LoadHistory restores per-symbol series from HistoryFile (no-op when
+// unset or the file does not exist yet).
+func (t *TradingModule) LoadHistory() error {
+	if t.HistoryFile == "" {
+		return nil
+	}
+	data, err := os.ReadFile(t.HistoryFile)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return nil
+		}
+		return err
+	}
+	var state historyState
+	if err := json.Unmarshal(data, &state); err != nil {
+		return fmt.Errorf("parsing trading history: %w", err)
+	}
+	t.mu.Lock()
+	defer t.mu.Unlock()
+	if state.Histories != nil {
+		t.histories = state.Histories
+	}
+	if state.RSIHistories != nil {
+		t.rsiHistories = state.RSIHistories
+	}
+	if h := t.histories[strings.ToUpper(t.Symbol)]; h != nil {
+		t.History = h
+	}
+	fmt.Printf("[Trading] Restored history for %d symbols from %s\n", len(t.histories), t.HistoryFile)
+	return nil
+}
+
+// persistHistoryLocked writes the series to HistoryFile (caller holds mu).
+func (t *TradingModule) persistHistoryLocked() {
+	if t.HistoryFile == "" {
+		return
+	}
+	data, err := json.Marshal(historyState{Histories: t.histories, RSIHistories: t.rsiHistories})
+	if err != nil {
+		return
+	}
+	if err := orchestrator.WriteFileAtomic(t.HistoryFile, data, 0644); err != nil {
+		fmt.Printf("[Trading] Failed to persist history: %v\n", err)
+	}
+}
+
+func trimSeries(s []float64, max int) []float64 {
+	if len(s) > max {
+		return s[len(s)-max:]
+	}
+	return s
 }
 
 // HistoryFor returns a copy of the price series for one symbol.
@@ -382,7 +449,7 @@ func (t *TradingModule) executeLocked() error {
 	if err != nil {
 		return fmt.Errorf("failed to fetch price: %v", err)
 	}
-	history := append(t.histories[symbol], price)
+	history := trimSeries(append(t.histories[symbol], price), maxHistoryPoints)
 	t.histories[symbol] = history
 	t.History = history
 
@@ -391,9 +458,10 @@ func (t *TradingModule) executeLocked() error {
 	// Technical Indicators, computed on this symbol's series only
 	sma := calculateSMA(history, 5)
 	rsi := calculateRSI(history, 14)
-	rsiHistory := append(t.rsiHistories[symbol], rsi)
+	rsiHistory := trimSeries(append(t.rsiHistories[symbol], rsi), maxHistoryPoints)
 	t.rsiHistories[symbol] = rsiHistory
 	t.RSIHistory = rsiHistory
+	defer t.persistHistoryLocked()
 
 	macdLine, macdSignal, macdHist, prevHist := calculateMACD(history)
 	bbUpper, bbMid, bbLower, bbPctB := calculateBollinger(history, 20, 2)
