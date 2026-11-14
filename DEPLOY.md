@@ -27,8 +27,8 @@ ollama pull gemma3:27b
 ### 2. Clone & Build
 
 ```bash
-git clone https://github.com/robertpelloni/fully_automated_gay_luxury_space_communism
-cd fully_automated_gay_luxury_space_communism
+git clone https://github.com/robertpelloni/aimoneymachine_site
+cd aimoneymachine_site
 go work sync
 ./build.sh
 ```
