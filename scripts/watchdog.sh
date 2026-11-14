@@ -58,8 +58,13 @@ while true; do
         pm2 list 2>/dev/null | grep -q "online" || log "PM2 has offline processes"
     fi
     disk_usage=$(df / | tail -1 | awk '{print $5}' | sed 's/%//')
-    if [ "$disk_usage" -gt 90 ]; then
-        log "WARNING: Disk usage at ${disk_usage}%%"
+    # 85% early warning: on 2026-11-14 the root disk hit 100% and WordPress
+    # went 504 (mysqld/php-fpm could not write) before the old 90% line was
+    # ever acted on. CRITICAL at 95 with the biggest /tmp + /opt consumers.
+    if [ "$disk_usage" -ge 95 ]; then
+        log "CRITICAL: Disk usage at ${disk_usage}% — top consumers: $(du -sh /tmp/* /opt/* 2>/dev/null | sort -rh | head -3 | tr '\n' ' ')"
+    elif [ "$disk_usage" -gt 85 ]; then
+        log "WARNING: Disk usage at ${disk_usage}%"
     fi
     mem_free=$(free -m | awk '/Mem:/ {print $7}')
     if [ "$mem_free" -lt 500 ]; then

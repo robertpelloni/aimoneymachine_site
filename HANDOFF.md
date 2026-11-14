@@ -40,3 +40,7 @@ There is none, anywhere in the repo. Prod control = systemctl stop/start/restart
 ## Update 2026-11-14 (v1.4.0/v1.4.1)
 - ShortsFactory renders real MP4s: SplitScenes -> optional ElevenLabs TTS -> ffmpeg 1080x1920 drawtext cards -> output/shorts/<slug>-<ts>/{script.txt,short.mp4,manifest.json}. Verified on prod: h264+aac, 38s, 185KB, 5 scenes, frame extract 49K (text rendered). Manifest honestly records skipped TTS (no ELEVENLABS_API_KEY) and not_configured upload.
 - Gotcha: ffmpeg filtergraph does NOT treat \\' as an escape inside drawtext text='...' - raw ' and \\' both fail rc=8 'Filter not found' on ffmpeg 6.1; Unicode right single quote works (probe-verified with exact argv, no shell). escapeDrawtext uses that. Local minimal ffmpeg lacks drawtext+libx264: Assemble falls back to blank cards / mpeg4 and notes it in the manifest.
+
+## Incident 2026-11-14: Hetzner root disk 100% -> site 504
+- /dev/sda1 hit 100% (0 avail): nginx logged 'No space left on device', WordPress timed out (mysqld/php-fpm unwritable). Freed my own deploy backups (kept newest 2); external action then freed ~16G (disk back to ~79%) and site recovered to 200. Remaining /tmp ercm+contentplanner backups (~2G) deliberately kept.
+- Watchdog disk alert tightened: WARNING >85%, CRITICAL >=95% with top /tmp+/opt consumers named in the log line (prod + scripts/watchdog.sh, backup watchdog.sh.bak-20261114b). Watch for recurrence: biggest steady consumers are /var/www/fwber (6.6G), /opt/tormentnexus (6.2G), shared-models GGUF (2.9G).
