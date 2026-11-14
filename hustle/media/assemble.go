@@ -83,10 +83,13 @@ func splitSentences(s string) []string {
 }
 
 // escapeDrawtext escapes text for an ffmpeg drawtext filter argument.
+// Apostrophes become the Unicode right single quote: a raw ' terminates
+// the quoted value and \' is NOT an escape at filtergraph level — both
+// break parsing with "Filter not found" (verified against ffmpeg 6.1).
 func escapeDrawtext(s string) string {
 	r := strings.NewReplacer(
 		`\`, `\\`,
-		`'`, `\'`,
+		`'`, `’`,
 		`:`, `\:`,
 		`%`, `\%`,
 		"\n", " ",

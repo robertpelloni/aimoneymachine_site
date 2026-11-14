@@ -326,3 +326,7 @@
 ### Added
 - ShortsFactory now renders: script -> SplitScenes (sentence-grouped cards, 2-8s each) -> optional ElevenLabs TTS (ELEVENLABS_API_KEY) -> FFmpeg vertical MP4 (1080x1920 drawtext cards) under output/shorts/<slug>-<ts>/ with manifest.json recording exactly which stages ran/skipped/failed. Degradations are honest: no drawtext in the ffmpeg build renders blank cards with a note; no libx264 falls back to mpeg4 with a note; YouTube upload reports not_configured until YOUTUBE_* OAuth is set.
 - Tests: scene splitting/durations, ffmpeg arg shape + escaping, real MP4 render (skips without ffmpeg).
+
+## [1.4.1] - 2026-11-14
+### Fixed
+- Shorts render failed on prod ffmpeg 6.1 with 'Filter not found': escapeDrawtext used \\' for apostrophes, which is not an escape at filtergraph level and breaks parsing. Apostrophes now become Unicode right single quote (verified with exact-argv probes: raw ' and \\' fail rc=8, Unicode variant renders rc=0).

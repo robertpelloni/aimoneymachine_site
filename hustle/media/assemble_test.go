@@ -33,7 +33,7 @@ func TestSplitScenesGroupsAndDurations(t *testing.T) {
 func TestFFmpegArgsShape(t *testing.T) {
 	scenes := []Scene{{Text: "It's 100%: go!", Duration: 3}, {Text: "Second card", Duration: 2}}
 	args := strings.Join(ffmpegArgs(scenes, "", "out.mp4", AssembleOptions{}), " ")
-	for _, want := range []string{"1080x1920", "concat=n=2", "libx264", "anullsrc", "out.mp4", `It\'s 100\%\: go!`} {
+	for _, want := range []string{"1080x1920", "concat=n=2", "libx264", "anullsrc", "out.mp4", `It’s 100\%\: go!`} {
 		if !strings.Contains(args, want) {
 			t.Errorf("args missing %q\nargs: %s", want, args)
 		}
