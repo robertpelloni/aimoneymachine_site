@@ -9,6 +9,7 @@ import (
 	"os"
 	"sort"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -38,13 +39,26 @@ func (e MemoryEntry) Checksum() string {
 // L1Memory (Scratchpad)
 type L1Memory struct {
 	Entries []MemoryEntry `json:"entries"`
+	// mu guards Entries for concurrent scheduler/API/agent access.
+	mu sync.RWMutex
 }
 
 func (m *L1Memory) Add(entry MemoryEntry) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
 	m.Entries = append(m.Entries, entry)
 }
 
+// Len returns the entry count under lock.
+func (m *L1Memory) Len() int {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	return len(m.Entries)
+}
+
 func (m *L1Memory) Get(id string) (MemoryEntry, bool) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
 	for _, e := range m.Entries {
 		if e.ID == id {
 			return e, true
@@ -54,6 +68,12 @@ func (m *L1Memory) Get(id string) (MemoryEntry, bool) {
 }
 
 func (m *L1Memory) Search(query string) []MemoryEntry {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	return m.searchLocked(query)
+}
+
+func (m *L1Memory) searchLocked(query string) []MemoryEntry {
 	var results []MemoryEntry
 	query = strings.ToLower(query)
 	for _, entry := range m.Entries {
@@ -74,7 +94,9 @@ func (m *L1Memory) Search(query string) []MemoryEntry {
 }
 
 func (m *L1Memory) RankedSearch(query string, embedder EmbeddingProvider) []MemoryEntry {
-	results := m.Search(query)
+	m.mu.RLock()
+	results := m.searchLocked(query)
+	m.mu.RUnlock()
 
 	sort.Slice(results, func(i, j int) bool {
 		return results[i].Score() > results[j].Score()
@@ -83,6 +105,8 @@ func (m *L1Memory) RankedSearch(query string, embedder EmbeddingProvider) []Memo
 }
 
 func (m *L1Memory) Checksum() string {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
 	var combined string
 	for _, e := range m.Entries {
 		combined += e.Checksum()
@@ -95,13 +119,26 @@ func (m *L1Memory) Checksum() string {
 // L2Memory (Vault)
 type L2Memory struct {
 	Entries []MemoryEntry `json:"entries"`
+	// mu guards Entries for concurrent scheduler/API/agent access.
+	mu sync.RWMutex
 }
 
 func (m *L2Memory) Add(entry MemoryEntry) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
 	m.Entries = append(m.Entries, entry)
 }
 
+// Len returns the entry count under lock.
+func (m *L2Memory) Len() int {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	return len(m.Entries)
+}
+
 func (m *L2Memory) Get(id string) (MemoryEntry, bool) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
 	for _, e := range m.Entries {
 		if e.ID == id {
 			return e, true
@@ -111,6 +148,12 @@ func (m *L2Memory) Get(id string) (MemoryEntry, bool) {
 }
 
 func (m *L2Memory) Search(query string) []MemoryEntry {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	return m.searchLocked(query)
+}
+
+func (m *L2Memory) searchLocked(query string) []MemoryEntry {
 	var results []MemoryEntry
 	query = strings.ToLower(query)
 	for _, entry := range m.Entries {
@@ -131,7 +174,9 @@ func (m *L2Memory) Search(query string) []MemoryEntry {
 }
 
 func (m *L2Memory) RankedSearch(query string, embedder EmbeddingProvider) []MemoryEntry {
-	results := m.Search(query)
+	m.mu.RLock()
+	results := m.searchLocked(query)
+	m.mu.RUnlock()
 	sort.Slice(results, func(i, j int) bool {
 		return results[i].Score() > results[j].Score()
 	})
@@ -139,6 +184,8 @@ func (m *L2Memory) RankedSearch(query string, embedder EmbeddingProvider) []Memo
 }
 
 func (m *L2Memory) Checksum() string {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
 	var combined string
 	for _, e := range m.Entries {
 		combined += e.Checksum()
@@ -151,13 +198,26 @@ func (m *L2Memory) Checksum() string {
 // L3Memory (Archive)
 type L3Memory struct {
 	Entries []MemoryEntry `json:"entries"`
+	// mu guards Entries for concurrent scheduler/API/agent access.
+	mu sync.RWMutex
 }
 
 func (m *L3Memory) Add(entry MemoryEntry) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
 	m.Entries = append(m.Entries, entry)
 }
 
+// Len returns the entry count under lock.
+func (m *L3Memory) Len() int {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	return len(m.Entries)
+}
+
 func (m *L3Memory) Get(id string) (MemoryEntry, bool) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
 	for _, e := range m.Entries {
 		if e.ID == id {
 			return e, true
@@ -167,6 +227,12 @@ func (m *L3Memory) Get(id string) (MemoryEntry, bool) {
 }
 
 func (m *L3Memory) Search(query string) []MemoryEntry {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	return m.searchLocked(query)
+}
+
+func (m *L3Memory) searchLocked(query string) []MemoryEntry {
 	var results []MemoryEntry
 	query = strings.ToLower(query)
 	for _, entry := range m.Entries {
@@ -187,7 +253,9 @@ func (m *L3Memory) Search(query string) []MemoryEntry {
 }
 
 func (m *L3Memory) RankedSearch(query string, embedder EmbeddingProvider) []MemoryEntry {
-	results := m.Search(query)
+	m.mu.RLock()
+	results := m.searchLocked(query)
+	m.mu.RUnlock()
 	sort.Slice(results, func(i, j int) bool {
 		return results[i].Score() > results[j].Score()
 	})
@@ -195,6 +263,8 @@ func (m *L3Memory) RankedSearch(query string, embedder EmbeddingProvider) []Memo
 }
 
 func (m *L3Memory) Checksum() string {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
 	var combined string
 	for _, e := range m.Entries {
 		combined += e.Checksum()

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"sync"
 	"time"
 )
 
@@ -25,9 +26,14 @@ type Transaction struct {
 
 type Ledger struct {
 	Transactions []Transaction `json:"transactions"`
+	// mu guards Transactions: scheduler tasks, API handlers and the
+	// agent loop now touch the ledger from multiple goroutines.
+	mu sync.RWMutex
 }
 
 func (l *Ledger) Add(t Transaction) {
+	l.mu.Lock()
+	defer l.mu.Unlock()
 	if t.ID == "" {
 		t.ID = fmt.Sprintf("txn-%d", time.Now().UnixNano())
 	}
@@ -38,6 +44,12 @@ func (l *Ledger) Add(t Transaction) {
 }
 
 func (l *Ledger) TotalRevenue() float64 {
+	l.mu.RLock()
+	defer l.mu.RUnlock()
+	return l.totalRevenueLocked()
+}
+
+func (l *Ledger) totalRevenueLocked() float64 {
 	total := 0.0
 	for _, t := range l.Transactions {
 		if t.Type == Revenue {
@@ -48,6 +60,12 @@ func (l *Ledger) TotalRevenue() float64 {
 }
 
 func (l *Ledger) TotalExpenses() float64 {
+	l.mu.RLock()
+	defer l.mu.RUnlock()
+	return l.totalExpensesLocked()
+}
+
+func (l *Ledger) totalExpensesLocked() float64 {
 	total := 0.0
 	for _, t := range l.Transactions {
 		if t.Type == Expense {
@@ -58,10 +76,14 @@ func (l *Ledger) TotalExpenses() float64 {
 }
 
 func (l *Ledger) Profit() float64 {
-	return l.TotalRevenue() - l.TotalExpenses()
+	l.mu.RLock()
+	defer l.mu.RUnlock()
+	return l.totalRevenueLocked() - l.totalExpensesLocked()
 }
 
 func (l *Ledger) AnalyzeProfitability() string {
+	l.mu.RLock()
+	defer l.mu.RUnlock()
 	if len(l.Transactions) == 0 {
 		return "Insufficient data for financial analysis."
 	}
@@ -99,6 +121,8 @@ func (l *Ledger) AnalyzeProfitability() string {
 }
 
 func (l *Ledger) Save(filepath string) error {
+	l.mu.RLock()
+	defer l.mu.RUnlock()
 	data, err := json.MarshalIndent(l, "", "  ")
 	if err != nil {
 		return err
@@ -107,6 +131,8 @@ func (l *Ledger) Save(filepath string) error {
 }
 
 func (l *Ledger) Load(filepath string) error {
+	l.mu.Lock()
+	defer l.mu.Unlock()
 	data, err := os.ReadFile(filepath)
 	if err != nil {
 		return err

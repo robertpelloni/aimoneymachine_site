@@ -34,14 +34,36 @@ type Scheduler struct {
 	// tasks in the same second — an LLM/API stampede that contributed
 	// to the 2026-11-14 overload timeouts.
 	BootStagger time.Duration
-	mu          sync.Mutex
+	// MaxConcurrent caps how many tasks execute at once. Zero means
+	// the default (3). Before v1.9.15 the loop was strictly serial, so
+	// one 7-step LLM chain starved every minute-interval trading task
+	// behind it; shared state (Ledger, L1/L2/L3) is now mutex-guarded.
+	MaxConcurrent int
+	mu            sync.Mutex
+	running       map[string]bool
+	done          chan struct{}
+	stopOnce      sync.Once
 }
 
 func NewScheduler(orch *Orchestrator) *Scheduler {
 	return &Scheduler{
 		Orchestrator: orch,
 		Tasks:        make([]*Task, 0),
+		running:      make(map[string]bool),
+		done:         make(chan struct{}),
 	}
+}
+
+// Stop ends the Start loop (in-flight tasks finish on their own).
+func (s *Scheduler) Stop() {
+	s.stopOnce.Do(func() { close(s.done) })
+}
+
+func (s *Scheduler) maxConcurrent() int {
+	if s.MaxConcurrent > 0 {
+		return s.MaxConcurrent
+	}
+	return 3
 }
 
 func (s *Scheduler) Register(name string, interval time.Duration, fn func(orch *Orchestrator) error) {
@@ -189,42 +211,73 @@ func (s *Scheduler) Start() {
 		fmt.Printf("[Scheduler] Boot stagger: %d tasks spread over ~%v\n", len(s.Tasks), time.Duration(len(s.Tasks)-1)*stagger)
 	}
 	s.mu.Unlock()
+
+	sem := make(chan struct{}, s.maxConcurrent())
 	for {
+		select {
+		case <-s.done:
+			fmt.Println("[Scheduler] Stopped.")
+			return
+		default:
+		}
+
 		// Check for ROI corrections in memory
 		s.checkROICorrections()
 
 		// Update Orchestrator metadata for UI
 		s.updateMetadata()
 
+		// Dispatch every due task concurrently (bounded by sem). A task
+		// never overlaps itself: `running` is only cleared on completion,
+		// when LastRun is also stamped.
 		s.mu.Lock()
 		for _, task := range s.Tasks {
-			if taskDue(task, time.Now()) {
-				fmt.Printf("Running task: %s\n", task.Name)
-				s.mu.Unlock()
-				start := time.Now()
-				err := task.Execute(s.Orchestrator)
-				duration := time.Since(start)
-				s.mu.Lock()
-
-				status := "success"
-				msg := ""
-				if err != nil {
-					fmt.Printf("Task %s failed: %v\n", task.Name, err)
-					status = "failed"
-					msg = err.Error()
-				}
-
-				if s.Orchestrator.DB != nil {
-					s.Orchestrator.DB.LogTaskExecution(task.Name, duration, status, msg)
-				}
-
-				task.LastRun = time.Now()
-				s.saveStateNoLock("tasks.json")
+			if s.running[task.Name] || !taskDue(task, time.Now()) {
+				continue
 			}
+			select {
+			case sem <- struct{}{}:
+			default:
+				continue // all slots busy; retry next tick
+			}
+			s.running[task.Name] = true
+			fmt.Printf("Running task: %s\n", task.Name)
+			go s.executeTask(task, sem)
 		}
 		s.mu.Unlock()
-		time.Sleep(1 * time.Second)
+
+		select {
+		case <-s.done:
+			fmt.Println("[Scheduler] Stopped.")
+			return
+		case <-time.After(1 * time.Second):
+		}
 	}
+}
+
+// executeTask runs one task and does completion bookkeeping under lock.
+func (s *Scheduler) executeTask(task *Task, sem chan struct{}) {
+	defer func() { <-sem }()
+	start := time.Now()
+	err := task.Execute(s.Orchestrator)
+	duration := time.Since(start)
+
+	status := "success"
+	msg := ""
+	if err != nil {
+		fmt.Printf("Task %s failed: %v\n", task.Name, err)
+		status = "failed"
+		msg = err.Error()
+	}
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.Orchestrator.DB != nil {
+		s.Orchestrator.DB.LogTaskExecution(task.Name, duration, status, msg)
+	}
+	task.LastRun = time.Now()
+	delete(s.running, task.Name)
+	s.saveStateNoLock("tasks.json")
 }
 
 func (s *Scheduler) updateMetadata() {

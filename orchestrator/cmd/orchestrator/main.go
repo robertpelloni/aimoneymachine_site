@@ -735,7 +735,7 @@ func main() {
 			return nil
 		})
 		scheduler.Register("Heartbeat", 5*time.Minute, func(o *orchestrator.Orchestrator) error {
-			return orchestrator.WriteStatusReport(version, "Active", "Scheduler Heartbeat", o.Ledger)
+			return orchestrator.WriteStatusReport(version, "Active", "Scheduler Heartbeat", &o.Ledger)
 		})
 
 		fmt.Println("Orchestrator running in Daemon mode.")
@@ -777,7 +777,7 @@ func main() {
 	}
 
 	// Real-time status reporting with financial metrics
-	orchestrator.WriteStatusReport(version, "Running", "Orchestrator command processed", orch.Ledger)
+	orchestrator.WriteStatusReport(version, "Running", "Orchestrator command processed", &orch.Ledger)
 	fmt.Printf("Orchestrator initialized with L1: %d, L2: %d, L3: %d entries. Profit: $%.2f\n",
 		len(orch.L1.Entries), len(orch.L2.Entries), len(orch.L3.Entries), orch.Ledger.Profit())
 }

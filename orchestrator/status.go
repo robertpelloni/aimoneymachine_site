@@ -16,7 +16,7 @@ type StatusReport struct {
 	Profit    float64   `json:"profit"`
 }
 
-func WriteStatusReport(version, status, message string, ledger Ledger) error {
+func WriteStatusReport(version, status, message string, ledger *Ledger) error {
 	report := StatusReport{
 		Version:   version,
 		Timestamp: time.Now(),

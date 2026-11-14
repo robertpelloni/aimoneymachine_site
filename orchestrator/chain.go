@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"sync"
 	"time"
 )
 
@@ -19,6 +20,9 @@ type ChainManager struct {
 	Orchestrator *Orchestrator
 	Protocol     *HustleProtocol
 	Chains       map[string]*Chain
+	// mu guards Chains: scheduler chain tasks, discovery registration
+	// and API /chains reads now happen concurrently.
+	mu sync.RWMutex
 }
 
 func NewChainManager(orch *Orchestrator, protocol *HustleProtocol) *ChainManager {
@@ -30,12 +34,16 @@ func NewChainManager(orch *Orchestrator, protocol *HustleProtocol) *ChainManager
 }
 
 func (m *ChainManager) Register(c *Chain) {
+	m.mu.Lock()
 	m.Chains[c.Name] = c
+	m.mu.Unlock()
 	fmt.Printf("[Chain] Registered workflow: %s (%d steps)\n", c.Name, len(c.Steps))
 	m.SaveState("chains.json")
 }
 
 func (m *ChainManager) SaveState(filepath string) error {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
 	data, err := json.MarshalIndent(m.Chains, "", "  ")
 	if err != nil {
 		return err
@@ -51,11 +59,36 @@ func (m *ChainManager) LoadState(filepath string) error {
 	if err != nil {
 		return err
 	}
+	m.mu.Lock()
+	defer m.mu.Unlock()
 	return json.Unmarshal(data, &m.Chains)
 }
 
+// Snapshot returns a copy of the registry for safe reading (e.g. the
+// API /chains handler marshaling while discovery registers).
+func (m *ChainManager) Snapshot() map[string]*Chain {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	out := make(map[string]*Chain, len(m.Chains))
+	for k, v := range m.Chains {
+		out[k] = v
+	}
+	return out
+}
+
+// Has reports whether a chain is registered (used by scheduler orphan
+// cleanup and discovery duplicate checks).
+func (m *ChainManager) Has(name string) bool {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	_, ok := m.Chains[name]
+	return ok
+}
+
 func (m *ChainManager) Execute(name string) error {
+	m.mu.RLock()
 	chain, ok := m.Chains[name]
+	m.mu.RUnlock()
 	if !ok {
 		return fmt.Errorf("chain %s not found", name)
 	}
