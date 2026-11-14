@@ -1,17 +1,9 @@
 {
-  "luxury_chain_name": {
-    "name": "luxury_chain_name",
-    "description": "brief luxury-focused description",
+  "mock_discovered_chain": {
+    "name": "mock_discovered_chain",
+    "description": "mock discovered chain",
     "steps": [
-      "hustle://step1",
-      "hustle://step2"
-    ]
-  },
-  "mock_hustle": {
-    "name": "mock_hustle",
-    "description": "mock",
-    "steps": [
-      "hustle://research"
+      "hustle://research?query=AI trends"
     ]
   }
 }
