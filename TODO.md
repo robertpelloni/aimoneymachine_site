@@ -43,3 +43,6 @@
 - [ ] Regenerate X/Twitter API keys (401 in prod, docs/ai/maintenance-2026-08-01.md)
 - [ ] Move FreeLLM keys out of the systemd unit into an EnvironmentFile with 600 perms, then rotate
 - [ ] Re-enable + start all aimm-* services on Hetzner (found all inactive/disabled, 2026-11-13)
+- [x] Wire hustle://calendar + hustle://publisher handlers (v1.2.1)
+- [x] Fix TestRollback destroying uncommitted work: it ran git checkout/clean in the real repo; now uses a temp repo (v1.2.1)
+- [x] Fix TestSyncProtocolIntegration on Windows — skips without bash (v1.2.1)

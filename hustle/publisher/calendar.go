@@ -241,6 +241,27 @@ func truncate(s string, maxLen int) string {
 	return s[:maxLen] + "..."
 }
 
+// ProcessPending publishes every due entry (status pending or ready, scheduled
+// at or before now) in place, so PublishEntry's SaveCalendar persists the
+// published/failed status. GetPendingEntries returns copies, so looping over
+// it would silently discard status updates — hence this index-based loop.
+// Returns the number of entries attempted.
+func (c *ContentCalendar) ProcessPending() (int, error) {
+	now := time.Now()
+	attempted := 0
+	var firstErr error
+	for i := range c.Entries {
+		e := &c.Entries[i]
+		if (e.Status == "ready" || e.Status == "pending") && !e.ScheduledAt.After(now) {
+			attempted++
+			if err := c.PublishEntry(e); err != nil && firstErr == nil {
+				firstErr = err
+			}
+		}
+	}
+	return attempted, firstErr
+}
+
 // PrintStatus prints the calendar status
 func (c *ContentCalendar) PrintStatus() {
 	pending := 0

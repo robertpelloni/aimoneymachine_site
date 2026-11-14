@@ -164,7 +164,9 @@ func (a *API) handleAgents(w http.ResponseWriter, r *http.Request) {
 func (a *API) handleContent(w http.ResponseWriter, r *http.Request) {
 	files, err := os.ReadDir("output/content")
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Error reading content: %v", err), http.StatusInternalServerError)
+		// No content generated yet is a normal state, not a server error:
+		// the dashboard renders an empty library from [].
+		json.NewEncoder(w).Encode([]string{})
 		return
 	}
 	var fileList []string

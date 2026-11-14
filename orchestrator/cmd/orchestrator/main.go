@@ -464,6 +464,100 @@ func main() {
 		return media.NewShortsFactory(orch).Run(topic)
 	})
 
+	// Shared content calendar (persisted to content_calendar.json in the
+	// working directory, same place the daemon already keeps chains.json).
+	contentCalendar := publisher.NewContentCalendar()
+	_ = contentCalendar.LoadCalendar()
+
+	protocol.Register("calendar", func(p url.Values) error {
+		switch p.Get("action") {
+		case "status", "":
+			contentCalendar.PrintStatus()
+			return nil
+		case "process":
+			n, err := contentCalendar.ProcessPending()
+			fmt.Printf("[Calendar] Processed %d due entries\n", n)
+			return err
+		case "add":
+			topic := p.Get("topic")
+			if topic == "" {
+				return fmt.Errorf("calendar add requires topic")
+			}
+			platform := p.Get("platform")
+			if platform == "" { platform = "wordpress" }
+			contentType := p.Get("type")
+			if contentType == "" { contentType = "blog" }
+			entry := contentCalendar.AddEntry(topic, contentType, platform, time.Now())
+			// AddEntry always creates a content-less "pending" entry; attach
+			// any inline content and mark ready so ProcessPending picks it up.
+			if body := p.Get("content"); body != "" {
+				for i := range contentCalendar.Entries {
+					if contentCalendar.Entries[i].ID == entry.ID {
+						contentCalendar.Entries[i].Content = body
+						contentCalendar.Entries[i].Title = topic
+						contentCalendar.Entries[i].Status = "ready"
+					}
+				}
+				_ = contentCalendar.SaveCalendar()
+			}
+			fmt.Printf("[Calendar] Added entry %s (%s -> %s)\n", entry.ID, topic, platform)
+			return nil
+		case "schedule_week":
+			weekly := publisher.GenerateWeeklySchedule()
+			for _, item := range weekly {
+				contentCalendar.AddEntry(item["topic"], item["type"], item["platform"], time.Now())
+			}
+			fmt.Printf("[Calendar] Scheduled %d weekly entries\n", len(weekly))
+			return nil
+		default:
+			return fmt.Errorf("unknown calendar action: %s", p.Get("action"))
+		}
+	})
+
+	protocol.Register("publisher", func(p url.Values) error {
+		switch p.Get("action") {
+		case "status", "":
+			fmt.Printf("[Publisher] WordPress configured: %v, Newsletter configured: %v\n",
+				publisher.NewWordPressPublisher().IsConfigured(),
+				publisher.NewNewsletterPublisher().IsConfigured())
+			return nil
+		case "wordpress":
+			title := p.Get("title")
+			body := p.Get("content")
+			if title == "" || body == "" {
+				return fmt.Errorf("publisher wordpress requires title and content")
+			}
+			status := p.Get("status")
+			if status == "" { status = "draft" }
+			resp, err := publisher.NewWordPressPublisher().PublishPost(title, body, status, nil, nil)
+			if err != nil {
+				return err
+			}
+			fmt.Printf("[Publisher] WordPress post published: %s\n", resp.Link)
+			return nil
+		case "wordpress_markdown":
+			path := p.Get("path")
+			if path == "" {
+				return fmt.Errorf("publisher wordpress_markdown requires path")
+			}
+			resp, err := publisher.NewWordPressPublisher().PublishMarkdown(path)
+			if err != nil {
+				return err
+			}
+			fmt.Printf("[Publisher] WordPress markdown published: %s\n", resp.Link)
+			return nil
+		case "newsletter":
+			subject := p.Get("subject")
+			body := p.Get("content")
+			if subject == "" || body == "" {
+				return fmt.Errorf("publisher newsletter requires subject and content")
+			}
+			return publisher.NewNewsletterPublisher().PublishNewsletter(subject, body, []string{"ai", "automation"})
+		default:
+			return fmt.Errorf("unknown publisher action: %s", p.Get("action"))
+		}
+	})
+
 	protocol.Register("sync", func(p url.Values) error {
 		return runSyncProtocol()
 	})

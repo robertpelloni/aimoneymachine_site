@@ -164,6 +164,8 @@ Available modules and their parameters:
 - hustle://chain?name=CHAIN_NAME — Execute a multi-step workflow chain
 - hustle://chain?action=discover — Discover and create new high-ROI workflow chains
 - hustle://affiliate?action=run&niche=NICHE — Run affiliate pipeline (discover, review, post)
+- hustle://calendar?action=process — Publish all due content-calendar entries (WordPress/Twitter/newsletter)
+- hustle://publisher?action=status — Check WordPress/newsletter publishing configuration
 - hustle://media?action=shorts&topic=TOPIC — Generate YouTube Shorts script + image prompts
 - hustle://healer?issue=DESCRIPTION — Diagnose and fix a problem
 - hustle://swarm?action=sync — Synchronize memory with mesh peers

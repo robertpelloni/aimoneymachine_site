@@ -292,3 +292,12 @@
 - Purged unresolved merge conflicts committed in go.work, go.mod/go.sum files, main.go, agent_loop.go, post.go, VERSION.md, STATUS.json (build was broken: 'errors parsing go.work').
 - Twitter post retry loop now compiles (missing io import) and returns response body on error.
 - VERSION single-sourced: 1.2.0 in VERSION.md (was conflicted 1.0.0-alpha.83 vs v1.1.0-alpha.92).
+
+## [1.2.1] - 2026-11-14
+### Added
+- hustle://calendar (status/process/add/schedule_week) and hustle://publisher (status/wordpress/wordpress_markdown/newsletter) handlers, wired in dashboard Publisher card. Shared ContentCalendar persists to content_calendar.json.
+- publisher.ProcessPending(): index-based due-entry publishing ( fixes status lost via GetPendingEntries copies).
+- Tests: TestProcessPendingPublishesDueEntryInPlace, TestHandleContentMissingDirReturnsEmptyList.
+### Fixed
+- GET /content returns 200 [] instead of 500 when output/content does not exist yet.
+- TestSyncProtocolIntegration skips on Windows (bash sync.sh cannot exec there); full orchestrator suite now green on Windows.

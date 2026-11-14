@@ -4,12 +4,17 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 )
 
 // TestSyncProtocolIntegration simulates a multi-branch environment and verifies sync.sh logic.
 func TestSyncProtocolIntegration(t *testing.T) {
+	// sync.sh is a bash script; it cannot be exec'd on Windows.
+	if runtime.GOOS == "windows" {
+		t.Skip("sync.sh requires bash (not available on Windows)")
+	}
 	// Skip if git is not available
 	if _, err := exec.LookPath("git"); err != nil {
 		t.Skip("git not found in PATH")

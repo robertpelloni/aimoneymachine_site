@@ -21,3 +21,8 @@
 ## Tray icon answer
 There is none, anywhere in the repo. Prod control = systemctl stop/start/restart aimm-*; local control = Ctrl+C. Dashboard System section documents this.
 
+
+## Update 2026-11-14 (v1.2.1, Muse Code / muse-wonder-1.0)
+- Wired hustle://calendar (status/process/add/schedule_week) + hustle://publisher (status/wordpress/wordpress_markdown/newsletter) in main.go; dashboard Publisher card now has live forms. publisher.ProcessPending() publishes due entries by index (GetPendingEntries copies lost status).
+- ROOT-CAUSE FIND: TestRollback (orchestrator/sync_test.go) executed RollbackHandler in the real working tree — git checkout . + git clean -fd in orchestrator/ — silently reverting uncommitted orchestrator/ edits and deleting new untracked files during full test runs (hit in both v1.2.0 and v1.2.1 sessions). Fixed: test now runs in a temp git repo and asserts the revert there. Do NOT reintroduce a bare Execute() in the repo root; consider hardening RollbackHandler.Execute to require an explicit directory.
+- GET /content now returns [] not 500 for an empty library. Full orchestrator suite green on Windows.
