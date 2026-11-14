@@ -69,17 +69,17 @@ func (d *ChainDiscoverer) Discover() (*DiscoveredChain, error) {
 		return nil, fmt.Errorf("failed to generate discovery: %v", err)
 	}
 
-	// 4. Parse JSON from response
-	start := strings.Index(response, "{")
-	end := strings.LastIndex(response, "}")
-	if start == -1 || end == -1 || end <= start {
-		return nil, fmt.Errorf("invalid LLM response format: %s", response)
-	}
-	jsonStr := response[start : end+1]
-
-	var discovered DiscoveredChain
-	if err := json.Unmarshal([]byte(jsonStr), &discovered); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal discovered chain: %v", err)
+	// 4. Parse JSON from response. Reasoning-style models sometimes
+	// narrate ("The user wants me to act as...") with no JSON at all;
+	// retry once through GenerateJSON, which re-asks for strict JSON.
+	discovered, err := parseDiscoveredChain(response)
+	if err != nil {
+		fmt.Printf("[ChainDiscoverer] First response unusable (%v); retrying with strict JSON\n", err)
+		var retry DiscoveredChain
+		if jerr := d.Orchestrator.LLM.GenerateJSON(prompt, &retry); jerr != nil {
+			return nil, fmt.Errorf("invalid LLM response format: %s", response)
+		}
+		discovered = &retry
 	}
 
 	// 5. Validate steps against the real protocol before persisting:
@@ -103,5 +103,20 @@ func (d *ChainDiscoverer) Discover() (*DiscoveredChain, error) {
 		Tags:      []string{"discovery", "chain", "evolution", "luxury"},
 	})
 
+	return discovered, nil
+}
+
+// parseDiscoveredChain extracts the first {...} object from a raw LLM
+// response and unmarshals it.
+func parseDiscoveredChain(response string) (*DiscoveredChain, error) {
+	start := strings.Index(response, "{")
+	end := strings.LastIndex(response, "}")
+	if start == -1 || end == -1 || end <= start {
+		return nil, fmt.Errorf("no JSON object in response")
+	}
+	var discovered DiscoveredChain
+	if err := json.Unmarshal([]byte(response[start:end+1]), &discovered); err != nil {
+		return nil, fmt.Errorf("unmarshal: %w", err)
+	}
 	return &discovered, nil
 }

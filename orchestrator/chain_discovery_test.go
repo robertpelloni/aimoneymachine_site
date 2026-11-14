@@ -48,6 +48,34 @@ func TestDiscoverRejectsPlaceholderSteps(t *testing.T) {
 	}
 }
 
+// Reasoning-style replies with no JSON ("The user wants me to act as...")
+// must trigger exactly one strict-JSON retry, not an outright failure —
+// this is the WorkflowDiscovery failure seen on prod (2026-11-14).
+func TestDiscoverRetriesWithStrictJSON(t *testing.T) {
+	t.Chdir(t.TempDir())
+	orch := NewOrchestrator()
+	calls := 0
+	orch.LLM = &MockLLM{GenerateFunc: func(prompt string) (string, error) {
+		calls++
+		if strings.Contains(prompt, "Respond ONLY with valid JSON") {
+			return `{"name":"retry_chain","description":"x","steps":["hustle://research?query=AI"],"interval_minutes":30}`, nil
+		}
+		return "The user wants me to act as the Swarm Evolution Engine and propose a workflow of protocol URIs.", nil
+	}}
+	mgr := NewChainManager(orch, testProtocol())
+	d := NewChainDiscoverer(orch, mgr)
+	got, err := d.Discover()
+	if err != nil {
+		t.Fatalf("Discover with retry: %v", err)
+	}
+	if got.Name != "retry_chain" {
+		t.Fatalf("name = %q, want retry_chain", got.Name)
+	}
+	if calls < 2 {
+		t.Fatalf("LLM calls = %d, want >= 2 (initial + strict retry)", calls)
+	}
+}
+
 func TestDiscoverRegistersValidChain(t *testing.T) {
 	t.Chdir(t.TempDir()) // Register saves chains.json in cwd
 	orch := NewOrchestrator()

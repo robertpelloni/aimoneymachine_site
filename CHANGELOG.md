@@ -421,3 +421,7 @@
 ## [1.9.10] - 2026-11-14
 ### Fixed
 - social.GenerateContent now sanitizes before validating (same treatment as the affiliate v1.9.9 fix): code fences and wrapping quotes stripped, a leading instruction-echo sentence dropped, and any trailing run of meta/reasoning sentences ('But does it mention...', 'The user said...') cut. Previously echo either slipped through raw or nuked the whole output to the canned fallback. A lone echo sentence still falls back. Tests: TestSanitizeSocialContent, TestGenerateContentSanitizesEchoAndReasoning.
+
+## [1.9.11] - 2026-11-14
+### Fixed
+- Chain discovery died on reasoning-style LLM replies with no JSON ('The user wants me to act as...', seen in prod WorkflowDiscovery). Discover now retries once via GenerateJSON (strict 'Respond ONLY with valid JSON') before failing, and response parsing is extracted to parseDiscoveredChain. Test: TestDiscoverRetriesWithStrictJSON.
