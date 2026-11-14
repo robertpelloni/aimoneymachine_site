@@ -57,6 +57,14 @@ func main() {
 		fmt.Println(st.Tooltip())
 		return
 	}
+	release, err := acquireInstance()
+	if err != nil {
+		// Second launch: the first instance owns the tray. Exit quietly
+		// (message for console launches) instead of stacking icons.
+		fmt.Println("aimm-tray:", err)
+		return
+	}
+	defer release()
 	systray.Run(onReady, func() {})
 }
 
@@ -70,6 +78,11 @@ func onReady() {
 	mOpen := systray.AddMenuItem("Open Dashboard", "Open the consolidated dashboard in a browser")
 	systray.AddSeparator()
 	mRefresh := systray.AddMenuItem("Refresh Now", "Poll the orchestrator immediately")
+	mAutostart := systray.AddMenuItemCheckbox("Start at Login", "Launch aimm-tray when you sign in (Windows)", autostartEnabled())
+	if !autostartSupported() {
+		mAutostart.Disable()
+		mAutostart.SetTooltip("Start-at-login is only implemented on Windows")
+	}
 	systray.AddSeparator()
 	mStart := systray.AddMenuItem("Start Prod Services", "ssh: start all aimm-* services on Hetzner")
 	mRestart := systray.AddMenuItem("Restart Orchestrator", "ssh: systemctl restart aimm-orchestrator")
@@ -117,6 +130,15 @@ func onReady() {
 			openBrowser(apiBase() + "/")
 		case <-mRefresh.ClickedCh:
 			refresh()
+		case <-mAutostart.ClickedCh:
+			want := !mAutostart.Checked()
+			if err := setAutostart(want); err != nil {
+				mStatus.SetTitle(fmt.Sprintf("⚠ start-at-login failed: %v", err))
+			} else if want {
+				mAutostart.Check()
+			} else {
+				mAutostart.Uncheck()
+			}
 		case <-mStart.ClickedCh:
 			mStatus.SetTitle("… starting prod services")
 			go control("start")

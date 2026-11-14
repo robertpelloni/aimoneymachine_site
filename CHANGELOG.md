@@ -334,3 +334,7 @@
 ## [1.5.0] - 2026-11-14
 ### Added
 - aimm-tray (tray/): system-tray controller that finally answers 'where is the tray icon?' — polls the orchestrator API (green/red icon, tooltip + status menu), Open Dashboard, Refresh, and Start/Stop/Restart of the Hetzner aimm-* services over the ssh alias (Stop = quit the servers). Config via AIMM_API_URL / AIMM_SSH_HOST; headless aimm-tray --status mode. Tests for status parsing/formatting and control commands. Build: scripts/build-tray.ps1.
+
+## [1.5.1] - 2026-11-14
+### Added
+- aimm-tray: single-instance guard (Windows named mutex; O_EXCL lockfile with stale-PID takeover elsewhere) — a second launch prints 'aimm-tray is already running' and exits, verified live. Start-at-Login checkbox backed by the HKCU Run key (Windows; disabled elsewhere). Test: TestSingleInstanceGuard.

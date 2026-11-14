@@ -30,3 +30,5 @@ The icon is a green dot when the orchestrator answers, red when offline.
 .\bin\aimm-tray.exe        # tray icon appears
 .\bin\aimm-tray.exe --status   # headless one-line status check
 ```
+
+Single-instance: a second launch exits with 'aimm-tray is already running'. The Start at Login checkbox writes the HKCU Run key (Windows).

@@ -1,7 +1,7 @@
 {
-  "version": "1.5.0",
+  "version": "1.5.1",
   "status": "Running",
-  "message": "System tray controller",
+  "message": "Tray single-instance + autostart",
   "revenue": 171.6,
   "expenses": 1005,
   "profit": -833.4
