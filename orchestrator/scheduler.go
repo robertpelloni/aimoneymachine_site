@@ -15,6 +15,9 @@ type Task struct {
 	Interval time.Duration `json:"interval"`
 	LastRun  time.Time     `json:"last_run"`
 	Execute  func(orch *Orchestrator) error `json:"-"`
+	// notBefore is the boot-stagger deadline: the task is not due before
+	// this time, however old its LastRun is. Set once by Start.
+	notBefore time.Time
 }
 
 type Scheduler struct {
@@ -25,7 +28,13 @@ type Scheduler struct {
 	// tasks whose chain is gone (e.g. chains.json was replaced), instead
 	// of re-registering orphans that fail on every cycle forever.
 	KnownChain func(name string) bool
-	mu         sync.Mutex
+	// BootStagger spreads first executions after Start: task i is not
+	// due until Start + i*BootStagger. Zero means the default (20s).
+	// Without it, every restart (i.e. every deploy) fires all overdue
+	// tasks in the same second — an LLM/API stampede that contributed
+	// to the 2026-11-14 overload timeouts.
+	BootStagger time.Duration
+	mu          sync.Mutex
 }
 
 func NewScheduler(orch *Orchestrator) *Scheduler {
@@ -154,8 +163,32 @@ func (s *Scheduler) ReevaluateStrategy(recommendation string) {
 	}
 }
 
+// taskDue reports whether task may run at now: past its boot-stagger
+// deadline and at least Interval since its last run.
+func taskDue(task *Task, now time.Time) bool {
+	if now.Before(task.notBefore) {
+		return false
+	}
+	return now.Sub(task.LastRun) >= task.Interval
+}
+
 func (s *Scheduler) Start() {
 	fmt.Println("Starting Task Scheduler...")
+	// Boot stagger: assign each registered task a first-eligible time so
+	// a restart does not fire everything at once (see BootStagger).
+	stagger := s.BootStagger
+	if stagger == 0 {
+		stagger = 20 * time.Second
+	}
+	base := time.Now()
+	s.mu.Lock()
+	for i, task := range s.Tasks {
+		task.notBefore = base.Add(time.Duration(i) * stagger)
+	}
+	if len(s.Tasks) > 1 {
+		fmt.Printf("[Scheduler] Boot stagger: %d tasks spread over ~%v\n", len(s.Tasks), time.Duration(len(s.Tasks)-1)*stagger)
+	}
+	s.mu.Unlock()
 	for {
 		// Check for ROI corrections in memory
 		s.checkROICorrections()
@@ -165,7 +198,7 @@ func (s *Scheduler) Start() {
 
 		s.mu.Lock()
 		for _, task := range s.Tasks {
-			if time.Since(task.LastRun) >= task.Interval {
+			if taskDue(task, time.Now()) {
 				fmt.Printf("Running task: %s\n", task.Name)
 				s.mu.Unlock()
 				start := time.Now()

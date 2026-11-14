@@ -385,3 +385,7 @@
 ## [1.9.2] - 2026-11-14
 ### Fixed
 - The daemon's 6-hourly Sync scheduler task (and hustle://sync) failed forever on Hetzner with 'fork/exec ./sync.sh: no such file or directory' because the orchestrator runs from /opt/aimoneymachine, not a git checkout. Sync now probes for the script (SYNC_SCRIPT override): the task registers only when it exists (one clear startup line otherwise) and the URI returns an honest 'repository sync unavailable' error pointing at the deploy script. Test: TestSyncAvailability.
+
+## [1.9.3] - 2026-11-14
+### Fixed
+- Scheduler boot stagger: after every restart (i.e. every deploy) all overdue tasks fired in the same second - an LLM/API stampede that contributed to the overload timeouts. Start now assigns task i a not-before of Start+i*BootStagger (default 20s, ~4 min spread for the daemon's task set); taskDue enforces it. Test: TestTaskDueBootStagger.
