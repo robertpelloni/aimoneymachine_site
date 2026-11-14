@@ -124,6 +124,10 @@ func (a *API) handleDispatch(w http.ResponseWriter, r *http.Request) {
 	fmt.Printf("[API] Received dispatch request for URI: %s\n", req.URI)
 
 	if err := a.Protocol.HandleURI(req.URI); err != nil {
+		// Log server-side too: a failed dispatch (e.g. an LLM call that
+		// hit its timeout under load) was previously invisible in the
+		// journal — the client saw a timeout and the server said nothing.
+		fmt.Printf("[API] Dispatch failed for URI %s: %v\n", req.URI, err)
 		http.Error(w, fmt.Sprintf("Protocol error: %v", err), http.StatusInternalServerError)
 		return
 	}

@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -64,6 +65,22 @@ type embeddingResponse struct {
 // Env: LLM_BASE_URL (default http://localhost:1234/v1)
 // Env: LLM_API_KEY (default from LLM_API_KEY env or placeholder for local servers)
 // Env: LLM_MODEL (auto-detected if empty)
+
+// llmTimeout bounds every LLM HTTP call. Default 600s (FreeLLM can be
+// slow); set LLM_TIMEOUT_SEC to override. Before v1.9.1 the timeout was
+// hardcoded in three constructors, and a saturated FreeLLM held an HTTP
+// dispatch for the full 10 minutes per call with nothing in the journal.
+func llmTimeout() time.Duration {
+	if v := os.Getenv("LLM_TIMEOUT_SEC"); v != "" {
+		if secs, err := strconv.Atoi(v); err == nil && secs > 0 {
+			return time.Duration(secs) * time.Second
+		}
+	}
+	return 600 * time.Second
+}
+
+func llmHTTPClient() *http.Client { return &http.Client{Timeout: llmTimeout()} }
+
 func NewOpenAICompatProvider() *OpenAICompatProvider {
 	baseURL := os.Getenv("LLM_BASE_URL")
 	if baseURL == "" {
@@ -81,7 +98,7 @@ func NewOpenAICompatProvider() *OpenAICompatProvider {
 		Model:     model,
 		MaxTokens: 2048,
 		HTTPClient: &http.Client{
-			Timeout: 600 * time.Second, // FreeLLM proxy can be slow (10min max)
+			Timeout: llmTimeout(), // FreeLLM proxy can be slow (LLM_TIMEOUT_SEC)
 		},
 	}
 }
@@ -94,7 +111,7 @@ func NewOllamaProvider(model string) *OpenAICompatProvider {
 		Model:     model,
 		MaxTokens: 2048,
 		HTTPClient: &http.Client{
-			Timeout: 600 * time.Second, // FreeLLM proxy can be slow
+			Timeout: llmTimeout(), // FreeLLM proxy can be slow (LLM_TIMEOUT_SEC)
 		},
 	}
 }
@@ -245,7 +262,7 @@ func NewOpenAICompatEmbedder() *OpenAICompatEmbedder {
 		BaseURL:    strings.TrimRight(baseURL, "/"),
 		APIKey:     apiKey,
 		Model:      model,
-		HTTPClient: &http.Client{Timeout: 600 * time.Second},
+		HTTPClient: llmHTTPClient(),
 	}
 }
 

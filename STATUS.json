@@ -1,7 +1,7 @@
 {
-  "version": "1.9.0",
+  "version": "1.9.1",
   "status": "Running",
-  "message": "Digital Product Factory",
+  "message": "LLM timeout config + dispatch failure logging",
   "revenue": 171.6,
   "expenses": 1005,
   "profit": -833.4

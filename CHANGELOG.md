@@ -377,3 +377,7 @@
 ## [1.9.0] - 2026-11-14
 ### Added
 - Digital Product Factory (hustle/products, hustle://products?type=template|guide|preset&topic=): LLM generates full product markdown + storefront listing copy + manifest under output/products/<slug>-<ts>/. Gumroad listing is real when GUMROAD_ACCESS_TOKEN is set (API v2 client, tested incl. 401 surfacing) and honestly recorded as not_configured otherwise. Wired into the agent prompt and the dashboard Money section. (An old HANDOFF claimed this module existed; it did not - now it does.)
+
+## [1.9.1] - 2026-11-14
+### Fixed
+- LLM HTTP timeout is now one helper (llmTimeout/llmHTTPClient) honoring LLM_TIMEOUT_SEC (default 600s) instead of three hardcoded copies. API dispatch failures are logged server-side with the URI - a timed-out products generation during the Hetzner overload previously left no journal trace at all.
