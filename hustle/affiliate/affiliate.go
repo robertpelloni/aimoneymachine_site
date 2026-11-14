@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/robertpelloni/hustle/orchestrator"
 	"github.com/robertpelloni/hustle/hustle/social"
@@ -48,26 +49,24 @@ func (m *AffiliateModule) Run(niche string) error {
 	// Step 4: Add to dashboard / publish queue
 	fmt.Printf("[Affiliate] Generated Review:\n%s\n", review)
 
-	// Route to the social queue for auto-posting
-	provider := social.NewTwitterProvider(
-		os.Getenv("TWITTER_API_KEY"),
-		os.Getenv("TWITTER_API_SECRET"),
-		os.Getenv("TWITTER_ACCESS_TOKEN"),
-		os.Getenv("TWITTER_ACCESS_SECRET"),
-	)
+	// Route to the configured social platform for auto-posting
+	// (SOCIAL_DEFAULT_PLATFORM; Bluesky on prod while X returns 402).
+	platform := social.DefaultPlatform()
+	provider := social.NewProvider(platform)
+	socialReview := social.FormatForPlatform(review, platform)
 
-	// Enforce 280-character limit
-	reviewRunes := []rune(review)
-	socialReview := review
-	if len(reviewRunes) > 280 {
-		socialReview = string(reviewRunes[:277]) + "..."
-	}
-
-	// Call SchedulePost so the generated review hits Twitter. Note SchedulePost generates its own content, so we will use the provider directly.
-	if err := provider.Post(m.Orch, "Twitter", socialReview); err != nil {
-		fmt.Printf("[Affiliate] Failed to auto-post to Twitter: %v\n", err)
+	if err := provider.Post(m.Orch, platform, socialReview); err != nil {
+		// Visible, not fatal: the review itself is the product; record
+		// the distribution failure so dashboards/memory show it.
+		fmt.Printf("[Affiliate] Failed to auto-post to %s: %v\n", platform, err)
+		m.Orch.L1.Add(orchestrator.MemoryEntry{
+			ID:        fmt.Sprintf("affiliate-post-failed-%s", topProduct.ID),
+			Content:   fmt.Sprintf("Affiliate post to %s failed: %v", platform, err),
+			Timestamp: time.Now(),
+			Tags:      []string{"affiliate", "social", "post-failed", platform},
+		})
 	} else {
-		fmt.Println("[Affiliate] Successfully queued/posted affiliate review to Twitter")
+		fmt.Printf("[Affiliate] Successfully posted affiliate review to %s\n", platform)
 	}
 
 	// Embed existing affiliate links using the AffiliateInserter

@@ -397,3 +397,7 @@
 ## [1.9.4] - 2026-11-14
 ### Fixed
 - FormatForPlatform now caps Bluesky at 300 runes (it only capped Twitter at 280): affiliate-injected social posts exceeded Bluesky's grapheme limit and the AT Protocol rejected them with XRPC InvalidRequest, failing every curation chain at step 2 after the chain was switched off Twitter (X returns 402 credits depleted). Test: TestFormatForPlatformLimits.
+
+## [1.9.5] - 2026-11-14
+### Fixed
+- Affiliate and synergy pipelines hardcoded Twitter and the affiliate module swallowed post failures (pipeline reported success while nothing posted). Both now use social.DefaultPlatform()/NewProvider() (SOCIAL_DEFAULT_PLATFORM env; prod set to Bluesky while X returns 402), FormatForPlatform caps per platform, and affiliate records post failures in memory (tagged post-failed) instead of silently passing. Test: TestDefaultPlatformAndProviderSelection.

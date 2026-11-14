@@ -130,6 +130,26 @@ func TestTwitterProvider_PostSuccess(t *testing.T) {
 	}
 }
 
+func TestDefaultPlatformAndProviderSelection(t *testing.T) {
+	t.Setenv("SOCIAL_DEFAULT_PLATFORM", "")
+	if got := DefaultPlatform(); got != "Twitter" {
+		t.Errorf("default platform = %q, want Twitter", got)
+	}
+	t.Setenv("SOCIAL_DEFAULT_PLATFORM", "Bluesky")
+	if got := DefaultPlatform(); got != "Bluesky" {
+		t.Errorf("env platform = %q, want Bluesky", got)
+	}
+	if _, ok := NewProvider("Bluesky").(*BlueskyProvider); !ok {
+		t.Error("NewProvider(Bluesky) did not return *BlueskyProvider")
+	}
+	if _, ok := NewProvider("Twitter").(*TwitterProvider); !ok {
+		t.Error("NewProvider(Twitter) did not return *TwitterProvider")
+	}
+	if _, ok := NewProvider("LinkedIn").(*LinkedInProvider); !ok {
+		t.Error("NewProvider(LinkedIn) did not return *LinkedInProvider")
+	}
+}
+
 // Bluesky rejects posts over 300 graphemes (XRPC InvalidRequest); the
 // formatter must cap it the way it already capped Twitter at 280.
 func TestFormatForPlatformLimits(t *testing.T) {

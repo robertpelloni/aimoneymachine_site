@@ -421,21 +421,17 @@ func main() {
 		affModule := affiliate.NewModule(orch)
 		socialContent := social.GenerateContent(orch, topic)
 		socialContent = affModule.InjectAffiliateLink(socialContent, topic)
-		socialContent = social.FormatForPlatform(socialContent, "Twitter")
+		platform := social.DefaultPlatform()
+		socialContent = social.FormatForPlatform(socialContent, platform)
 
-		provider := social.NewTwitterProvider(
-			os.Getenv("TWITTER_API_KEY"),
-			os.Getenv("TWITTER_API_SECRET"),
-			os.Getenv("TWITTER_ACCESS_TOKEN"),
-			os.Getenv("TWITTER_ACCESS_SECRET"),
-		)
+		provider := social.NewProvider(platform)
 
 		if *dryRun {
 			provider.SetDryRun(true)
 		}
 
-		if err := provider.Post(orch, "Twitter", socialContent); err != nil {
-			fmt.Printf("[Social] Failed to post synergy tweet: %v\n", err)
+		if err := provider.Post(orch, platform, socialContent); err != nil {
+			fmt.Printf("[Social] Failed to post synergy post to %s: %v\n", platform, err)
 			return err
 		}
 

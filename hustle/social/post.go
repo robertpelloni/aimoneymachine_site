@@ -248,6 +248,35 @@ func GenerateContent(orch *orchestrator.Orchestrator, topic string) string {
 	return strings.TrimSpace(content)
 }
 
+// DefaultPlatform is the social platform used by pipelines that post on
+// the user's behalf (affiliate, synergy lead-gen). SOCIAL_DEFAULT_PLATFORM
+// overrides it; default Twitter for historical compatibility. Prod sets
+// Bluesky while X returns 402 (credits depleted).
+func DefaultPlatform() string {
+	if v := os.Getenv("SOCIAL_DEFAULT_PLATFORM"); v != "" {
+		return v
+	}
+	return "Twitter"
+}
+
+// NewProvider builds the provider for a platform name, reading that
+// platform's credentials from the environment.
+func NewProvider(platform string) Provider {
+	switch strings.ToLower(platform) {
+	case "linkedin":
+		return NewLinkedInProvider(os.Getenv("LINKEDIN_ACCESS_TOKEN"), os.Getenv("LINKEDIN_AUTHOR_URN"))
+	case "bluesky":
+		return NewBlueskyProvider(os.Getenv("BLUESKY_HANDLE"), os.Getenv("BLUESKY_APP_PASSWORD"))
+	default:
+		return NewTwitterProvider(
+			os.Getenv("TWITTER_API_KEY"),
+			os.Getenv("TWITTER_API_SECRET"),
+			os.Getenv("TWITTER_ACCESS_TOKEN"),
+			os.Getenv("TWITTER_ACCESS_SECRET"),
+		)
+	}
+}
+
 func FormatForPlatform(content, platform string) string {
 	// Per-platform length caps. Bluesky rejects records over 300
 	// graphemes with XRPC InvalidRequest — the curation chain's

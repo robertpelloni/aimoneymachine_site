@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>AI Hustle Machine — Consolidated Dashboard v1.9.4</title>
+<title>AI Hustle Machine — Consolidated Dashboard v1.9.5</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#0f172a;color:#e2e8f0;padding:20px;max-width:1400px;margin:0 auto}
 .logo{font-size:1.8rem;font-weight:800;background:linear-gradient(135deg,#2563eb,#a855f7);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
@@ -19,7 +19,7 @@ table{width:100%;border-collapse:collapse}th,td{text-align:left;font-size:.8rem;
 pre{background:#020617;border:1px solid #1e293b;border-radius:10px;padding:12px;font-size:.7rem;overflow:auto;max-height:260px;white-space:pre-wrap}
 .green{color:#22c55e}.red{color:#ef4444}.yellow{color:#eab308}
 </style></head><body>
-<header><div><div class="logo">AI Hustle Machine</div><div class="sub">One-page control plane &middot; v<span id="ver">1.9.4</span> &middot; every backend feature below dispatches a real <code>hustle://</code> URI to the orchestrator API</div></div>
+<header><div><div class="logo">AI Hustle Machine</div><div class="sub">One-page control plane &middot; v<span id="ver">1.9.5</span> &middot; every backend feature below dispatches a real <code>hustle://</code> URI to the orchestrator API</div></div>
 <div class="sub" id="lastUpdated">Loading&hellip;</div></header>
 <nav><a href="#overview">Overview</a><a href="#money">💰 Money</a><a href="#growth">📈 Growth</a><a href="#automation">🤖 Automation</a><a href="#system">🛠 System</a><a href="#logs">Logs</a></nav>
 
@@ -57,7 +57,7 @@ pre{background:#020617;border:1px solid #1e293b;border-radius:10px;padding:12px;
 <div class="card"><h3>Collective strategy <span class="tip" title="GET /strategy — latest collective_strategy memories shared across the mesh. Broadcast yours from the terminal menu (Space Communication).">ⓘ</span></h3><p>Mesh-shared alpha.</p><div class="sub" id="strategyList">—</div></div>
 </div>
 
-<h2 id="system">🛠 System — mesh, healing, sync, quit</h2><p class="desc">Operations. <strong>Tray app: aimm-tray (tray/, v1.9.4+) — green/red status icon, Open Dashboard, Start/Stop/Restart prod via ssh. Originally no tray icon existed; the orchestrator is a headless Go daemon</strong> in this project — the orchestrator is a headless Go daemon. On Hetzner it is controlled with systemd (<code>aimm-*</code> units); locally with Ctrl+C / closing the terminal. A tray app is listed as an idea in IDEAS.md.</p>
+<h2 id="system">🛠 System — mesh, healing, sync, quit</h2><p class="desc">Operations. <strong>Tray app: aimm-tray (tray/, v1.9.5+) — green/red status icon, Open Dashboard, Start/Stop/Restart prod via ssh. Originally no tray icon existed; the orchestrator is a headless Go daemon</strong> in this project — the orchestrator is a headless Go daemon. On Hetzner it is controlled with systemd (<code>aimm-*</code> units); locally with Ctrl+C / closing the terminal. A tray app is listed as an idea in IDEAS.md.</p>
 <div class="grid">
 <div class="card"><h3>Mesh / swarm <span class="tip" title="hustle://swarm?action=sync|aggregate|set_goal — delta-sync memory with peers, aggregate mesh profit, set the collective wealth goal. Peers register via POST /register.">ⓘ</span></h3><p>Federated sync + wealth goal.</p><label>Wealth goal (USD)</label><input id="goalAmt" value="10000"><button onclick="dispatchAction('hustle://swarm?action=sync')">Sync mesh</button> <button class="secondary" onclick="dispatchAction('hustle://swarm?action=set_goal&amount='+enc('goalAmt'))">Set goal</button></div>
 <div class="card"><h3>Healer <span class="tip" title="hustle://healer?issue= (or POST /healer) — LLM diagnoses an issue, proposes a fix, verifies it. Also runs Wealth Preservation audits in the daemon.">ⓘ</span></h3><p>Self-diagnosis loop.</p><label>Issue</label><input id="healIssue" value="Manual dashboard diagnostic"><button onclick="dispatchAction('hustle://healer?issue='+enc('healIssue'))">Run healer</button></div>
