@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"math"
 	"math/rand"
 	"net/http"
 	"os"
@@ -394,7 +395,11 @@ func (t *TradingModule) executeLocked() error {
 	t.rsiHistories[symbol] = rsiHistory
 	t.RSIHistory = rsiHistory
 
-	fmt.Printf("[Trading] Indicators -> SMA(5): $%.2f | RSI(14): %.2f\n", sma, rsi)
+	macdLine, macdSignal, macdHist, prevHist := calculateMACD(history)
+	bbUpper, bbMid, bbLower, bbPctB := calculateBollinger(history, 20, 2)
+
+	fmt.Printf("[Trading] Indicators -> SMA(5): $%.2f | RSI(14): %.2f | MACD: %.4f (signal %.4f, hist %.4f) | BB: [%.2f | %.2f | %.2f] %%B %.2f\n",
+		sma, rsi, macdLine, macdSignal, macdHist, bbLower, bbMid, bbUpper, bbPctB)
 
 	divergence := detectDivergence(history, rsiHistory)
 	if divergence != "" {
@@ -409,7 +414,27 @@ func (t *TradingModule) executeLocked() error {
 		} else if (rsi > 70 && price > sma) || divergence == "BEARISH" {
 			decision = "SELL"
 		}
-	} else {
+	}
+	// MACD + Bollinger confluence (needs the longer MACD warmup).
+	if len(history) >= 35 && decision == "HOLD" {
+		macdBullCross := prevHist <= 0 && macdHist > 0
+		macdBearCross := prevHist >= 0 && macdHist < 0
+		switch {
+		case macdBullCross && bbPctB < 0.8:
+			decision = "BUY"
+			fmt.Println("[Trading] MACD bullish cross confirmed by Bollinger %B < 0.8")
+		case macdBearCross && bbPctB > 0.2:
+			decision = "SELL"
+			fmt.Println("[Trading] MACD bearish cross confirmed by Bollinger %B > 0.2")
+		case price < bbLower && rsi < 35:
+			decision = "BUY"
+			fmt.Println("[Trading] Price below lower Bollinger band with RSI < 35 (mean reversion)")
+		case price > bbUpper && rsi > 65:
+			decision = "SELL"
+			fmt.Println("[Trading] Price above upper Bollinger band with RSI > 65 (mean reversion)")
+		}
+	}
+	if len(history) < 14 {
 		fmt.Println("[Trading] Insufficient history for complex indicators, defaulting to HOLD.")
 	}
 
@@ -418,7 +443,7 @@ func (t *TradingModule) executeLocked() error {
 	// Persist to memory
 	t.Orchestrator.L1.Add(orchestrator.MemoryEntry{
 		ID:        fmt.Sprintf("trade-%s-%d", symbol, time.Now().Unix()),
-		Content:   fmt.Sprintf("Trade Decision for %s: %s at $%.2f (SMA: $%.2f, RSI: %.2f, Div: %s)", symbol, decision, price, sma, rsi, divergence),
+		Content:   fmt.Sprintf("Trade Decision for %s: %s at $%.2f (SMA: $%.2f, RSI: %.2f, MACD hist: %.4f, BB %%B: %.2f, Div: %s)", symbol, decision, price, sma, rsi, macdHist, bbPctB, divergence),
 		Timestamp: time.Now(),
 		Tags:      []string{"trading", symbol, decision},
 	})
@@ -525,4 +550,81 @@ func calculateRSI(history []float64, period int) float64 {
 
 	rs := (gains / float64(period)) / (losses / float64(period))
 	return 100.0 - (100.0 / (1.0 + rs))
+}
+
+// emaSeries computes the exponential moving average series, seeded with
+// the SMA of the first period values (standard MACD seeding).
+func emaSeries(values []float64, period int) []float64 {
+	if period <= 0 || len(values) < period {
+		return nil
+	}
+	k := 2.0 / float64(period+1)
+	out := make([]float64, 0, len(values)-period+1)
+	sum := 0.0
+	for i := 0; i < period; i++ {
+		sum += values[i]
+	}
+	ema := sum / float64(period)
+	out = append(out, ema)
+	for i := period; i < len(values); i++ {
+		ema = values[i]*k + ema*(1-k)
+		out = append(out, ema)
+	}
+	return out
+}
+
+// calculateMACD returns MACD line, signal line, histogram, and the
+// previous histogram value (for cross detection) using 12/26/9 EMAs.
+// All zeros when the series is too short (< 34 points).
+func calculateMACD(history []float64) (macd, signal, hist, prevHist float64) {
+	if len(history) < 34 {
+		return 0, 0, 0, 0
+	}
+	fast := emaSeries(history, 12)
+	slow := emaSeries(history, 26)
+	// Align: slow starts 14 points later than fast.
+	macdSeries := make([]float64, len(slow))
+	for i := range slow {
+		macdSeries[i] = fast[i+len(fast)-len(slow)] - slow[i]
+	}
+	signalSeries := emaSeries(macdSeries, 9)
+	if len(signalSeries) == 0 {
+		return 0, 0, 0, 0
+	}
+	macd = macdSeries[len(macdSeries)-1]
+	signal = signalSeries[len(signalSeries)-1]
+	hist = macd - signal
+	if len(signalSeries) > 1 {
+		prevHist = macdSeries[len(macdSeries)-2] - signalSeries[len(signalSeries)-2]
+	}
+	return macd, signal, hist, prevHist
+}
+
+// calculateBollinger returns upper band, middle (SMA), lower band, and
+// %B ((price-lower)/(upper-lower); 0.5 at the mean, 0.5 when flat).
+func calculateBollinger(history []float64, period int, mult float64) (upper, mid, lower, pctB float64) {
+	if period <= 0 || len(history) < period {
+		if len(history) > 0 {
+			p := history[len(history)-1]
+			return p, p, p, 0.5
+		}
+		return 0, 0, 0, 0.5
+	}
+	window := history[len(history)-period:]
+	mid = calculateSMA(window, period)
+	var variance float64
+	for _, v := range window {
+		d := v - mid
+		variance += d * d
+	}
+	sd := math.Sqrt(variance / float64(period))
+	upper = mid + mult*sd
+	lower = mid - mult*sd
+	price := history[len(history)-1]
+	if upper == lower {
+		pctB = 0.5
+	} else {
+		pctB = (price - lower) / (upper - lower)
+	}
+	return upper, mid, lower, pctB
 }

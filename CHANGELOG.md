@@ -435,3 +435,7 @@
 - Dashboard Content Expansion widget divided by a stale hardcoded total (217) while prod has 1,169 expanded posts - it rendered '1169 / 217 (538.7%)' with an overflowing bar. It now shows the true expanded count and the currently-expanding post ID from /api/progress, with no invented denominator.
 ### Docs
 - ROADMAP status correction through v1.9.12 (verified-live vs genuinely-open items).
+
+## [1.9.14] - 2026-11-14
+### Added
+- Trading indicators from the roadmap: MACD (12/26/9 EMA with histogram + previous histogram for cross detection) and Bollinger Bands (20, 2 sigma, %B), computed per symbol alongside SMA/RSI. Decision confluence gains MACD-cross trades confirmed by %B and band-break mean-reversion with RSI confirmation; all values appear in the indicator log line and memory entries. Tests assert trend direction, flat-series zeros, band ordering and %B (a steady trend's histogram is ~0 by construction - the test now asserts that instead of a sign).

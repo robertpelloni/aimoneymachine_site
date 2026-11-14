@@ -1,7 +1,7 @@
 {
-  "version": "1.9.13",
+  "version": "1.9.14",
   "status": "Running",
-  "message": "Dashboard progress widget honesty fix",
+  "message": "MACD + Bollinger trading indicators",
   "revenue": 171.6,
   "expenses": 1005,
   "profit": -833.4
