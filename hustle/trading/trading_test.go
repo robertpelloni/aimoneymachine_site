@@ -239,17 +239,16 @@ func TestCoinGeckoFetcher_MissingUSD(t *testing.T) {
 
 func TestCoinGeckoFetcher_DifferentSymbols(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		ids := r.URL.Query().Get("ids")
-		switch ids {
-		case "ethereum":
-			fmt.Fprint(w, `{"ethereum":{"usd":3450.50}}`)
-		case "solana":
-			fmt.Fprint(w, `{"solana":{"usd":145.30}}`)
-		case "dogecoin":
-			fmt.Fprint(w, `{"dogecoin":{"usd":0.125}}`)
-		default:
-			fmt.Fprint(w, `{}`)
+		// The fetcher batches daemon symbols into one ids= call (v1.3.1),
+		// so answer like the real API: one entry per requested ID.
+		prices := map[string]float64{"ethereum": 3450.50, "solana": 145.30, "dogecoin": 0.125}
+		parts := []string{}
+		for _, id := range strings.Split(r.URL.Query().Get("ids"), ",") {
+			if p, ok := prices[id]; ok {
+				parts = append(parts, fmt.Sprintf(`"%s":{"usd":%v}`, id, p))
+			}
 		}
+		fmt.Fprintf(w, "{%s}", strings.Join(parts, ","))
 	}))
 	defer ts.Close()
 
@@ -339,5 +338,66 @@ func TestCoinGeckoFetcher_AllRetriesFail(t *testing.T) {
 	}
 	if attempt != maxRetries {
 		t.Errorf("Expected %d retries, got %d", maxRetries, attempt)
+	}
+}
+
+// One cache miss for a daemon symbol must batch-fetch all of them: the
+// second symbol is then served from cache with no extra HTTP call.
+func TestCoinGeckoFetcher_BatchPrimesCache(t *testing.T) {
+	callCount := 0
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		callCount++
+		if !strings.Contains(r.URL.String(), "ethereum") {
+			t.Errorf("batch request should include ethereum, got %s", r.URL.String())
+		}
+		fmt.Fprint(w, `{"bitcoin":{"usd":100},"ethereum":{"usd":200},"solana":{"usd":3},"dogecoin":{"usd":0.1},"ripple":{"usd":0.5},"cardano":{"usd":0.4},"chainlink":{"usd":15}}`)
+	}))
+	defer ts.Close()
+
+	f := newTestFetcher(ts.URL)
+	if p, err := f.GetPrice("BTC"); err != nil || p != 100 {
+		t.Fatalf("BTC = %.2f, %v; want 100, nil", p, err)
+	}
+	if p, err := f.GetPrice("ETH"); err != nil || p != 200 {
+		t.Fatalf("ETH = %.2f, %v; want 200, nil (cache)", p, err)
+	}
+	if callCount != 1 {
+		t.Errorf("API calls = %d, want 1 (batched)", callCount)
+	}
+}
+
+// With a known-but-expired price and the API rate-limiting, GetPrice must
+// degrade to the stale price instead of failing the trading cycle. With no
+// known price it must still error (covered by TestCoinGeckoFetcher_RateLimit).
+func TestCoinGeckoFetcher_StaleFallbackOnRateLimit(t *testing.T) {
+	limited := false
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if limited {
+			w.WriteHeader(http.StatusTooManyRequests)
+			fmt.Fprint(w, `{"error":"rate limited"}`)
+			return
+		}
+		fmt.Fprint(w, `{"bitcoin":{"usd":67500.42},"ethereum":{"usd":1},"solana":{"usd":1},"dogecoin":{"usd":1},"ripple":{"usd":1},"cardano":{"usd":1},"chainlink":{"usd":1}}`)
+	}))
+	defer ts.Close()
+
+	f := newTestFetcher(ts.URL)
+	if _, err := f.GetPrice("BTC"); err != nil {
+		t.Fatalf("priming GetPrice failed: %v", err)
+	}
+	// Expire the entry, then rate-limit: stale price must be served.
+	f.mu.Lock()
+	e := f.cache["BTC"]
+	e.expiresAt = e.expiresAt.Add(-2 * cacheTTL)
+	f.cache["BTC"] = e
+	f.mu.Unlock()
+	limited = true
+
+	price, err := f.GetPrice("BTC")
+	if err != nil {
+		t.Fatalf("stale fallback: err = %v, want nil", err)
+	}
+	if price != 67500.42 {
+		t.Errorf("stale price = %.2f, want 67500.42", price)
 	}
 }

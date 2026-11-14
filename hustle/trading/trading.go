@@ -115,9 +115,34 @@ var symbolToCoinGeckoID = map[string]string{
 	"NEAR":  "near",
 }
 
+// batchSymbols are the symbols the daemon trades. On any cache miss the
+// fetcher requests all of them in ONE CoinGecko call and primes the cache
+// for the rest, instead of one call per symbol per cycle (7x fewer calls —
+// the unauthenticated tier rate-limits at roughly this order of magnitude).
+var batchSymbols = []string{"BTC", "ETH", "SOL", "DOGE", "XRP", "ADA", "LINK"}
+
+// idsFor returns the CoinGecko IDs to request when symbol misses the cache:
+// the whole batch for daemon symbols, just itself otherwise.
+func idsFor(symbol, id string) []string {
+	for _, s := range batchSymbols {
+		if s == symbol {
+			ids := make([]string, 0, len(batchSymbols))
+			for _, b := range batchSymbols {
+				ids = append(ids, symbolToCoinGeckoID[b])
+			}
+			return ids
+		}
+	}
+	return []string{id}
+}
+
 // GetPrice fetches the current USD price for a symbol.
 // Uses an in-memory cache with 60s TTL to avoid hitting rate limits.
 // Retries up to 3 times with exponential backoff on transient errors.
+// When every retry fails (e.g. a 429 storm) and any earlier price is known,
+// it returns that stale price instead of failing the trading cycle: a
+// slightly old price yields a HOLD-grade decision, a hard error yields a
+// failed daemon task and log spam.
 func (c *CoinGeckoFetcher) GetPrice(symbol string) (float64, error) {
 	symbol = strings.ToUpper(symbol)
 
@@ -139,10 +164,21 @@ func (c *CoinGeckoFetcher) GetPrice(symbol string) (float64, error) {
 			time.Sleep(retryBackoff * time.Duration(attempt))
 		}
 
-		price, err := c.fetchPrice(id)
+		prices, err := c.fetchPrices(idsFor(symbol, id))
 		if err == nil {
-			c.addToCache(symbol, price)
-			return price, nil
+			// Cache everything returned (keyed by CoinGecko ID); the
+			// requested symbol may still be absent, which is the
+			// permanent "not found" case.
+			for pid, p := range prices {
+				if sym, ok := idToSymbol[pid]; ok {
+					c.addToCache(sym, p)
+				}
+			}
+			if price, ok := prices[id]; ok {
+				return price, nil
+			}
+			lastErr = fmt.Errorf("id %q not found in response", id)
+			break
 		}
 		lastErr = err
 
@@ -152,16 +188,47 @@ func (c *CoinGeckoFetcher) GetPrice(symbol string) (float64, error) {
 		}
 	}
 
+	// Graceful degradation: serve the last known price, however old.
+	if stale, ok := c.getStale(symbol); ok {
+		log.Printf("[CoinGecko] Serving stale price for %s ($%.2f); fetch failed: %v", symbol, stale, lastErr)
+		return stale, nil
+	}
+
 	log.Printf("[CoinGecko] All %d retries exhausted for %s: %v", maxRetries, symbol, lastErr)
 	return 0, fmt.Errorf("coingecko: %s after %d retries: %w", symbol, maxRetries, lastErr)
 }
 
+// idToSymbol reverses symbolToCoinGeckoID for cache keying.
+var idToSymbol = func() map[string]string {
+	m := make(map[string]string, len(symbolToCoinGeckoID))
+	for sym, id := range symbolToCoinGeckoID {
+		m[id] = sym
+	}
+	return m
+}()
+
+// fetchPrice fetches a single ID (kept for compatibility).
 func (c *CoinGeckoFetcher) fetchPrice(id string) (float64, error) {
-	url := fmt.Sprintf("%s/simple/price?ids=%s&vs_currencies=usd", c.baseURL, id)
+	prices, err := c.fetchPrices([]string{id})
+	if err != nil {
+		return 0, err
+	}
+	price, ok := prices[id]
+	if !ok {
+		return 0, fmt.Errorf("id %q not found in response", id)
+	}
+	return price, nil
+}
+
+// fetchPrices fetches several IDs in one /simple/price call and returns
+// USD prices keyed by CoinGecko ID. IDs absent from the response are
+// simply missing from the map (callers decide if that is an error).
+func (c *CoinGeckoFetcher) fetchPrices(ids []string) (map[string]float64, error) {
+	url := fmt.Sprintf("%s/simple/price?ids=%s&vs_currencies=usd", c.baseURL, strings.Join(ids, ","))
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		return 0, fmt.Errorf("creating request: %w", err)
+		return nil, fmt.Errorf("creating request: %w", err)
 	}
 
 	// Add API key header if configured (for higher rate limits)
@@ -171,38 +238,45 @@ func (c *CoinGeckoFetcher) fetchPrice(id string) (float64, error) {
 
 	resp, err := c.client.Do(req)
 	if err != nil {
-		return 0, fmt.Errorf("http request: %w", err)
+		return nil, fmt.Errorf("http request: %w", err)
 	}
 	defer resp.Body.Close()
 
 	// Check for rate limiting
 	if resp.StatusCode == http.StatusTooManyRequests {
 		log.Printf("[CoinGecko] Rate limited (429). Consider setting COINGECKO_API_KEY.")
-		return 0, fmt.Errorf("rate limited (429)")
+		return nil, fmt.Errorf("rate limited (429)")
 	}
 
 	// Check for other non-200 status
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
-		return 0, fmt.Errorf("API returned status %d: %s", resp.StatusCode, string(body[:min(len(body), 200)]))
+		return nil, fmt.Errorf("API returned status %d: %s", resp.StatusCode, string(body[:min(len(body), 200)]))
 	}
 
 	var result map[string]map[string]float64
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		return 0, fmt.Errorf("decoding response: %w", err)
+		return nil, fmt.Errorf("decoding response: %w", err)
 	}
 
-	priceMap, ok := result[id]
-	if !ok {
-		return 0, fmt.Errorf("id %q not found in response", id)
+	// Preserve the historical error distinction: a requested ID that is
+	// present in the response but has no USD price is a distinct failure
+	// from an absent ID (which callers treat as permanent "not found").
+	for _, id := range ids {
+		if priceMap, ok := result[id]; ok {
+			if _, has := priceMap["usd"]; !has {
+				return nil, fmt.Errorf("usd price for %q not found in response", id)
+			}
+		}
 	}
 
-	price, ok := priceMap["usd"]
-	if !ok {
-		return 0, fmt.Errorf("usd price for %q not found in response", id)
+	prices := make(map[string]float64, len(result))
+	for pid, priceMap := range result {
+		if price, ok := priceMap["usd"]; ok {
+			prices[pid] = price
+		}
 	}
-
-	return price, nil
+	return prices, nil
 }
 
 func (c *CoinGeckoFetcher) getFromCache(symbol string) (float64, bool) {
@@ -211,6 +285,17 @@ func (c *CoinGeckoFetcher) getFromCache(symbol string) (float64, bool) {
 
 	entry, ok := c.cache[symbol]
 	if !ok || time.Now().After(entry.expiresAt) {
+		return 0, false
+	}
+	return entry.price, true
+}
+
+// getStale returns the last known price even after expiry (0, false if none).
+func (c *CoinGeckoFetcher) getStale(symbol string) (float64, bool) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	entry, ok := c.cache[symbol]
+	if !ok {
 		return 0, false
 	}
 	return entry.price, true
