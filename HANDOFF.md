@@ -36,3 +36,7 @@ There is none, anywhere in the repo. Prod control = systemctl stop/start/restart
 ## Update 2026-11-14 (v1.3.3)
 - Per-symbol trading history (see CHANGELOG). Prod proof: old process showed ADA $0.16 with SMA $27,338.90 (BTC contamination); new process shows ADA SMA $0.16 / BTC SMA $67,359, each its own series.
 - Watchdog was resurrecting the retired Python dashboard: /opt/aimoneymachine/bin/watchdog.sh SERVICES included aimm-dashboard + a :8083 port check, restarting it every 60s. Fixed on prod (backup watchdog.sh.bak-20261114) and canonical copy committed at scripts/watchdog.sh. Verified dashboard stays down across a full watchdog cycle; watchdog reports All services OK.
+
+## Update 2026-11-14 (v1.4.0/v1.4.1)
+- ShortsFactory renders real MP4s: SplitScenes -> optional ElevenLabs TTS -> ffmpeg 1080x1920 drawtext cards -> output/shorts/<slug>-<ts>/{script.txt,short.mp4,manifest.json}. Verified on prod: h264+aac, 38s, 185KB, 5 scenes, frame extract 49K (text rendered). Manifest honestly records skipped TTS (no ELEVENLABS_API_KEY) and not_configured upload.
+- Gotcha: ffmpeg filtergraph does NOT treat \\' as an escape inside drawtext text='...' - raw ' and \\' both fail rc=8 'Filter not found' on ffmpeg 6.1; Unicode right single quote works (probe-verified with exact argv, no shell). escapeDrawtext uses that. Local minimal ffmpeg lacks drawtext+libx264: Assemble falls back to blank cards / mpeg4 and notes it in the manifest.

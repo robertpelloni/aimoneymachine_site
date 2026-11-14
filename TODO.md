@@ -51,3 +51,6 @@
 - [ ] TradingModule keeps ONE shared History/RSIHistory across all symbols (orchestrator reuses a single traderModule and mutates .Symbol): SMA/RSI mix BTC/XRP/ADA prices, so indicators are meaningless across symbols. Fix: per-symbol history map in TradingModule (v1.3.1 observation from prod logs: ADA SMA $0.58 vs price $0.16).
 - [x] CoinGecko batch + stale fallback (v1.3.1)
 - [x] Per-symbol trading history (v1.3.3)
+- [x] Shorts FFmpeg render pipeline (v1.4.0/v1.4.1) - MP4 verified on prod: 1080x1920 h264+aac, 38s, drawtext cards
+- [ ] Shorts TTS: set ELEVENLABS_API_KEY in prod orchestrator .env to enable voice (currently silent cards, manifest says so)
+- [ ] Shorts YouTube upload: needs YOUTUBE_CLIENT_ID/YOUTUBE_REFRESH_TOKEN OAuth from user
