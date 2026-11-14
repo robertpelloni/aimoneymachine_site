@@ -321,3 +321,8 @@
 ## [1.3.3] - 2026-11-14
 ### Fixed
 - Trading indicators are now per-symbol: TradingModule keeps histories/rsiHistories maps keyed by symbol (History/RSIHistory mirror the last executed symbol for compatibility), calculateSMA/RSI/detectDivergence take the symbol's own series, and the protocol handler uses the new atomic ExecuteFor(symbol) instead of mutating the shared module's Symbol field outside its lock. Previously one shared series mixed all symbols (prod: ADA SMA $0.58 vs $0.16 price), so BUY/SELL confluence was garbage. Test: TestTradingPerSymbolHistory.
+
+## [1.4.0] - 2026-11-14
+### Added
+- ShortsFactory now renders: script -> SplitScenes (sentence-grouped cards, 2-8s each) -> optional ElevenLabs TTS (ELEVENLABS_API_KEY) -> FFmpeg vertical MP4 (1080x1920 drawtext cards) under output/shorts/<slug>-<ts>/ with manifest.json recording exactly which stages ran/skipped/failed. Degradations are honest: no drawtext in the ffmpeg build renders blank cards with a note; no libx264 falls back to mpeg4 with a note; YouTube upload reports not_configured until YOUTUBE_* OAuth is set.
+- Tests: scene splitting/durations, ffmpeg arg shape + escaping, real MP4 render (skips without ffmpeg).

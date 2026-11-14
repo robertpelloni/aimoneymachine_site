@@ -3,7 +3,10 @@ package media
 import (
 	"encoding/json"
 	"fmt"
+	"os"
+	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/robertpelloni/hustle/orchestrator"
 )
@@ -38,11 +41,12 @@ func (f *ShortsFactory) Run(topic string) error {
 	}
 	fmt.Printf("[Media] Generated %d Image Prompts\n", len(prompts))
 
-	// Future Steps:
-	// - TTS Generation (e.g. via ElevenLabs)
-	// - Image Generation (e.g. via Stable Diffusion / Midjourney API)
-	// - Video Assembly (FFmpeg)
-	// - Upload to YouTube
+	// Steps 3–5: scenes -> optional TTS -> FFmpeg render. Each stage that
+	// cannot run (no TTS key, no ffmpeg, no YouTube OAuth) is recorded in
+	// the manifest instead of failing or faking success.
+	if err := f.render(topic, script, prompts); err != nil {
+		return err
+	}
 
 	// Log to memory
 	f.Orch.L1.Add(orchestrator.MemoryEntry{
@@ -51,8 +55,62 @@ func (f *ShortsFactory) Run(topic string) error {
 		Tags:      []string{"media", "youtube", "shorts"},
 	})
 
-	fmt.Println("[Media] ✅ YouTube Shorts script and prompts generated successfully.")
+	fmt.Println("[Media] ✅ YouTube Shorts pipeline complete (see manifest.json in output dir).")
 	return nil
+}
+
+// render writes script/scenes/manifest under output/shorts/<slug>-<ts>/,
+// synthesizes TTS when a provider is configured, and renders the MP4 with
+// ffmpeg when available. The manifest states precisely what happened.
+func (f *ShortsFactory) render(topic, script string, prompts []string) error {
+	scenes := SplitScenes(script, prompts)
+	dir := filepath.Join("output", "shorts", fmt.Sprintf("%s-%d", slugify(topic), time.Now().Unix()))
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		return err
+	}
+	scriptPath := filepath.Join(dir, "script.txt")
+	if err := os.WriteFile(scriptPath, []byte(script), 0644); err != nil {
+		return err
+	}
+
+	m := Manifest{
+		Topic:     topic,
+		Script:    scriptPath,
+		Scenes:    scenes,
+		Upload:    "not_configured: set YOUTUBE_CLIENT_ID/YOUTUBE_REFRESH_TOKEN to enable upload",
+		CreatedAt: time.Now(),
+	}
+
+	// TTS (optional)
+	audioPath := ""
+	if tts := NewTTSFromEnv(); tts != nil {
+		audioPath = filepath.Join(dir, "audio.mp3")
+		if err := tts.Synthesize(script, audioPath); err != nil {
+			m.AudioNote = fmt.Sprintf("tts failed: %v", err)
+			audioPath = ""
+		} else {
+			m.Audio = audioPath
+		}
+	} else {
+		m.AudioNote = "skipped: ELEVENLABS_API_KEY not set (silent cards)"
+	}
+
+	// FFmpeg render (optional but expected on prod)
+	videoPath := filepath.Join(dir, "short.mp4")
+	if note, err := Assemble(scenes, audioPath, videoPath, AssembleOptions{}); err != nil {
+		m.VideoNote = fmt.Sprintf("render skipped/failed: %v", err)
+		fmt.Printf("[Media] %s\n", m.VideoNote)
+	} else {
+		m.Video = videoPath
+		m.VideoNote = note // e.g. blank cards when drawtext is unavailable
+		fmt.Printf("[Media] Rendered %s (%d scenes)\n", videoPath, len(scenes))
+	}
+
+	data, err := json.MarshalIndent(m, "", "  ")
+	if err != nil {
+		return err
+	}
+	return os.WriteFile(filepath.Join(dir, "manifest.json"), data, 0644)
 }
 
 // GenerateScript creates a 60-second video script
