@@ -429,3 +429,9 @@
 ## [1.9.12] - 2026-11-14
 ### Fixed
 - A bounded prod agent dry-run exposed silent MockLLM downgrade: DetectModel had no HTTP status check and no retry, so one transient FreeLLM blip (body '503') surfaced as a cryptic unmarshal error and the whole process ran on MockLLM while the real LLM was healthy. DetectModel now names non-200 statuses, and bootstrap (primary + fallback) probes via DetectModelWithRetry (3x/3s, 2x/2s). Also fixed the agent prompt's publisher/products lines, whose descriptions had merged onto one line. Test: TestDetectModelWithRetryRecoversFromTransient503.
+
+## [1.9.13] - 2026-11-14
+### Fixed
+- Dashboard Content Expansion widget divided by a stale hardcoded total (217) while prod has 1,169 expanded posts - it rendered '1169 / 217 (538.7%)' with an overflowing bar. It now shows the true expanded count and the currently-expanding post ID from /api/progress, with no invented denominator.
+### Docs
+- ROADMAP status correction through v1.9.12 (verified-live vs genuinely-open items).

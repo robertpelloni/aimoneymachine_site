@@ -69,3 +69,6 @@
 - [ ] Shorts TTS + FFmpeg + YouTube upload
 - [ ] System-tray / menubar controller (none exists today; systemd is the prod control plane)
 - [ ] Rotate API keys stored in plaintext in aimm-freellm.service unit on Hetzner
+
+## Status correction (2026-11-14, through v1.9.12)
+Earlier phase checkboxes under-report reality. Verified live on Hetzner prod: real social posting code (X blocked by 402 credits-depleted; Bluesky posting live in both chains), real CoinGecko prices in the daemon (plus Binance/Kraken price sources, TRADING_PRICE_SOURCE), content -> publisher -> WordPress pipeline, affiliate engine, digital product factory (v1.9.0), Shorts MP4 rendering (v1.4.x), per-symbol trading indicators, LLM waterfall fallback, consolidated embedded dashboard + tray controller, agent loop verified end-to-end in dry-run (research -> content -> social). Still genuinely open: MACD/Bollinger indicators, multi-node cluster testing (10+ peers), decentralized identity, pSEO factory, API-as-a-Service, data-arbitrage paywall, Shorts TTS/upload (credentials), lead-gen Places/email enrichment (credentials).
