@@ -36,6 +36,54 @@ func TestTradingStrategy(t *testing.T) {
 	}
 }
 
+// The daemon shares ONE TradingModule across symbols. Alternating symbols
+// must build independent series: BTC prices around 100 must never leak into
+// ETH's SMA/RSI (which trade around 10).
+type fixedFetcher struct{ prices map[string]float64 }
+
+func (f fixedFetcher) GetPrice(symbol string) (float64, error) {
+	if p, ok := f.prices[strings.ToUpper(symbol)]; ok {
+		return p, nil
+	}
+	return 0, fmt.Errorf("unknown symbol %s", symbol)
+}
+
+func TestTradingPerSymbolHistory(t *testing.T) {
+	trader := &TradingModule{
+		Orchestrator: orchestrator.NewOrchestrator(),
+		Fetcher:      fixedFetcher{prices: map[string]float64{"BTC": 100, "ETH": 10}},
+	}
+	for i := 0; i < 10; i++ {
+		if err := trader.ExecuteFor("BTC"); err != nil {
+			t.Fatalf("BTC cycle %d: %v", i, err)
+		}
+		if err := trader.ExecuteFor("ETH"); err != nil {
+			t.Fatalf("ETH cycle %d: %v", i, err)
+		}
+	}
+	btc, eth := trader.HistoryFor("BTC"), trader.HistoryFor("ETH")
+	if len(btc) != 10 || len(eth) != 10 {
+		t.Fatalf("history lengths BTC=%d ETH=%d, want 10/10", len(btc), len(eth))
+	}
+	for _, p := range btc {
+		if p != 100 {
+			t.Fatalf("BTC series contaminated: got %v", btc)
+		}
+	}
+	for _, p := range eth {
+		if p != 10 {
+			t.Fatalf("ETH series contaminated: got %v", eth)
+		}
+	}
+	// SMA over each series must equal that symbol's own price level.
+	if got := calculateSMA(btc, 5); got != 100 {
+		t.Errorf("BTC SMA = %.2f, want 100", got)
+	}
+	if got := calculateSMA(eth, 5); got != 10 {
+		t.Errorf("ETH SMA = %.2f, want 10", got)
+	}
+}
+
 func TestMockPriceFetcher_DifferentSymbols(t *testing.T) {
 	m := &MockPriceFetcher{}
 	tests := []struct {

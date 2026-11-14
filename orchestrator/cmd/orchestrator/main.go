@@ -241,8 +241,7 @@ func main() {
 		if symbol == "" {
 			symbol = "BTC"
 		}
-		traderModule.Symbol = symbol
-		return traderModule.ExecuteStrategy()
+		return traderModule.ExecuteFor(symbol)
 	})
 
 	protocol.Register("content", func(p url.Values) error {

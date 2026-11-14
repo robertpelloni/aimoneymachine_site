@@ -329,42 +329,80 @@ type TradingModule struct {
 	Broker       *orchestrator.A2ABroker
 	Symbol       string
 	Fetcher      PriceFetcher
+	// History/RSIHistory mirror the most recently executed symbol's series
+	// (kept for compatibility). The authoritative series are per-symbol in
+	// histories/rsiHistories: the daemon reuses ONE module for every symbol,
+	// so a single shared series mixed BTC/ETH/ADA prices and made SMA/RSI
+	// meaningless (prod showed ADA SMA $0.58 vs its $0.16 price).
 	History      []float64
 	RSIHistory   []float64
+	histories    map[string][]float64
+	rsiHistories map[string][]float64
 	Watchlist    []string
 	mu           sync.Mutex
+}
+
+// HistoryFor returns a copy of the price series for one symbol.
+func (t *TradingModule) HistoryFor(symbol string) []float64 {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+	src := t.histories[strings.ToUpper(symbol)]
+	out := make([]float64, len(src))
+	copy(out, src)
+	return out
+}
+
+// ExecuteFor runs one strategy cycle for symbol, atomically: the shared
+// module's Symbol field is only mutated under the module lock, so
+// concurrent per-symbol daemon tasks cannot cross-contaminate each other.
+func (t *TradingModule) ExecuteFor(symbol string) error {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+	t.Symbol = strings.ToUpper(symbol)
+	return t.executeLocked()
 }
 
 func (t *TradingModule) ExecuteStrategy() error {
 	t.mu.Lock()
 	defer t.mu.Unlock()
+	return t.executeLocked()
+}
 
-	fmt.Printf("[Trading] Executing strategy for Symbol: %s\n", t.Symbol)
+func (t *TradingModule) executeLocked() error {
+	symbol := strings.ToUpper(t.Symbol)
+	if t.histories == nil {
+		t.histories = make(map[string][]float64)
+		t.rsiHistories = make(map[string][]float64)
+	}
 
-	price, err := t.Fetcher.GetPrice(t.Symbol)
+	fmt.Printf("[Trading] Executing strategy for Symbol: %s\n", symbol)
+
+	price, err := t.Fetcher.GetPrice(symbol)
 	if err != nil {
 		return fmt.Errorf("failed to fetch price: %v", err)
 	}
-	t.History = append(t.History, price)
+	history := append(t.histories[symbol], price)
+	t.histories[symbol] = history
+	t.History = history
 
-	fmt.Printf("[Trading] Current Price for %s: $%.2f\n", t.Symbol, price)
+	fmt.Printf("[Trading] Current Price for %s: $%.2f\n", symbol, price)
 
-	// Technical Indicator: Simple Moving Average (SMA)
-	sma := t.calculateSMA(5)
-
-	// Technical Indicator: RSI
-	rsi := t.calculateRSI(14)
-	t.RSIHistory = append(t.RSIHistory, rsi)
+	// Technical Indicators, computed on this symbol's series only
+	sma := calculateSMA(history, 5)
+	rsi := calculateRSI(history, 14)
+	rsiHistory := append(t.rsiHistories[symbol], rsi)
+	t.rsiHistories[symbol] = rsiHistory
+	t.RSIHistory = rsiHistory
 
 	fmt.Printf("[Trading] Indicators -> SMA(5): $%.2f | RSI(14): %.2f\n", sma, rsi)
 
-	divergence := t.detectDivergence()
+	divergence := detectDivergence(history, rsiHistory)
 	if divergence != "" {
 		fmt.Printf("[Trading] DIVERGENCE DETECTED: %s\n", divergence)
 	}
 
 	decision := "HOLD"
-	if len(t.History) >= 14 {
+	if len(history) >= 14 {
 		// Complex Decision Engine with Confluence
 		if (rsi < 30 && price < sma) || divergence == "BULLISH" {
 			decision = "BUY"
@@ -379,10 +417,10 @@ func (t *TradingModule) ExecuteStrategy() error {
 
 	// Persist to memory
 	t.Orchestrator.L1.Add(orchestrator.MemoryEntry{
-		ID:        fmt.Sprintf("trade-%s-%d", t.Symbol, time.Now().Unix()),
-		Content:   fmt.Sprintf("Trade Decision for %s: %s at $%.2f (SMA: $%.2f, RSI: %.2f, Div: %s)", t.Symbol, decision, price, sma, rsi, divergence),
+		ID:        fmt.Sprintf("trade-%s-%d", symbol, time.Now().Unix()),
+		Content:   fmt.Sprintf("Trade Decision for %s: %s at $%.2f (SMA: $%.2f, RSI: %.2f, Div: %s)", symbol, decision, price, sma, rsi, divergence),
 		Timestamp: time.Now(),
-		Tags:      []string{"trading", t.Symbol, decision},
+		Tags:      []string{"trading", symbol, decision},
 	})
 
 	if decision != "HOLD" {
@@ -390,7 +428,7 @@ func (t *TradingModule) ExecuteStrategy() error {
 			Amount: 0.10, // Simulating execution fee
 			Type:   orchestrator.Expense,
 			Hustle: "Trading",
-			Note:   fmt.Sprintf("%s %s (RSI: %.2f, Div: %s)", decision, t.Symbol, rsi, divergence),
+			Note:   fmt.Sprintf("%s %s (RSI: %.2f, Div: %s)", decision, symbol, rsi, divergence),
 		})
 
 		// Broadcast trade event to mesh
@@ -400,7 +438,7 @@ func (t *TradingModule) ExecuteStrategy() error {
 				Source:    "trading-module",
 				Type:      orchestrator.Event,
 				Topic:     "trade_execution",
-				Payload:   fmt.Sprintf("Symbol: %s, Action: %s, Price: %.2f", t.Symbol, decision, price),
+				Payload:   fmt.Sprintf("Symbol: %s, Action: %s, Price: %.2f", symbol, decision, price),
 				Timestamp: time.Now(),
 			}
 			t.Broker.Publish(msg)
@@ -409,7 +447,7 @@ func (t *TradingModule) ExecuteStrategy() error {
 
 		t.Orchestrator.L1.Add(orchestrator.MemoryEntry{
 			ID:        fmt.Sprintf("event-%d", time.Now().Unix()),
-			Content:   fmt.Sprintf("ALERT: Strategy executed %s for %s", decision, t.Symbol),
+			Content:   fmt.Sprintf("ALERT: Strategy executed %s for %s", decision, symbol),
 			Timestamp: time.Now(),
 			Tags:      []string{"a2a", "event", "trading"},
 		})
@@ -425,55 +463,55 @@ func (t *TradingModule) AddToWatchlist(symbol string) {
 	t.Watchlist = append(t.Watchlist, symbol)
 }
 
-func (t *TradingModule) detectDivergence() string {
-	if len(t.History) < 5 || len(t.RSIHistory) < 5 {
+func detectDivergence(history, rsiHistory []float64) string {
+	if len(history) < 5 || len(rsiHistory) < 5 {
 		return ""
 	}
 
-	lastIdx := len(t.History) - 1
+	lastIdx := len(history) - 1
 	prevIdx := lastIdx - 2
 
-	priceFalling := t.History[lastIdx] < t.History[prevIdx]
-	rsiRising := t.RSIHistory[lastIdx] > t.RSIHistory[prevIdx]
+	priceFalling := history[lastIdx] < history[prevIdx]
+	rsiRising := rsiHistory[lastIdx] > rsiHistory[prevIdx]
 
-	priceRising := t.History[lastIdx] > t.History[prevIdx]
-	rsiFalling := t.RSIHistory[lastIdx] < t.RSIHistory[prevIdx]
+	priceRising := history[lastIdx] > history[prevIdx]
+	rsiFalling := rsiHistory[lastIdx] < rsiHistory[prevIdx]
 
-	if priceFalling && rsiRising && t.RSIHistory[lastIdx] < 40 {
+	if priceFalling && rsiRising && rsiHistory[lastIdx] < 40 {
 		return "BULLISH"
 	}
-	if priceRising && rsiFalling && t.RSIHistory[lastIdx] > 60 {
+	if priceRising && rsiFalling && rsiHistory[lastIdx] > 60 {
 		return "BEARISH"
 	}
 
 	return ""
 }
 
-func (t *TradingModule) calculateSMA(period int) float64 {
-	if len(t.History) == 0 {
+func calculateSMA(history []float64, period int) float64 {
+	if len(history) == 0 {
 		return 0
 	}
 
 	count := period
-	if len(t.History) < period {
-		count = len(t.History)
+	if len(history) < period {
+		count = len(history)
 	}
 
 	sum := 0.0
-	for i := len(t.History) - count; i < len(t.History); i++ {
-		sum += t.History[i]
+	for i := len(history) - count; i < len(history); i++ {
+		sum += history[i]
 	}
 	return sum / float64(count)
 }
 
-func (t *TradingModule) calculateRSI(period int) float64 {
-	if len(t.History) <= period {
+func calculateRSI(history []float64, period int) float64 {
+	if len(history) <= period {
 		return 50.0 // Neutral default
 	}
 
 	var gains, losses float64
-	for i := len(t.History) - period; i < len(t.History); i++ {
-		change := t.History[i] - t.History[i-1]
+	for i := len(history) - period; i < len(history); i++ {
+		change := history[i] - history[i-1]
 		if change > 0 {
 			gains += change
 		} else {

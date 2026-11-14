@@ -317,3 +317,7 @@
 ## [1.3.2] - 2026-11-14
 ### Fixed
 - Scheduler.LoadState drops persisted DiscoveredChain:* tasks whose chain is not in the ChainManager (new KnownChain hook wired in the daemon), instead of re-registering orphans that fail 'chain not found' on every cycle after a deploy replaced chains.json. Test: TestLoadStateDropsOrphanedDiscoveredChains.
+
+## [1.3.3] - 2026-11-14
+### Fixed
+- Trading indicators are now per-symbol: TradingModule keeps histories/rsiHistories maps keyed by symbol (History/RSIHistory mirror the last executed symbol for compatibility), calculateSMA/RSI/detectDivergence take the symbol's own series, and the protocol handler uses the new atomic ExecuteFor(symbol) instead of mutating the shared module's Symbol field outside its lock. Previously one shared series mixed all symbols (prod: ADA SMA $0.58 vs $0.16 price), so BUY/SELL confluence was garbage. Test: TestTradingPerSymbolHistory.

@@ -50,3 +50,4 @@
 - [x] Embed dashboard in Go binary, retire Python aimm-dashboard service (v1.3.0)
 - [ ] TradingModule keeps ONE shared History/RSIHistory across all symbols (orchestrator reuses a single traderModule and mutates .Symbol): SMA/RSI mix BTC/XRP/ADA prices, so indicators are meaningless across symbols. Fix: per-symbol history map in TradingModule (v1.3.1 observation from prod logs: ADA SMA $0.58 vs price $0.16).
 - [x] CoinGecko batch + stale fallback (v1.3.1)
+- [x] Per-symbol trading history (v1.3.3)
