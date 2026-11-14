@@ -693,9 +693,13 @@ func main() {
 			protocol.HandleURI("hustle://swarm?action=aggregate")
 			return protocol.HandleURI("hustle://swarm?action=sync")
 		})
-		scheduler.Register("Sync", 6*time.Hour, func(o *orchestrator.Orchestrator) error {
-			return runSyncProtocol()
-		})
+		if syncAvailable() {
+			scheduler.Register("Sync", 6*time.Hour, func(o *orchestrator.Orchestrator) error {
+				return runSyncProtocol()
+			})
+		} else {
+			fmt.Printf("[Scheduler] Sync task skipped: %s not present on this host\n", syncScriptPath())
+		}
 		scheduler.Register("ProfitAnalysis", 12*time.Hour, func(o *orchestrator.Orchestrator) error {
 			h := orchestrator.NewHealer(o)
 			h.WealthPreservation()
@@ -768,8 +772,30 @@ func main() {
 		len(orch.L1.Entries), len(orch.L2.Entries), len(orch.L3.Entries), orch.Ledger.Profit())
 }
 
+// syncScriptPath is where the repository sync script is expected.
+// SYNC_SCRIPT overrides it (used by hosts that keep the repo elsewhere).
+func syncScriptPath() string {
+	if v := os.Getenv("SYNC_SCRIPT"); v != "" {
+		return v
+	}
+	return "./sync.sh"
+}
+
+// syncAvailable reports whether repo sync can run on this host. On
+// Hetzner prod the orchestrator runs from /opt/aimoneymachine (not a git
+// checkout, sync.sh was never deployed there), so the honest answer is
+// no — previously the scheduler discovered this every 6 hours as a
+// fork/exec failure, and hustle://sync failed the same way.
+func syncAvailable() bool {
+	_, err := os.Stat(syncScriptPath())
+	return err == nil
+}
+
 func runSyncProtocol() error {
-	cmd := exec.Command("./sync.sh")
+	if !syncAvailable() {
+		return fmt.Errorf("repository sync unavailable: %s not found on this host (prod updates via scripts/deploy-hetzner.sh; see DEPLOY.md)", syncScriptPath())
+	}
+	cmd := exec.Command(syncScriptPath())
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	return cmd.Run()

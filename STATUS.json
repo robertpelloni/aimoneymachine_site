@@ -1,7 +1,7 @@
 {
-  "version": "1.9.1",
+  "version": "1.9.2",
   "status": "Running",
-  "message": "LLM timeout config + dispatch failure logging",
+  "message": "Sync task skips when sync.sh absent",
   "revenue": 171.6,
   "expenses": 1005,
   "profit": -833.4

@@ -381,3 +381,7 @@
 ## [1.9.1] - 2026-11-14
 ### Fixed
 - LLM HTTP timeout is now one helper (llmTimeout/llmHTTPClient) honoring LLM_TIMEOUT_SEC (default 600s) instead of three hardcoded copies. API dispatch failures are logged server-side with the URI - a timed-out products generation during the Hetzner overload previously left no journal trace at all.
+
+## [1.9.2] - 2026-11-14
+### Fixed
+- The daemon's 6-hourly Sync scheduler task (and hustle://sync) failed forever on Hetzner with 'fork/exec ./sync.sh: no such file or directory' because the orchestrator runs from /opt/aimoneymachine, not a git checkout. Sync now probes for the script (SYNC_SCRIPT override): the task registers only when it exists (one clear startup line otherwise) and the URI returns an honest 'repository sync unavailable' error pointing at the deploy script. Test: TestSyncAvailability.
