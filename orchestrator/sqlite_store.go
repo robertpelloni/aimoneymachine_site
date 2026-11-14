@@ -22,15 +22,15 @@ func NewSQLiteStore(filepath string) (*SQLiteStore, error) {
 		return nil, err
 	}
 
-	// Attempt to load sqlite-vec if it exists in standard paths
-	// This is defensive; if it fails, we fall back to Go-level cosine similarity
+	// sqlite-vec (vec0) is a native C extension; this store uses the
+	// pure-Go modernc.org/sqlite driver, which cannot load native
+	// extensions, so probing load_extension every boot only produced a
+	// misleading "Warning: not authorized" line. Vector search therefore
+	// runs Go-level cosine similarity over stored embeddings by design
+	// (see VectorSearch). extLoaded stays false unless a future driver
+	// with extension support is swapped in below.
 	extLoaded := false
-	if _, err := db.Exec("SELECT load_extension('vec0')"); err == nil {
-		fmt.Println("[SQLite] sqlite-vec extension loaded successfully.")
-		extLoaded = true
-	} else {
-		fmt.Printf("[SQLite] Warning: failed to load sqlite-vec: %v. Using Go-level fallback.\n", err)
-	}
+	fmt.Println("[SQLite] Vector search: Go-level cosine similarity (pure-Go driver, no native sqlite-vec).")
 
 	// Create virtual table for vectors if extension is loaded
 	if extLoaded {

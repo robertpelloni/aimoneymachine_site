@@ -346,3 +346,9 @@
 ## [1.6.0] - 2026-11-14
 ### Added
 - Disk visibility after the full-disk outage: GET /api/status now includes disk_used_pct + disk_free_gb (linux statfs / windows GetDiskFreeSpaceEx, omitted elsewhere). Dashboard Overview gains a Disk card (green <85, yellow 85-95, red >=95) and the tray tooltip appends a disk warning at >=85 percent. Test: TestDiskUsageSane; tray tooltip threshold covered.
+
+## [1.6.1] - 2026-11-14
+### Added
+- scripts/smoke_prod.py: stdlib-only prod smoke sweep (dashboard, status+disk, chains, agents, content, strategy, progress, read-only dispatches) with pass/fail exit code. 11/11 on prod.
+### Fixed
+- Removed the per-boot 'failed to load sqlite-vec: not authorized' false warning: the pure-Go modernc driver can never load the native vec0 extension, so the probe always failed. Boot now logs one accurate info line; vector search is Go-level cosine by design.
