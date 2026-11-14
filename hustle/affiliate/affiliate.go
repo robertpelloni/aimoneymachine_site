@@ -53,7 +53,7 @@ func (m *AffiliateModule) Run(niche string) error {
 	// (SOCIAL_DEFAULT_PLATFORM; Bluesky on prod while X returns 402).
 	platform := social.DefaultPlatform()
 	provider := social.NewProvider(platform)
-	socialReview := social.FormatForPlatform(review, platform)
+	socialReview := social.FormatForPlatform(sanitizeSocialReview(review, topProduct.URL), platform)
 
 	if err := provider.Post(m.Orch, platform, socialReview); err != nil {
 		// Visible, not fatal: the review itself is the product; record
@@ -152,6 +152,43 @@ Mention briefly that it is an affiliate link. Helpful tone, not salesy.`, produc
 		return "", fmt.Errorf("failed to generate review: %w", err)
 	}
 	return review, nil
+}
+
+// sanitizeSocialReview makes raw LLM review output safe for a public
+// one-post feed. Observed on prod (2026-11-14): the model appended its
+// own reasoning ("But does it mention it's an affiliate link? Yes...")
+// and echoed the prompt ("The user wants a punchy...") around the copy.
+// Rules: strip code fences; when the product URL is present, the post
+// ends at the URL (anything after it is commentary); collapse to one
+// line. Without a URL it only normalizes whitespace — it never invents
+// or rewrites copy.
+func sanitizeSocialReview(review, productURL string) string {
+	s := strings.TrimSpace(review)
+	s = strings.TrimPrefix(s, "```markdown")
+	s = strings.TrimPrefix(s, "```md")
+	s = strings.TrimPrefix(s, "```")
+	s = strings.TrimSuffix(strings.TrimSpace(s), "```")
+	s = strings.TrimSpace(s)
+	// Strip a leading instruction-echo sentence ("The user wants a
+	// punchy... <real copy>") when a link later proves real copy follows.
+	lower := strings.ToLower(s)
+	for _, opener := range []string{"the user wants", "the user asked", "here is a", "here's a", "here is the", "here's the", "sure! here", "certainly! here", "write a "} {
+		if strings.HasPrefix(lower, opener) {
+			if idx := strings.Index(s, ". "); idx >= 0 && strings.Contains(s[idx:], "http") {
+				s = strings.TrimSpace(s[idx+2:])
+			}
+			break
+		}
+	}
+	if productURL != "" {
+		if idx := strings.Index(s, productURL); idx >= 0 {
+			s = strings.TrimSpace(s[:idx+len(productURL)])
+			s = strings.Trim(s, `"'`)
+		}
+	}
+	// One line for a social post.
+	s = strings.Join(strings.Fields(s), " ")
+	return s
 }
 
 // InsertAffiliateLinksIntoContent reads a directory of markdown files and inserts affiliate links where appropriate

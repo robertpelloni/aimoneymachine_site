@@ -56,3 +56,4 @@
 - [ ] Shorts TTS: set ELEVENLABS_API_KEY in prod orchestrator .env to enable voice (currently silent cards, manifest says so)
 - [ ] Shorts YouTube upload: needs YOUTUBE_CLIENT_ID/YOUTUBE_REFRESH_TOKEN OAuth from user
 - [x] System tray controller (v1.5.0, tray/)
+- [ ] Apply sanitize-style output cleanup to social.GenerateContent (affiliate done v1.9.9; raw LLM scaffolding can leak there too)
