@@ -401,3 +401,7 @@
 ## [1.9.5] - 2026-11-14
 ### Fixed
 - Affiliate and synergy pipelines hardcoded Twitter and the affiliate module swallowed post failures (pipeline reported success while nothing posted). Both now use social.DefaultPlatform()/NewProvider() (SOCIAL_DEFAULT_PLATFORM env; prod set to Bluesky while X returns 402), FormatForPlatform caps per platform, and affiliate records post failures in memory (tagged post-failed) instead of silently passing. Test: TestDefaultPlatformAndProviderSelection.
+
+## [1.9.6] - 2026-11-14
+### Fixed
+- Affiliate review generation timed out at 480s through FreeLLM: the prompt asked for an unbounded markdown review whose only destination is a 300-rune social post. It now asks for a max-240-character one-post recommendation. (Verified the timeout fired exactly at the configured 480s and was logged via Dispatch failed.)

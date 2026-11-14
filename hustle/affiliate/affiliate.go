@@ -135,12 +135,17 @@ Respond ONLY with valid JSON.`, niche)
 
 // GenerateReview uses the LLM to write a high-converting affiliate review
 func (m *AffiliateModule) GenerateReview(product Product) (string, error) {
-	prompt := fmt.Sprintf(`Write a high-converting, honest-sounding product review for the following item.
+	// The review's destination is a single social post (280-300 chars),
+	// so ask for exactly that: an unbounded markdown review took >480s
+	// to generate through the FreeLLM proxy and timed out (2026-11-14),
+	// only to be truncated to 300 runes anyway. Long-form reviews are
+	// the content module's job.
+	prompt := fmt.Sprintf(`Write a punchy, honest one-post product recommendation (MAX 240 characters total, plain text, no markdown).
 Product: %s
 Price: %s
 Features: %s
-
-Include the affiliate link (%s) naturally in the text. Add a clear disclaimer that it is an affiliate link. Ensure the tone is helpful and not overly salesy. Format as markdown.`, product.Name, product.Price, product.Desc, product.URL)
+End with this affiliate link: %s
+Mention briefly that it is an affiliate link. Helpful tone, not salesy.`, product.Name, product.Price, product.Desc, product.URL)
 
 	review, err := m.Orch.LLM.Generate(prompt)
 	if err != nil {
