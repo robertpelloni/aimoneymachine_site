@@ -22,7 +22,10 @@ PORT = int(os.environ.get("DASHBOARD_PORT", "8083"))
 
 
 def sibling(name):
-    for base in (DIR, os.path.join(DIR, "..")):
+    # dashboard.html moved into orchestrator/ in v1.3.0 (embedded in the Go
+    # binary); this Python server is now only a fallback, so look there too.
+    for base in (DIR, os.path.join(DIR, ".."), os.path.join(DIR, "orchestrator"),
+                 os.path.join(DIR, "..", "orchestrator")):
         p = os.path.join(base, name)
         if os.path.exists(p):
             return p

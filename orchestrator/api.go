@@ -1,11 +1,19 @@
 package orchestrator
 
 import (
+	_ "embed"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
 )
+
+// dashboardHTML is the consolidated single-page dashboard (moved here from
+// the repo root in v1.3.0 so the Go binary is self-contained; the Python
+// dashboard_server.py fallback reads this same file from orchestrator/).
+//
+//go:embed dashboard.html
+var dashboardHTML []byte
 
 type API struct {
 	Orchestrator *Orchestrator
@@ -37,9 +45,65 @@ func (a *API) Start(port string) error {
 	http.HandleFunc("/content", a.handleContent)
 	http.HandleFunc("/strategy", a.handleStrategy)
 	http.HandleFunc("/healer", a.handleHealer)
+	// Embedded dashboard + the /api/* aliases its JS fetches (same handlers,
+	// so the page works served from :8082 with no Python proxy in between).
+	http.HandleFunc("/", a.handleDashboard)
+	http.HandleFunc("/dashboard", a.handleDashboard)
+	http.HandleFunc("/api/dispatch", a.handleDispatch)
+	http.HandleFunc("/api/status", a.handleStatus)
+	http.HandleFunc("/api/chains", a.handleChains)
+	http.HandleFunc("/api/agents", a.handleAgents)
+	http.HandleFunc("/api/content", a.handleContent)
+	http.HandleFunc("/api/strategy", a.handleStrategy)
+	http.HandleFunc("/api/log", a.handleLog)
+	http.HandleFunc("/api/progress", a.handleProgress)
 
-	fmt.Printf("[API] Orchestrator listening on port %s\n", port)
+	fmt.Printf("[API] Orchestrator listening on port %s (dashboard: /)\n", port)
 	return http.ListenAndServe(":"+port, nil)
+}
+
+// handleDashboard serves the embedded consolidated dashboard. Unknown paths
+// 404 instead of falling through to the page, so typos stay visible.
+func (a *API) handleDashboard(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/" && r.URL.Path != "/dashboard" {
+		http.NotFound(w, r)
+		return
+	}
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.Write(dashboardHTML)
+}
+
+// firstExisting returns the first path that exists (dashboard log/progress
+// files live in different places locally vs prod), or "".
+func firstExisting(names ...string) string {
+	for _, n := range names {
+		if _, err := os.Stat(n); err == nil {
+			return n
+		}
+	}
+	return ""
+}
+
+func (a *API) handleLog(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/plain")
+	p := firstExisting("orchestrator_live.log", "orchestrator.log", "../orchestrator_live.log", "/opt/aimoneymachine/orchestrator_live.log")
+	if p == "" {
+		return // empty log is a normal state; the dashboard says so itself
+	}
+	data, _ := os.ReadFile(p)
+	w.Write(data)
+}
+
+func (a *API) handleProgress(w http.ResponseWriter, r *http.Request) {
+	p := firstExisting("expansion_progress.json", "../expansion_progress.json", "bin/expansion_progress.json", "/opt/aimoneymachine/bin/expansion_progress.json")
+	if p == "" {
+		w.Header().Set("Content-Type", "application/json")
+		fmt.Fprint(w, `{"done":[]}`)
+		return
+	}
+	data, _ := os.ReadFile(p)
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(data)
 }
 
 func (a *API) handleDispatch(w http.ResponseWriter, r *http.Request) {

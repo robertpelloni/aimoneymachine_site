@@ -56,7 +56,11 @@ func TestRollback(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := NewRollbackHandler(NewOrchestrator()).Execute(); err != nil {
+	// A handler with no explicit Dir must refuse, never guess the cwd.
+	if err := NewRollbackHandler(NewOrchestrator()).Execute(); err == nil {
+		t.Fatal("rollback with empty Dir must refuse")
+	}
+	if err := NewRollbackHandlerInDir(NewOrchestrator(), dir).Execute(); err != nil {
 		t.Fatalf("Rollback execution failed: %v", err)
 	}
 	got, err := os.ReadFile(tracked)

@@ -2,6 +2,7 @@ package orchestrator
 
 import (
 	"fmt"
+	"os"
 	"strings"
 	"time"
 )
@@ -129,6 +130,14 @@ func (h *Healer) Loop(issue string) {
 	}
 
 	fmt.Println("Retry limit reached, triggering mandatory rollback.")
-	rollback := NewRollbackHandler(h.Orchestrator)
-	rollback.Execute()
+	// Rollback only ever targets the process working directory (the app
+	// root on prod), passed explicitly so it cannot wander elsewhere.
+	wd, err := os.Getwd()
+	if err != nil {
+		fmt.Printf("[Healer] Rollback skipped: cannot determine working directory: %v\n", err)
+		return
+	}
+	if err := NewRollbackHandlerInDir(h.Orchestrator, wd).Execute(); err != nil {
+		fmt.Printf("[Healer] Rollback failed: %v\n", err)
+	}
 }

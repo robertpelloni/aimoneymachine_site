@@ -301,3 +301,10 @@
 ### Fixed
 - GET /content returns 200 [] instead of 500 when output/content does not exist yet.
 - TestSyncProtocolIntegration skips on Windows (bash sync.sh cannot exec there); full orchestrator suite now green on Windows.
+
+## [1.3.0] - 2026-11-14
+### Added
+- Dashboard is go:embed-ed into the orchestrator binary and served at / and /dashboard on the API port (:8082), with /api/* aliases for every endpoint its JS fetches plus /api/log and /api/progress handlers in Go. The Python dashboard server is now a fallback only.
+- Tests: TestHandleDashboardServesEmbeddedPage, TestHandleProgressDefaultsToEmpty.
+### Fixed
+- RollbackHandler now requires an explicit Dir (NewRollbackHandlerInDir) that must be a git top level; a zero-value handler refuses. Healer passes its working directory explicitly.
