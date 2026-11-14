@@ -15,13 +15,25 @@ jobs:
       uses: actions/setup-go@v5
       with:
         go-version: '1.25.0'
-    - name: Run Tests
+
+    # The repo is a go.work workspace with no root module, so tests run
+    # per-module. Every directory containing a go.mod is covered —
+    # including tray, media and publisher, which the old six-line list
+    # silently skipped (exactly how placeholder-chain tests rotted).
+    - name: Vet + test every module
       run: |
-        go test ./hustle/content/...
-        go test ./hustle/curation/...
-        go test ./hustle/research/...
-        go test ./hustle/social/...
-        go test ./hustle/trading/...
-        go test ./orchestrator/...
-    - name: Build
+        set -e
+        for mod in orchestrator tray hustle/*/; do
+          [ -f "$mod/go.mod" ] || continue
+          echo "== $mod =="
+          (cd "$mod" && go vet ./... && go test ./...)
+        done
+
+    - name: Build all binaries
       run: ./build.sh
+
+    - name: Tray compiles
+      run: (cd tray && go build ./...)
+
+    - name: Smoke script is valid Python
+      run: python3 -m py_compile scripts/smoke_prod.py
