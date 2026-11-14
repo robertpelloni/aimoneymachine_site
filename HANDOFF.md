@@ -32,3 +32,7 @@ There is none, anywhere in the repo. Prod control = systemctl stop/start/restart
 - RollbackHandler hardened: Execute() refuses without explicit Dir; Dir must be the git top level; commands scoped with cmd.Dir. Healer passes os.Getwd() explicitly. TestRollback covers refusal + revert.
 - Prod: aimm-dashboard (Python :8083) RETIRED (disable --now). Dashboard is now http://localhost:8082/ via ssh tunnel. healthcheck.sh on prod updated to check :8082/ instead of the dashboard unit (backup healthcheck.sh.bak-20261114). All other aimm-* active; healthcheck HEALTHY; site 200.
 - New prod noise: CoinGecko 429 rate limiting (no API key) failing some trading cycles — see TODO.
+
+## Update 2026-11-14 (v1.3.3)
+- Per-symbol trading history (see CHANGELOG). Prod proof: old process showed ADA $0.16 with SMA $27,338.90 (BTC contamination); new process shows ADA SMA $0.16 / BTC SMA $67,359, each its own series.
+- Watchdog was resurrecting the retired Python dashboard: /opt/aimoneymachine/bin/watchdog.sh SERVICES included aimm-dashboard + a :8083 port check, restarting it every 60s. Fixed on prod (backup watchdog.sh.bak-20261114) and canonical copy committed at scripts/watchdog.sh. Verified dashboard stays down across a full watchdog cycle; watchdog reports All services OK.
