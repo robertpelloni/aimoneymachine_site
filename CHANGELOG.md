@@ -439,3 +439,9 @@
 ## [1.9.14] - 2026-11-14
 ### Added
 - Trading indicators from the roadmap: MACD (12/26/9 EMA with histogram + previous histogram for cross detection) and Bollinger Bands (20, 2 sigma, %B), computed per symbol alongside SMA/RSI. Decision confluence gains MACD-cross trades confirmed by %B and band-break mean-reversion with RSI confirmation; all values appear in the indicator log line and memory entries. Tests assert trend direction, flat-series zeros, band ordering and %B (a steady trend's histogram is ~0 by construction - the test now asserts that instead of a sign).
+
+## [1.9.15] - 2026-11-14
+### Changed
+- Scheduler executes due tasks concurrently (MaxConcurrent, default 3; a task never overlaps itself) instead of strictly serially - one 7-step LLM chain previously starved every minute-interval trading task behind it for tens of minutes. Added Scheduler.Stop(). Boot stagger unchanged.
+### Fixed
+- Shared-state data races that concurrency would have exposed: Ledger, L1/L2/L3 memory tiers and the ChainManager registry are now RWMutex-guarded (RankedSearch uses an internal locked search; Orchestrator.Save marshals under read locks; /chains serves a Snapshot; WriteStatusReport takes *Ledger after vet copylocks). Proven with go test -race (concurrent state hammer + fast-task-not-starved test).

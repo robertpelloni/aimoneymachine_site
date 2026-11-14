@@ -89,7 +89,7 @@ func (d *ChainDiscoverer) Discover() (*DiscoveredChain, error) {
 	}
 
 	// 6. Register the discovery (skip if already exists)
-	if _, exists := d.Manager.Chains[discovered.Name]; exists {
+	if d.Manager.Has(discovered.Name) {
 		fmt.Printf("[ChainDiscoverer] Chain '%s' already exists, skipping duplicate\n", discovered.Name)
 		return nil, fmt.Errorf("chain '%s' already exists", discovered.Name)
 	}

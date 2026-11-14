@@ -224,7 +224,7 @@ func (a *API) handleChains(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Chain manager not initialized", http.StatusServiceUnavailable)
 		return
 	}
-	json.NewEncoder(w).Encode(a.ChainManager.Chains)
+	json.NewEncoder(w).Encode(a.ChainManager.Snapshot())
 }
 
 func (a *API) handleAgents(w http.ResponseWriter, r *http.Request) {

@@ -676,7 +676,7 @@ func main() {
 		// (e.g. chains.json was replaced by a deploy) instead of failing
 		// them on every cycle.
 		scheduler.KnownChain = func(name string) bool {
-			_, ok := chainManager.Chains[name]
+			ok := chainManager.Has(name)
 			return ok
 		}
 		scheduler.LoadState("tasks.json", protocol)

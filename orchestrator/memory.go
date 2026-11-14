@@ -49,6 +49,15 @@ func (m *L1Memory) Add(entry MemoryEntry) {
 	m.Entries = append(m.Entries, entry)
 }
 
+// EntriesSnapshot returns a copy of the entries under lock.
+func (m *L1Memory) EntriesSnapshot() []MemoryEntry {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	out := make([]MemoryEntry, len(m.Entries))
+	copy(out, m.Entries)
+	return out
+}
+
 // Len returns the entry count under lock.
 func (m *L1Memory) Len() int {
 	m.mu.RLock()
@@ -129,6 +138,15 @@ func (m *L2Memory) Add(entry MemoryEntry) {
 	m.Entries = append(m.Entries, entry)
 }
 
+// EntriesSnapshot returns a copy of the entries under lock.
+func (m *L2Memory) EntriesSnapshot() []MemoryEntry {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	out := make([]MemoryEntry, len(m.Entries))
+	copy(out, m.Entries)
+	return out
+}
+
 // Len returns the entry count under lock.
 func (m *L2Memory) Len() int {
 	m.mu.RLock()
@@ -206,6 +224,15 @@ func (m *L3Memory) Add(entry MemoryEntry) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	m.Entries = append(m.Entries, entry)
+}
+
+// EntriesSnapshot returns a copy of the entries under lock.
+func (m *L3Memory) EntriesSnapshot() []MemoryEntry {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	out := make([]MemoryEntry, len(m.Entries))
+	copy(out, m.Entries)
+	return out
 }
 
 // Len returns the entry count under lock.
@@ -309,13 +336,13 @@ func NewOrchestrator() *Orchestrator {
 
 func (o *Orchestrator) Save(filepath string) error {
 	if o.DB != nil {
-		for _, e := range o.L1.Entries {
+		for _, e := range o.L1.EntriesSnapshot() {
 			o.DB.SaveMemory("L1", e)
 		}
-		for _, e := range o.L2.Entries {
+		for _, e := range o.L2.EntriesSnapshot() {
 			o.DB.SaveMemory("L2", e)
 		}
-		for _, e := range o.L3.Entries {
+		for _, e := range o.L3.EntriesSnapshot() {
 			o.DB.SaveMemory("L3", e)
 		}
 	}
@@ -323,6 +350,16 @@ func (o *Orchestrator) Save(filepath string) error {
 	// Also persist ledger separately for modularity
 	o.Ledger.Save("ledger.json")
 
+	// Hold the tier + ledger read locks for the marshal: concurrent
+	// scheduler tasks may be Adding while shutdown saves.
+	o.L1.mu.RLock()
+	defer o.L1.mu.RUnlock()
+	o.L2.mu.RLock()
+	defer o.L2.mu.RUnlock()
+	o.L3.mu.RLock()
+	defer o.L3.mu.RUnlock()
+	o.Ledger.mu.RLock()
+	defer o.Ledger.mu.RUnlock()
 	data, err := json.MarshalIndent(o, "", "  ")
 	if err != nil {
 		return err

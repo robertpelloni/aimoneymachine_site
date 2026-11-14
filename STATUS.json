@@ -1,7 +1,7 @@
 {
-  "version": "1.9.14",
+  "version": "1.9.15",
   "status": "Running",
-  "message": "MACD + Bollinger trading indicators",
+  "message": "Concurrent scheduler + state locks",
   "revenue": 171.6,
   "expenses": 1005,
   "profit": -833.4
