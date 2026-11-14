@@ -8,6 +8,7 @@ point it at a tunnel:  python3 smoke_prod.py http://localhost:18082
 Exit code 0 only when every check passes.
 """
 import json
+import os
 import sys
 import urllib.request
 
@@ -26,11 +27,17 @@ def get(path, timeout=15):
         return r.status, r.read().decode()
 
 
+TOKEN = os.environ.get("SMOKE_API_TOKEN") or os.environ.get("AIMM_API_TOKEN", "")
+
+
 def dispatch(uri):
+    headers = {"Content-Type": "application/json"}
+    if TOKEN:
+        headers["Authorization"] = "Bearer " + TOKEN
     req = urllib.request.Request(
         BASE + "/api/dispatch",
         data=json.dumps({"uri": uri}).encode(),
-        headers={"Content-Type": "application/json"},
+        headers=headers,
     )
     with urllib.request.urlopen(req, timeout=60) as r:
         return r.read().decode()

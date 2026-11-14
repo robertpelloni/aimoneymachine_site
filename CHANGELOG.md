@@ -449,3 +449,7 @@
 ## [1.9.16] - 2026-11-14
 ### Added
 - Trading history persists across restarts: per-symbol price/RSI series are written atomically to trading_history.json every cycle and restored at boot (HistoryFile wired in the daemon). Every deploy previously wiped the 34+ points MACD needs, so the new indicators spent their lives warming up. Series are also capped at 500 points (they grew unboundedly). Tests: persistence roundtrip across a fresh module instance, missing-file fresh start, trim keeps the newest points.
+
+## [1.9.17] - 2026-11-14
+### Added
+- Optional API token auth: when AIMM_API_TOKEN is set, all state-changing endpoints (dispatch, sync, healer, message, register) require Authorization: Bearer or X-API-Key (constant-time compare). Reads and the dashboard stay open. Dashboard dispatch sends a token from localStorage (aimm_api_token) when present; smoke_prod.py honors SMOKE_API_TOKEN/AIMM_API_TOKEN. Prod verified NOT reachable on :8082 from the internet (firewall drops it), so the token ships supported-but-unset; set it before ever exposing the port. Test: TestRequireToken (open/missing/wrong/both header forms).

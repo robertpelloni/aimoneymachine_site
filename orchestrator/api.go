@@ -1,11 +1,13 @@
 package orchestrator
 
 import (
+	"crypto/subtle"
 	_ "embed"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
+	"strings"
 )
 
 // dashboardHTML is the consolidated single-page dashboard (moved here from
@@ -22,6 +24,12 @@ type API struct {
 	ChainManager *ChainManager
 	Discoverer   *ChainDiscoverer
 	MultiAgent   *MultiAgentOrchestrator
+	// Token, when non-empty, is required on all state-changing (POST)
+	// endpoints via `Authorization: Bearer <token>` or `X-API-Key`.
+	// Empty (default) leaves the API open, matching the historical
+	// localhost-only deployment. Set AIMM_API_TOKEN before exposing
+	// the port beyond localhost.
+	Token string
 }
 
 func NewAPI(orch *Orchestrator, protocol *HustleProtocol, broker *A2ABroker, chainMgr *ChainManager, disc *ChainDiscoverer) *API {
@@ -31,25 +39,47 @@ func NewAPI(orch *Orchestrator, protocol *HustleProtocol, broker *A2ABroker, cha
 		Broker:       broker,
 		ChainManager: chainMgr,
 		Discoverer:   disc,
+		Token:        os.Getenv("AIMM_API_TOKEN"),
+	}
+}
+
+// requireToken wraps a state-changing handler with token auth when a
+// token is configured (constant-time comparison). GET/read endpoints
+// and the dashboard stay open so status monitoring keeps working.
+func (a *API) requireToken(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if a.Token != "" {
+			presented := r.Header.Get("X-API-Key")
+			if presented == "" {
+				if auth := r.Header.Get("Authorization"); strings.HasPrefix(auth, "Bearer ") {
+					presented = strings.TrimPrefix(auth, "Bearer ")
+				}
+			}
+			if subtle.ConstantTimeCompare([]byte(presented), []byte(a.Token)) != 1 {
+				http.Error(w, "unauthorized: valid API token required", http.StatusUnauthorized)
+				return
+			}
+		}
+		next(w, r)
 	}
 }
 
 func (a *API) Start(port string) error {
-	http.HandleFunc("/dispatch", a.handleDispatch)
+	http.HandleFunc("/dispatch", a.requireToken(a.handleDispatch))
 	http.HandleFunc("/status", a.handleStatus)
-	http.HandleFunc("/message", a.handleMessage)
-	http.HandleFunc("/register", a.handleRegister)
-	http.HandleFunc("/sync", a.handleSync)
+	http.HandleFunc("/message", a.requireToken(a.handleMessage))
+	http.HandleFunc("/register", a.requireToken(a.handleRegister))
+	http.HandleFunc("/sync", a.requireToken(a.handleSync))
 	http.HandleFunc("/chains", a.handleChains)
 	http.HandleFunc("/agents", a.handleAgents)
 	http.HandleFunc("/content", a.handleContent)
 	http.HandleFunc("/strategy", a.handleStrategy)
-	http.HandleFunc("/healer", a.handleHealer)
+	http.HandleFunc("/healer", a.requireToken(a.handleHealer))
 	// Embedded dashboard + the /api/* aliases its JS fetches (same handlers,
 	// so the page works served from :8082 with no Python proxy in between).
 	http.HandleFunc("/", a.handleDashboard)
 	http.HandleFunc("/dashboard", a.handleDashboard)
-	http.HandleFunc("/api/dispatch", a.handleDispatch)
+	http.HandleFunc("/api/dispatch", a.requireToken(a.handleDispatch))
 	http.HandleFunc("/api/status", a.handleStatus)
 	http.HandleFunc("/api/chains", a.handleChains)
 	http.HandleFunc("/api/agents", a.handleAgents)

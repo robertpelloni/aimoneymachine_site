@@ -113,3 +113,6 @@ The Orchestrator includes a self-healing `sync` protocol. To trigger manually:
 - Deploy: ./scripts/deploy-hetzner.sh (builds linux binary, backs up on server, uploads, restarts, curls /status + dashboard).
 - Quit/restart: systemctl stop|restart aimm-orchestrator, or the tray app (tray/) whose Quit Servers menu does the same over ssh. The dashboard is embedded in the orchestrator at http://localhost:8082/ (the Python :8083 service was retired in v1.3.0). Verify any time: ssh hetzner "python3 /opt/aimoneymachine/smoke_prod.py" (also the deploy gate). Logs: journalctl -u aimm-orchestrator -f; /opt/aimoneymachine/*.log.
 - Do NOT run local servers for this project  deploy here and verify here.
+
+## API auth (v1.9.17)
+- The orchestrator API (:8082) is firewalled from the internet on Hetzner (verified: external TCP connect fails) and binds for localhost/tunnel use. If you ever expose it (nginx proxy, firewall rule), FIRST set AIMM_API_TOKEN in /opt/aimoneymachine/.env and restart aimm-orchestrator: all POST endpoints then require Authorization: Bearer <token> (or X-API-Key). Dashboard buttons pick the token from browser localStorage key aimm_api_token; scripts/smoke_prod.py reads SMOKE_API_TOKEN/AIMM_API_TOKEN.
