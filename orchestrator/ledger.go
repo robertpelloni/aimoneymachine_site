@@ -103,7 +103,7 @@ func (l *Ledger) Save(filepath string) error {
 	if err != nil {
 		return err
 	}
-	return os.WriteFile(filepath, data, 0644)
+	return WriteFileAtomic(filepath, data, 0644)
 }
 
 func (l *Ledger) Load(filepath string) error {

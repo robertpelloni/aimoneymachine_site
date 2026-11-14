@@ -3,7 +3,6 @@ package orchestrator
 import (
 	"encoding/json"
 	"fmt"
-	"os"
 	"time"
 )
 
@@ -33,7 +32,7 @@ func WriteStatusReport(version, status, message string, ledger Ledger) error {
 		return err
 	}
 
-	err = os.WriteFile("STATUS.json", data, 0644)
+	err = WriteFileAtomic("STATUS.json", data, 0644)
 	if err != nil {
 		return err
 	}

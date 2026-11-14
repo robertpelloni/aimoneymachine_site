@@ -40,7 +40,7 @@ func (m *ChainManager) SaveState(filepath string) error {
 	if err != nil {
 		return err
 	}
-	return os.WriteFile(filepath, data, 0644)
+	return WriteFileAtomic(filepath, data, 0644)
 }
 
 func (m *ChainManager) LoadState(filepath string) error {
