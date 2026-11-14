@@ -1,20 +1,23 @@
-## Session Handoff
+# SESSION HANDOFF — 2026-11-13 (Muse Code / muse-wonder-1.0 / aimoneymachine_site)
 
-### Work Completed
-- Fixed a bug in `dashboard.go` regarding terminal progress bars triggering panics during unit tests (`strings.Repeat` negative count).
-- Designed and verified `PromptOptimizer` in `orchestrator/prompt_optimizer.go` enabling multi-arm bandit/epsilon-greedy A/B testing of prompt variations.
-- Added a caching layer `CachingLLM` (`orchestrator/llm_cache.go`) enabling deduplication and TTL-based reuse of identical LLM prompts.
-- Integrated `CachingLLM` to wrap the standard `LLMProvider` in the `cmd/orchestrator` bootstrap file.
-- Verified components with robust unit testing and benchmarks.
-- Synchronized work upstream via `.sync.sh`. Marked items complete in `TODO.md` and `ROADMAP.md`.
-- Fully implemented Phase 7 milestone "Fully Automated Digital Real Estate Engine" including:
-  - Affiliate Marketing Engine (`hustle/affiliate`)
-  - Digital Product Archive Generator (`hustle/products`)
-  - Synergy LeadGen Loop (`hustle/research/leadgen.go` & `outreach.go`)
-  - YouTube Shorts Factory (`hustle/media`)
-- Wired all new modules into the agent loop and verified stability locally.
+## What was broken (verified, not guessed)
+- Repo did not build: unresolved merge-conflict markers were committed in go.work, 7 go.mod files, orchestrator+social go.sum, orchestrator/cmd/orchestrator/main.go, orchestrator/agent_loop.go, hustle/social/post.go, VERSION.md, STATUS.json, ROADMAP/TODO/HANDOFF. go build failed with 'errors parsing go.work'.
+- dashboard.html buttons called dispatchAction() which was never defined — every action button was dead. Account/System cards were hardcoded fakes ( balance, always-green dots). /bot was a separate subpage on prod.
+- hustle/social/post.go (newer side) used io without importing it; hustle/media + hustle/affiliate called LLM.GenerateJSON which only existed on OpenAICompatProvider, not the LLMProvider interface.
+- Hetzner prod: ALL aimm-* services inactive + disabled (only nginx/MySQL/Redis/Ollama up). WordPress site itself is up. aimm-healthcheck + certbot failed. Prod VERSION 1.0.0-alpha.89, orchestrator binary from Jun 24.
+- SECURITY: aimm-freellm.service contains ~50 plaintext API keys in the unit file. Rotate them and move to a 600-perm EnvironmentFile. (Keys are NOT reproduced here.)
 
-### Next Steps / Remaining Work
-- Further refine cross-hustle feedback. Research discoveries feeding content, content feeding social.
-- Implement multi-exchange trading plugins (Binance, Kraken).
-- Expand prompt optimization logging to verify performance and ROI over sustained runs.
+## What was done (v1.2.0)
+- Resolved all conflicts (kept newer Go 1.25/sqlite HEAD side; kept Twitter retry+error-body side; main.go got clean affiliate+media handlers using real APIs; dropped handlers for nonexistent packages bi/careers/kdp/retail/domains/realestate/calendar whose imports/functions do not exist).
+- Added GenerateJSON to LLMProvider + all impls (GenerateJSONViaGenerate helper).
+- Rewrote dashboard.html as ONE consolidated page: Overview > Money (trading/affiliate/content/publisher) > Growth (research/curation/social/shorts) > Automation (chains/leadgen/agents/strategy) > System (mesh/healer/sync/quit) > Logs. Every card: label, description, ? tooltip, form + working dispatch. Bot detail merged inline; no subpages.
+- New dashboard_server.py (serves /, proxies /api/* to :8082, POST /api/dispatch). scripts/deploy-hetzner.sh added. build.sh now builds affiliate+media and supports ./build.sh linux.
+- Verified: go build ./... = 0, go vet = 0 (orchestrator module). go test: only pre-existing Windows failure TestSyncProtocolIntegration (execs bash sync.sh) — unrelated, tracked in TODO.
+
+## Next (in priority order)
+1. Start prod services in dependency order (freellm -> orchestrator -> dashboard -> others) and watch journalctl for 10+ min.
+2. Regenerate X/Twitter keys (401). 3. Rotate FreeLLM unit keys. 4. Wire hustle://calendar/publisher. 5. Shorts TTS/FFmpeg/upload. 6. Tray app (IDEAS #6).
+
+## Tray icon answer
+There is none, anywhere in the repo. Prod control = systemctl stop/start/restart aimm-*; local control = Ctrl+C. Dashboard System section documents this.
+

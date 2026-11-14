@@ -34,3 +34,12 @@
 - [ ] **Lead Generation + Outreach** â€” Scrape Google Maps, LLM personalize pitch, SMTP rate-limited delivery.
 - [ ] **Digital Product Factory** â€” Generate Notion templates, presets, guides, auto-list on Gumroad via API.
 - [ ] **YouTube Shorts Factory** â€” Script -> Image generation -> TTS -> Auto Upload.
+
+## v1.2.0 Dashboard & Prod
+- [x] Consolidated one-page dashboard with dispatchAction() actually implemented (was undefined — buttons were dead)
+- [x] Removed fake hardcoded dashboard data ( balance, always-green status dots) — now live /api/status
+- [ ] Wire hustle://calendar + hustle://publisher handlers (publisher.PublishEntry exists)
+- [ ] Fix TestSyncProtocolIntegration on Windows (execs bash sync.sh — skip on GOOS=windows)
+- [ ] Regenerate X/Twitter API keys (401 in prod, docs/ai/maintenance-2026-08-01.md)
+- [ ] Move FreeLLM keys out of the systemd unit into an EnvironmentFile with 600 perms, then rotate
+- [ ] Re-enable + start all aimm-* services on Hetzner (found all inactive/disabled, 2026-11-13)

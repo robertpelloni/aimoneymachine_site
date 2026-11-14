@@ -281,3 +281,14 @@
 - **CoinGecko Integration**: Enabled real-world price fetching in the Trading module.
 - **Algorithmic Confluence**: Integrated Research sentiment into Trading execution logic.
 - **Executive Protocol Hardening**: Improved `sync.sh` with robust branch detection and stash management.
+
+## [1.2.0] - 2026-11-13
+### Added
+- Consolidated single-page dashboard (dashboard.html) covering every hustle:// handler + API endpoint, value-ordered, with ? tooltips and working dispatch forms; bot detail merged in (no /bot subpage).
+- dashboard_server.py: one server for /, /api/status|chains|agents|content|strategy|log|progress + POST /api/dispatch proxy to orchestrator :8082.
+- scripts/deploy-hetzner.sh: backup-then-deploy + restart + health check.
+- LLMProvider.GenerateJSON on all providers.
+### Fixed
+- Purged unresolved merge conflicts committed in go.work, go.mod/go.sum files, main.go, agent_loop.go, post.go, VERSION.md, STATUS.json (build was broken: 'errors parsing go.work').
+- Twitter post retry loop now compiles (missing io import) and returns response body on error.
+- VERSION single-sourced: 1.2.0 in VERSION.md (was conflicted 1.0.0-alpha.83 vs v1.1.0-alpha.92).

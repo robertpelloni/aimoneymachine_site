@@ -18,3 +18,10 @@
 
 ## 5. Neural Dashboard
 - Replace the terminal dashboard with a real-time 3D visualization (using something like `tview` or a separate web frontend) of the mesh as a "living organism".
+
+## 6. System-tray / menubar controller (answers 'where is the tray icon?')
+- Today: none. Orchestrator is a headless daemon (systemd aimm-* on Hetzner, Ctrl+C locally).
+- Build a tiny Go tray app (fyne.io/systray) that polls :8082/status, shows profit + per-service dots, and offers Start/Stop/Restart/Quit (= systemctl or process kill), Open Dashboard, Tail Logs. Ship for Windows + Linux.
+
+## 7. One-binary dashboard
+- go:embed dashboard.html into the orchestrator and serve it from :8082 itself, deleting the Python dashboard server entirely.

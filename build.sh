@@ -1,12 +1,10 @@
 #!/bin/bash
+# Build all AI Hustle Machine binaries into bin/.
+# Usage: ./build.sh [linux]   (default: host OS; "linux" cross-compiles for Hetzner)
 set -e
-
-echo "Building AI Hustle Machine..."
-
-# Ensure output directory exists
+if [ "$1" = "linux" ]; then export GOOS=linux GOARCH=amd64 CGO_ENABLED=0; fi
+echo "Building AI Hustle Machine ($(go env GOOS)/$(go env GOARCH))..."
 mkdir -p bin
-
-# Build modules
 go build -o bin/orchestrator ./orchestrator/cmd/orchestrator
 go build -o bin/curator ./hustle/curation/cmd/curator
 go build -o bin/research ./hustle/research/cmd/research
@@ -15,5 +13,4 @@ go build -o bin/trading ./hustle/trading/cmd/trading
 go build -o bin/content ./hustle/content/cmd/content
 go build -o bin/affiliate ./hustle/affiliate/cmd/affiliate
 go build -o bin/media ./hustle/media/cmd/media
-
-echo "Build complete. Binaries located in bin/"
+echo "Build complete. Binaries in bin/"

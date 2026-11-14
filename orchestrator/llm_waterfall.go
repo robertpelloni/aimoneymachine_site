@@ -11,6 +11,10 @@ type WaterfallLLM struct {
 	Limiter   *RateLimiter
 }
 
+func (w *WaterfallLLM) GenerateJSON(prompt string, target interface{}) error {
+	return GenerateJSONViaGenerate(w.Generate, prompt, target)
+}
+
 func (w *WaterfallLLM) Generate(prompt string) (string, error) {
 	if w.Limiter != nil {
 		err := w.Limiter.Wait(context.Background())

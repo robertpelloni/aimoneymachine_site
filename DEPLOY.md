@@ -106,3 +106,10 @@ The Orchestrator includes a self-healing `sync` protocol. To trigger manually:
 ```bash
 ./bin/orchestrator -uri "hustle://sync"
 ```
+
+## Hetzner Prod (aimoneymachine.site) — added 2026-11-13
+- Host: ssh hetzner (5.161.250.43, root, ~/.ssh/id_ed25519). App: /opt/aimoneymachine, dashboard files: /opt/aimoneymachine/bin/, WordPress: /var/www/aimoneymachine (nginx + php8.4-fpm).
+- Services (all systemd, Nice/below-normal where heavy): aimm-orchestrator (Go daemon --daemon --real-prices --api 8082), aimm-dashboard (python dashboard.py :8083), aimm-freellm (:4000), aimm-litellm (:4001), aimm-content, aimm-publisher, aimm-audit, aimm-hustle-gen, aimm-python-trader, aimm-twitter (timer), aimm-watchdog, aimm-healthcheck (timer).
+- Deploy: ./scripts/deploy-hetzner.sh (builds linux binary, backs up on server, uploads, restarts, curls /status + dashboard).
+- Quit/restart (no tray icon exists): systemctl stop|restart aimm-orchestrator aimm-dashboard. Logs: journalctl -u aimm-orchestrator -f; /opt/aimoneymachine/*.log.
+- Do NOT run local servers for this project — deploy here and verify here.

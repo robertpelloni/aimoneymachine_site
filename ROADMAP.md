@@ -60,3 +60,12 @@
 - [ ] **Digital Product Archive Generator**: LLM-generated templates, boilerplate code, and clean datasets listed dynamically on an internal storefront
 - [ ] **Dynamic Data Arbitrage & Lead Capture**: Aggregating and summarizing public/API data into actionable, subscription-paywalled insights
 - [x] **Affiliate Marketing Engine**: Fetch trending products, generate LLM reviews, and auto-post to Twitter and Blog
+
+## Phase 8: Consolidated Dashboard & Prod Revival (v1.2.0) — IN PROGRESS
+- [x] Single-page dashboard: all hustle:// features grouped Overview > Money > Growth > Automation > System, with tooltips + forms (dashboard.html + dashboard_server.py)
+- [x] Merge-conflict purge (go.work/go.mod/go.sum/main.go/agent_loop/post.go/VERSION/STATUS) — repo builds again
+- [x] LLMProvider.GenerateJSON for all providers (Mock/Anthropic/Waterfall/Limited via GenerateJSONViaGenerate)
+- [ ] Publisher/calendar hustle:// wiring (hustle/publisher exists, no handler yet)
+- [ ] Shorts TTS + FFmpeg + YouTube upload
+- [ ] System-tray / menubar controller (none exists today; systemd is the prod control plane)
+- [ ] Rotate API keys stored in plaintext in aimm-freellm.service unit on Hetzner

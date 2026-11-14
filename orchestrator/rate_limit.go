@@ -26,6 +26,10 @@ type LimitedLLM struct {
 	Limiter  *RateLimiter
 }
 
+func (l *LimitedLLM) GenerateJSON(prompt string, target interface{}) error {
+	return GenerateJSONViaGenerate(l.Generate, prompt, target)
+}
+
 func (l *LimitedLLM) Generate(prompt string) (string, error) {
 	err := l.Limiter.Wait(context.Background())
 	if err != nil {
