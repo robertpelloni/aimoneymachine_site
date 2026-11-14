@@ -409,3 +409,7 @@
 ## [1.9.7] - 2026-11-14
 ### Added
 - LLM waterfall fallback: when LLM_FALLBACK_BASE_URL is set (prod: Ollama direct http://localhost:11434/v1), the daemon wraps the primary provider in the existing WaterfallLLM so a primary that stalls to its client timeout (FreeLLM retrying dead upstreams for the full 480s, observed repeatedly) retries against the fallback instead of failing the generation. Boot logs 'Fallback provider ready' with the detected (non-embedding) model. Tests: fallback-after-failure and all-fail paths.
+
+## [1.9.8] - 2026-11-14
+### Fixed
+- Waterfall fallback inherited the primary's model name (LLM_MODEL, e.g. gpt-4o) and Ollama rejected it ('model gpt-4o not found') on the first prod fallback run - the waterfall engaged correctly at the 480s timeout, then failed on model selection. NewOpenAICompatProviderWithBaseURL now clears Model so the fallback re-detects against its own /models (non-embedding preferred). Test: TestWithBaseURLClearsModelAndRedetects.

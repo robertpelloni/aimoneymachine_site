@@ -1,0 +1,50 @@
+package orchestrator
+
+import (
+	"encoding/json"
+	"fmt"
+	"net/http"
+	"net/http/httptest"
+	"strings"
+	"testing"
+)
+
+// The fallback provider must not inherit the primary's model name:
+// Ollama rejected 'gpt-4o' (from LLM_MODEL) on the first prod waterfall
+// run. WithBaseURL clears Model so Generate re-detects against the
+// fallback's own /models (skipping embedding models).
+func TestWithBaseURLClearsModelAndRedetects(t *testing.T) {
+	t.Setenv("LLM_MODEL", "gpt-4o")
+	var askedModel string
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch {
+		case strings.HasSuffix(r.URL.Path, "/models"):
+			fmt.Fprint(w, `{"data":[{"id":"nomic-embed-text:latest"},{"id":"gemma-test:latest"}]}`)
+		case strings.HasSuffix(r.URL.Path, "/chat/completions"):
+			var body struct {
+				Model string `json:"model"`
+			}
+			_ = json.NewDecoder(r.Body).Decode(&body)
+			askedModel = body.Model
+			fmt.Fprint(w, `{"choices":[{"message":{"role":"assistant","content":"ok from fallback"}}]}`)
+		default:
+			http.NotFound(w, r)
+		}
+	}))
+	defer ts.Close()
+
+	p := NewOpenAICompatProviderWithBaseURL(ts.URL)
+	if p.Model != "" {
+		t.Fatalf("Model = %q, want cleared for re-detection", p.Model)
+	}
+	got, err := p.Generate("hello")
+	if err != nil {
+		t.Fatalf("Generate: %v", err)
+	}
+	if got != "ok from fallback" {
+		t.Fatalf("Generate = %q", got)
+	}
+	if askedModel != "gemma-test:latest" {
+		t.Errorf("asked model = %q, want gemma-test:latest (non-embedding)", askedModel)
+	}
+}

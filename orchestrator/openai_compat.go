@@ -87,6 +87,11 @@ func llmHTTPClient() *http.Client { return &http.Client{Timeout: llmTimeout()} }
 func NewOpenAICompatProviderWithBaseURL(baseURL string) *OpenAICompatProvider {
 	p := NewOpenAICompatProvider()
 	p.BaseURL = baseURL
+	// Model names are per-server: inheriting the primary's model (e.g.
+	// gpt-4o from LLM_MODEL) makes the fallback ask Ollama for a model
+	// it does not have. Clearing it forces DetectModel against the
+	// fallback's own /models list on first Generate.
+	p.Model = ""
 	return p
 }
 
