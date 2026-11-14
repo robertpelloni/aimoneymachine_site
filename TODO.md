@@ -48,3 +48,5 @@
 - [x] Fix TestSyncProtocolIntegration on Windows — skips without bash (v1.2.1)
 - [ ] CoinGecko 429s on prod (no COINGECKO_API_KEY set): trading tasks for XRP/ADA failing with rate limited after 3 retries. User: set a free CoinGecko Demo key in prod .env, or raise per-symbol intervals in daemon scheduler.
 - [x] Embed dashboard in Go binary, retire Python aimm-dashboard service (v1.3.0)
+- [ ] TradingModule keeps ONE shared History/RSIHistory across all symbols (orchestrator reuses a single traderModule and mutates .Symbol): SMA/RSI mix BTC/XRP/ADA prices, so indicators are meaningless across symbols. Fix: per-symbol history map in TradingModule (v1.3.1 observation from prod logs: ADA SMA $0.58 vs price $0.16).
+- [x] CoinGecko batch + stale fallback (v1.3.1)
