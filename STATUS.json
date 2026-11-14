@@ -1,7 +1,7 @@
 {
-  "version": "1.5.2",
+  "version": "1.6.0",
   "status": "Running",
-  "message": "Atomic state writes",
+  "message": "Disk usage in status, dashboard and tray",
   "revenue": 171.6,
   "expenses": 1005,
   "profit": -833.4

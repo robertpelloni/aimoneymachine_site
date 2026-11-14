@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>AI Hustle Machine — Consolidated Dashboard v1.5.1</title>
+<title>AI Hustle Machine — Consolidated Dashboard v1.6.0</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#0f172a;color:#e2e8f0;padding:20px;max-width:1400px;margin:0 auto}
 .logo{font-size:1.8rem;font-weight:800;background:linear-gradient(135deg,#2563eb,#a855f7);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
@@ -19,7 +19,7 @@ table{width:100%;border-collapse:collapse}th,td{text-align:left;font-size:.8rem;
 pre{background:#020617;border:1px solid #1e293b;border-radius:10px;padding:12px;font-size:.7rem;overflow:auto;max-height:260px;white-space:pre-wrap}
 .green{color:#22c55e}.red{color:#ef4444}.yellow{color:#eab308}
 </style></head><body>
-<header><div><div class="logo">AI Hustle Machine</div><div class="sub">One-page control plane &middot; v<span id="ver">1.5.1</span> &middot; every backend feature below dispatches a real <code>hustle://</code> URI to the orchestrator API</div></div>
+<header><div><div class="logo">AI Hustle Machine</div><div class="sub">One-page control plane &middot; v<span id="ver">1.6.0</span> &middot; every backend feature below dispatches a real <code>hustle://</code> URI to the orchestrator API</div></div>
 <div class="sub" id="lastUpdated">Loading&hellip;</div></header>
 <nav><a href="#overview">Overview</a><a href="#money">💰 Money</a><a href="#growth">📈 Growth</a><a href="#automation">🤖 Automation</a><a href="#system">🛠 System</a><a href="#logs">Logs</a></nav>
 
@@ -31,6 +31,7 @@ pre{background:#020617;border:1px solid #1e293b;border-radius:10px;padding:12px;
 <div class="card"><h3>Agents <span class="tip" title="Multi-agent orchestrator status via GET /agents. Agents run Observe → Think → Act → Learn loops.">ⓘ</span></h3><div class="value" id="agentCount">—</div><div class="sub" id="agentList">—</div></div>
 </div>
 
+<div class="card"><h3>Disk <span class="tip" title="Filesystem usage for the orchestrator working directory, from GET /api/status. The 2026-11-14 outage hit 100 percent and WordPress went 504; the watchdog warns at 85 and logs CRITICAL at 95.">i</span></h3><div class="value" id="diskPct">-</div><div class="sub"><span id="diskFree">-</span> GB free</div></div>
 <h2 id="money">💰 Money — trading, affiliate, content that sells</h2><p class="desc">Direct revenue paths. Trading needs <code>-real-prices</code> + CoinGecko for live data; otherwise it uses mock prices. Affiliate currently discovers products via the LLM (see TODO for a real catalog API).</p>
 <div class="grid">
 <div class="card"><h3>Crypto trading <span class="tip" title="hustle://trading?symbol=X — RSI/TA strategy per symbol. Daemon runs BTC/ETH/SOL/DOGE/XRP/ADA/LINK on staggered 1–7 min intervals. Paper/mock unless -real-prices.">ⓘ</span></h3><p>Run one trading cycle for a symbol.</p><label>Symbol</label><select id="tradeSym"><option>BTC</option><option>ETH</option><option>SOL</option><option>DOGE</option><option>XRP</option><option>ADA</option><option>LINK</option></select><button onclick="dispatchAction('hustle://trading?symbol='+document.getElementById('tradeSym').value)">Run trading cycle</button><div class="sub" id="botSummary" style="margin-top:8px">Log-derived cycles: loading…</div></div>
@@ -55,7 +56,7 @@ pre{background:#020617;border:1px solid #1e293b;border-radius:10px;padding:12px;
 <div class="card"><h3>Collective strategy <span class="tip" title="GET /strategy — latest collective_strategy memories shared across the mesh. Broadcast yours from the terminal menu (Space Communication).">ⓘ</span></h3><p>Mesh-shared alpha.</p><div class="sub" id="strategyList">—</div></div>
 </div>
 
-<h2 id="system">🛠 System — mesh, healing, sync, quit</h2><p class="desc">Operations. <strong>Tray app: aimm-tray (tray/, v1.5.1+) — green/red status icon, Open Dashboard, Start/Stop/Restart prod via ssh. Originally no tray icon existed; the orchestrator is a headless Go daemon</strong> in this project — the orchestrator is a headless Go daemon. On Hetzner it is controlled with systemd (<code>aimm-*</code> units); locally with Ctrl+C / closing the terminal. A tray app is listed as an idea in IDEAS.md.</p>
+<h2 id="system">🛠 System — mesh, healing, sync, quit</h2><p class="desc">Operations. <strong>Tray app: aimm-tray (tray/, v1.6.0+) — green/red status icon, Open Dashboard, Start/Stop/Restart prod via ssh. Originally no tray icon existed; the orchestrator is a headless Go daemon</strong> in this project — the orchestrator is a headless Go daemon. On Hetzner it is controlled with systemd (<code>aimm-*</code> units); locally with Ctrl+C / closing the terminal. A tray app is listed as an idea in IDEAS.md.</p>
 <div class="grid">
 <div class="card"><h3>Mesh / swarm <span class="tip" title="hustle://swarm?action=sync|aggregate|set_goal — delta-sync memory with peers, aggregate mesh profit, set the collective wealth goal. Peers register via POST /register.">ⓘ</span></h3><p>Federated sync + wealth goal.</p><label>Wealth goal (USD)</label><input id="goalAmt" value="10000"><button onclick="dispatchAction('hustle://swarm?action=sync')">Sync mesh</button> <button class="secondary" onclick="dispatchAction('hustle://swarm?action=set_goal&amount='+enc('goalAmt'))">Set goal</button></div>
 <div class="card"><h3>Healer <span class="tip" title="hustle://healer?issue= (or POST /healer) — LLM diagnoses an issue, proposes a fix, verifies it. Also runs Wealth Preservation audits in the daemon.">ⓘ</span></h3><p>Self-diagnosis loop.</p><label>Issue</label><input id="healIssue" value="Manual dashboard diagnostic"><button onclick="dispatchAction('hustle://healer?issue='+enc('healIssue'))">Run healer</button></div>
@@ -76,7 +77,7 @@ async function jget(u){try{const r=await fetch(u);if(!r.ok)throw 0;return await 
 async function tget(u){try{const r=await fetch(u);return await r.text()}catch(e){return''}}
 function parseLog(txt){const bots={BTC:0,ETH:0,SOL:0,DOGE:0,XRP:0,ADA:0,LINK:0},trades=[];for(const line of txt.split('\n')){for(const s of Object.keys(bots)){if(line.includes('Symbol: '+s))bots[s]++;const m=line.match(/(\d{2}:\d{2}:\d{2}).*Symbol: (\w+).*Price: \$?([0-9,.]+).*Decision: (\w+)/);if(m&&m[2]===s)trades.unshift({time:m[1],sym:m[2],price:m[3],decision:m[4]})}}return{bots,trades}}
 async function refresh(){$('lastUpdated').textContent='Refreshing…';
-const st=await jget('/api/status');if(st&&st.status){$('orchStatus').innerHTML='<span class="dot on"></span>'+st.status;$('orchVer').textContent=st.version||'—';$('profit').textContent=(st.profit!==undefined)?'$'+Number(st.profit).toFixed(2):'—';$('memCount').textContent=st.memories??'—';$('peerCount').textContent=st.peers??'—'}else{$('orchStatus').innerHTML='<span class="dot off"></span>offline';$('profit').textContent='—'}
+const st=await jget('/api/status');if(st&&st.status){$('orchStatus').innerHTML='<span class="dot on"></span>'+st.status;$('orchVer').textContent=st.version||'—';$('profit').textContent=(st.profit!==undefined)?'$'+Number(st.profit).toFixed(2):'—';$('memCount').textContent=st.memories??'—';if(st.disk_used_pct!==undefined){const dp=$('diskPct');dp.textContent=st.disk_used_pct+'% used';dp.className='value '+(st.disk_used_pct>=95?'red':st.disk_used_pct>=85?'yellow':'green');$('diskFree').textContent=st.disk_free_gb}$('peerCount').textContent=st.peers??'—'}else{$('orchStatus').innerHTML='<span class="dot off"></span>offline';$('profit').textContent='—'}
 const chains=await jget('/api/chains');if(chains){const names=Object.keys(chains);$('chainList').textContent=names.length?names.join(', '):'none loaded';const sel=$('chainName');names.forEach(n=>{if(![...sel.options].some(o=>o.value===n))sel.add(new Option(n,n))})}
 const agents=await jget('/api/agents');if(agents){const n=Array.isArray(agents)?agents.length:Object.keys(agents).length;$('agentCount').textContent=n;$('agentList').textContent=JSON.stringify(agents).slice(0,120)}
 const content=await jget('/api/content');if(Array.isArray(content)){$('contentCount').textContent=content.length;$('contentList').textContent=content.slice(0,4).join(', ')||'empty'}

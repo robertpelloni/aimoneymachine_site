@@ -14,7 +14,7 @@ func TestFetchStatusParsesAndFormats(t *testing.T) {
 			http.NotFound(w, r)
 			return
 		}
-		fmt.Fprint(w, `{"status":"Active","version":"1.5.0","profit":12.5,"memories":42,"peers":3}`)
+		fmt.Fprint(w, `{"status":"Active","version":"1.5.0","profit":12.5,"memories":42,"peers":3,"disk_used_pct":91,"disk_free_gb":7.2}`)
 	}))
 	defer srv.Close()
 
@@ -27,6 +27,9 @@ func TestFetchStatusParsesAndFormats(t *testing.T) {
 	}
 	if got := st.Tooltip(); !strings.Contains(got, "v1.5.0") || !strings.Contains(got, "$12.50") {
 		t.Errorf("tooltip = %q", got)
+	}
+	if got := st.Tooltip(); !strings.Contains(got, "disk 91%") {
+		t.Errorf("tooltip should warn at >=85%% disk: %q", got)
 	}
 	if got := st.MenuLabel(); !strings.Contains(got, "Active") {
 		t.Errorf("menu label = %q", got)

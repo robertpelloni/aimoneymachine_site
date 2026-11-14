@@ -184,13 +184,20 @@ func (a *API) handleRegister(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *API) handleStatus(w http.ResponseWriter, r *http.Request) {
-	json.NewEncoder(w).Encode(map[string]interface{}{
+	resp := map[string]interface{}{
 		"status":   "Active",
 		"version":  a.Orchestrator.Version,
 		"profit":   a.Orchestrator.Ledger.Profit(),
 		"memories": len(a.Orchestrator.L1.Entries),
 		"peers":    len(a.Broker.Peers),
-	})
+	}
+	// Disk headroom for the working directory's filesystem (see
+	// DiskUsage); omitted on platforms without an implementation.
+	if pct, freeGB, ok := DiskUsage("."); ok {
+		resp["disk_used_pct"] = float64(int(pct*10)) / 10
+		resp["disk_free_gb"] = float64(int(freeGB*10)) / 10
+	}
+	json.NewEncoder(w).Encode(resp)
 }
 
 func (a *API) handleSync(w http.ResponseWriter, r *http.Request) {

@@ -11,11 +11,13 @@ import (
 
 // Status mirrors the orchestrator GET /api/status payload.
 type Status struct {
-	Status   string  `json:"status"`
-	Version  string  `json:"version"`
-	Profit   float64 `json:"profit"`
-	Memories int     `json:"memories"`
-	Peers    int     `json:"peers"`
+	Status      string  `json:"status"`
+	Version     string  `json:"version"`
+	Profit      float64 `json:"profit"`
+	Memories    int     `json:"memories"`
+	Peers       int     `json:"peers"`
+	DiskUsedPct float64 `json:"disk_used_pct"`
+	DiskFreeGB  float64 `json:"disk_free_gb"`
 }
 
 // FetchStatus GETs <base>/api/status, falling back to <base>/status (the
@@ -60,8 +62,13 @@ func (s *Status) Tooltip() string {
 	if s == nil || s.Status == "offline" || s.Status == "" {
 		return "AI Hustle Machine: orchestrator offline"
 	}
-	return fmt.Sprintf("AI Hustle Machine v%s: %s, profit $%.2f, %d memories, %d peers",
+	tip := fmt.Sprintf("AI Hustle Machine v%s: %s, profit $%.2f, %d memories, %d peers",
 		s.Version, s.Status, s.Profit, s.Memories, s.Peers)
+	// Surface the disk before it is fatal (2026-11-14: 100% -> site 504).
+	if s.DiskUsedPct >= 85 {
+		tip += fmt.Sprintf(" | ⚠ disk %.0f%% used (%.1f GB free)", s.DiskUsedPct, s.DiskFreeGB)
+	}
+	return tip
 }
 
 // MenuLabel is the (disabled) first menu item text.

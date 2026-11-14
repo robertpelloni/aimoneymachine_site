@@ -342,3 +342,7 @@
 ## [1.5.2] - 2026-11-14
 ### Fixed
 - All daemon JSON state writes (tasks, chains, ledger, memory, STATUS) now go through WriteFileAtomic (same-dir temp + fsync + rename): a SIGKILL mid-write can no longer truncate the file the next boot parses. Previously every restart/deploy raced plain os.WriteFile truncation. Tests cover roundtrip, crash-leftover temp ignored, scheduler+chain save/load roundtrip.
+
+## [1.6.0] - 2026-11-14
+### Added
+- Disk visibility after the full-disk outage: GET /api/status now includes disk_used_pct + disk_free_gb (linux statfs / windows GetDiskFreeSpaceEx, omitted elsewhere). Dashboard Overview gains a Disk card (green <85, yellow 85-95, red >=95) and the tray tooltip appends a disk warning at >=85 percent. Test: TestDiskUsageSane; tray tooltip threshold covered.
