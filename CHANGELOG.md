@@ -417,3 +417,7 @@
 ## [1.9.9] - 2026-11-14
 ### Fixed
 - Affiliate social posts could contain raw LLM scaffolding: a real prod post opened with the echoed prompt ('The user wants a punchy...') and the review carried appended model reasoning ('But does it mention it's an affiliate link?...'). sanitizeSocialReview now strips code fences and leading instruction-echo, ends the post at the affiliate link, and collapses to one line before FormatForPlatform caps it. Tests reproduce both observed shapes. Follow-up noted: social.GenerateContent deserves the same treatment.
+
+## [1.9.10] - 2026-11-14
+### Fixed
+- social.GenerateContent now sanitizes before validating (same treatment as the affiliate v1.9.9 fix): code fences and wrapping quotes stripped, a leading instruction-echo sentence dropped, and any trailing run of meta/reasoning sentences ('But does it mention...', 'The user said...') cut. Previously echo either slipped through raw or nuked the whole output to the canned fallback. A lone echo sentence still falls back. Tests: TestSanitizeSocialContent, TestGenerateContentSanitizesEchoAndReasoning.

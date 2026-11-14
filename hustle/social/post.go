@@ -222,13 +222,95 @@ func NewLinkedInProvider(accessToken, authorURN string) *LinkedInProvider {
 	}
 }
 
+// metaSentencePrefixes mark model scaffolding, not post copy: thinking
+// about the prompt, checking its own work, echoing instructions. Any
+// trailing run of such sentences is reasoning, never publishable text.
+var metaSentencePrefixes = []string{
+	"the user wants", "the user asked", "the user said", "the prompt ",
+	"but does it", "does it mention", "is that clear", "should i ",
+	"let me ", "note:", "i should ", "maybe i should", "this post should",
+	"as an ai",
+}
+
+// echoOpeners are instruction-echo first sentences ("Here is a post
+// about X. <actual post>") that precede the real copy.
+var echoOpeners = []string{
+	"the user wants", "the user asked", "here is a", "here's a",
+	"here is the", "here's the", "here is your", "here's your",
+	"sure! here", "certainly! here", "create a ",
+}
+
+func splitSentences(s string) []string {
+	var out []string
+	var cur strings.Builder
+	for _, r := range s {
+		cur.WriteRune(r)
+		if r == '.' || r == '!' || r == '?' {
+			if t := strings.TrimSpace(cur.String()); t != "" {
+				out = append(out, t)
+			}
+			cur.Reset()
+		}
+	}
+	if t := strings.TrimSpace(cur.String()); t != "" {
+		out = append(out, t)
+	}
+	return out
+}
+
+func hasAnyPrefix(lower string, prefixes []string) bool {
+	for _, p := range prefixes {
+		if strings.HasPrefix(lower, p) {
+			return true
+		}
+	}
+	return false
+}
+
+// sanitizeSocialContent makes raw LLM output safe for a public post,
+// mirroring the affiliate sanitizer (v1.9.9): strip code fences and
+// wrapping quotes, drop a leading instruction-echo sentence, and cut
+// any trailing run of meta/reasoning sentences. It never rewrites the
+// copy itself; anything unrecognizable passes through for the caller's
+// junk validation to reject.
+func sanitizeSocialContent(content string) string {
+	s := strings.TrimSpace(content)
+	s = strings.TrimPrefix(s, "```markdown")
+	s = strings.TrimPrefix(s, "```md")
+	s = strings.TrimPrefix(s, "```json")
+	s = strings.TrimPrefix(s, "```")
+	s = strings.TrimSuffix(strings.TrimSpace(s), "```")
+	s = strings.TrimSpace(s)
+	if len(s) >= 2 && s[0] == '"' && s[len(s)-1] == '"' {
+		s = strings.TrimSpace(s[1 : len(s)-1])
+	}
+
+	sentences := splitSentences(s)
+	// Leading echo sentence, only when real copy follows it.
+	if len(sentences) > 1 && hasAnyPrefix(strings.ToLower(sentences[0]), echoOpeners) {
+		sentences = sentences[1:]
+	}
+	// Trailing meta/reasoning sentences, cut as a run from the end.
+	for len(sentences) > 1 {
+		last := strings.ToLower(sentences[len(sentences)-1])
+		if !hasAnyPrefix(last, metaSentencePrefixes) {
+			break
+		}
+		sentences = sentences[:len(sentences)-1]
+	}
+	return strings.Join(sentences, " ")
+}
+
 func GenerateContent(orch *orchestrator.Orchestrator, topic string) string {
 	prompt := fmt.Sprintf("Create a short, revolutionary social media post about %s with hashtags.", topic)
-	content, err := orch.LLM.Generate(prompt)
+	raw, err := orch.LLM.Generate(prompt)
+	content := sanitizeSocialContent(raw)
 
-	// Validate LLM output — reject junk: prompt echo, metadata, JSON, short garbage
+	// Validate LLM output — reject junk: metadata, JSON, short garbage.
+	// (Prompt echo and reasoning are already stripped by the sanitizer;
+	// anything still matching these markers is unrecoverable.)
 	if err != nil || content == "" || len(content) < 20 ||
-		strings.Contains(content, "Create a short") ||
+		hasAnyPrefix(strings.ToLower(content), echoOpeners) ||
 		strings.Contains(content, "[Model:") ||
 		strings.Contains(content, "Generated content") ||
 		strings.Contains(content, "```json") ||
@@ -245,7 +327,7 @@ func GenerateContent(orch *orchestrator.Orchestrator, topic string) string {
 		return fallback
 	}
 
-	return strings.TrimSpace(content)
+	return content
 }
 
 // DefaultPlatform is the social platform used by pipelines that post on

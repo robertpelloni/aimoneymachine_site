@@ -130,6 +130,67 @@ func TestTwitterProvider_PostSuccess(t *testing.T) {
 	}
 }
 
+// Shapes observed leaking into real prod posts (affiliate, v1.9.9):
+// prompt echo at the start, model reasoning appended at the end.
+func TestSanitizeSocialContent(t *testing.T) {
+	cases := []struct{ name, in, want string }{
+		{
+			"leading echo stripped",
+			"Here is a revolutionary post about AI tools. AI agents are eating SaaS alive. #AI #hustle",
+			"AI agents are eating SaaS alive. #AI #hustle",
+		},
+		{
+			"user-wants echo stripped",
+			"The user wants a short post about crypto. Bitcoin is eating the banks. #crypto",
+			"Bitcoin is eating the banks. #crypto",
+		},
+		{
+			"trailing reasoning cut",
+			"AI agents are eating SaaS! #AI #hustle. But does it mention it's revolutionary? The user said revolutionary, so maybe it should.",
+			"AI agents are eating SaaS! #AI #hustle.",
+		},
+		{
+			"fences stripped",
+			"```\nAI tools are changing everything fast. #AI\n```",
+			"AI tools are changing everything fast. #AI",
+		},
+		{
+			"clean copy untouched",
+			"AI agents are eating SaaS alive. #AI #hustle",
+			"AI agents are eating SaaS alive. #AI #hustle",
+		},
+	}
+	for _, c := range cases {
+		if got := sanitizeSocialContent(c.in); got != c.want {
+			t.Errorf("%s:\n got %q\nwant %q", c.name, got, c.want)
+		}
+	}
+	// A lone echo sentence has no copy to rescue: it must stay marked
+	// as echo so GenerateContent's validation rejects it to fallback.
+	if got := sanitizeSocialContent("Create a short, revolutionary social media post about AI with hashtags."); !hasAnyPrefix(strings.ToLower(got), echoOpeners) {
+		t.Errorf("lone echo not detectable: %q", got)
+	}
+}
+
+func TestGenerateContentSanitizesEchoAndReasoning(t *testing.T) {
+	orch := orchestrator.NewOrchestrator()
+	orch.LLM = &orchestrator.MockLLM{GenerateFunc: func(string) (string, error) {
+		return "Here is a revolutionary post about AI automation. AI agents are replacing busywork everywhere. #AI #hustle. But does it mention it's revolutionary enough?", nil
+	}}
+	got := GenerateContent(orch, "AI automation")
+	want := "AI agents are replacing busywork everywhere. #AI #hustle."
+	if got != want {
+		t.Errorf("GenerateContent = %q, want %q", got, want)
+	}
+	// Pure junk still falls back.
+	orch.LLM = &orchestrator.MockLLM{GenerateFunc: func(string) (string, error) {
+		return "Create a short, revolutionary social media post about AI automation with hashtags.", nil
+	}}
+	if got := GenerateContent(orch, "AI automation"); !strings.Contains(got, "Revolutionary insights on AI automation!") {
+		t.Errorf("echo-only output should fall back, got %q", got)
+	}
+}
+
 func TestDefaultPlatformAndProviderSelection(t *testing.T) {
 	t.Setenv("SOCIAL_DEFAULT_PLATFORM", "")
 	if got := DefaultPlatform(); got != "Twitter" {
