@@ -453,3 +453,7 @@
 ## [1.9.17] - 2026-11-14
 ### Added
 - Optional API token auth: when AIMM_API_TOKEN is set, all state-changing endpoints (dispatch, sync, healer, message, register) require Authorization: Bearer or X-API-Key (constant-time compare). Reads and the dashboard stay open. Dashboard dispatch sends a token from localStorage (aimm_api_token) when present; smoke_prod.py honors SMOKE_API_TOKEN/AIMM_API_TOKEN. Prod verified NOT reachable on :8082 from the internet (firewall drops it), so the token ships supported-but-unset; set it before ever exposing the port. Test: TestRequireToken (open/missing/wrong/both header forms).
+
+## [1.9.18] - 2026-11-14
+### Fixed
+- Federation was one-way: a joining node registered the seed locally and synced to it, but never told the seed its own address, so the seed could never route or sync back (two-node prod experiment: joiner peers=1, seed peers=0). On -seed joins with an API port, the node now announces itself via POST /register (AIMM_PEER_URL overrides the advertised callback; 3 retries while APIs start).

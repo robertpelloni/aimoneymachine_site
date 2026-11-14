@@ -2,8 +2,11 @@ package main
 
 import (
 	"bufio"
+	"bytes"
+	"encoding/json"
 	"flag"
 	"fmt"
+	"net/http"
 	"net/url"
 	"os"
 	"os/exec"
@@ -614,6 +617,19 @@ func main() {
 		api := orchestrator.NewAPI(orch, protocol, broker, chainManager, discoverer)
 		api.MultiAgent = multiAgent
 		go api.Start(*apiPort)
+
+		// Announce to the seed so federation is two-way: registering the
+		// seed locally (above) never told the seed our address, so it
+		// could never route or sync back (verified in a two-node prod
+		// experiment: joiner peers=1, seed peers=0). AIMM_PEER_URL
+		// overrides the advertised callback for cross-host joins.
+		if *seedURL != "" {
+			selfURL := os.Getenv("AIMM_PEER_URL")
+			if selfURL == "" {
+				selfURL = "http://localhost:" + *apiPort
+			}
+			go announceToSeed(*seedURL, selfURL, *apiPort)
+		}
 	}
 
 	// ── Agent Mode (NEW): LLM-driven autonomous loop ──
@@ -803,6 +819,31 @@ func syncScriptPath() string {
 func syncAvailable() bool {
 	_, err := os.Stat(syncScriptPath())
 	return err == nil
+}
+
+// announceToSeed registers this node's API address with the seed node
+// (POST /register) so the seed can route and sync back. Retries briefly
+// because both APIs may still be starting.
+func announceToSeed(seedURL, selfURL, apiPort string) {
+	body, _ := json.Marshal(map[string]string{
+		"id":  "peer-" + apiPort,
+		"url": selfURL,
+	})
+	client := &http.Client{Timeout: 10 * time.Second}
+	for attempt := 1; attempt <= 3; attempt++ {
+		resp, err := client.Post(strings.TrimRight(seedURL, "/")+"/register", "application/json", bytes.NewReader(body))
+		if err == nil && resp.StatusCode == http.StatusOK {
+			resp.Body.Close()
+			fmt.Printf("[Swarm] Announced to seed %s as %s\n", seedURL, selfURL)
+			return
+		}
+		if resp != nil {
+			resp.Body.Close()
+		}
+		fmt.Printf("[Swarm] Announce attempt %d/3 to seed failed (retrying)\n", attempt)
+		time.Sleep(2 * time.Second)
+	}
+	fmt.Printf("[Swarm] Could not announce to seed %s; seed cannot route back to this node\n", seedURL)
 }
 
 func runSyncProtocol() error {
