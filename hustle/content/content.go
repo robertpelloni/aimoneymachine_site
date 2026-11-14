@@ -57,6 +57,34 @@ func NewContentModule(orch *orchestrator.Orchestrator, outputDir string) *Conten
 	}
 }
 
+// expandIfShort makes ONE expansion pass when a long-form piece comes
+// back under half its target length (observed on prod: a 98-word blog
+// against the 800-word target — the model answered, just tersely). The
+// expanded text is used only if it is actually longer; threads (which
+// are supposed to be short) are exempt.
+func (c *ContentModule) expandIfShort(req ContentRequest, body string) string {
+	if req.Type == SocialThread {
+		return body
+	}
+	words := len(strings.Fields(body))
+	if words*2 >= req.TargetWords {
+		return body
+	}
+	fmt.Printf("[Content] Draft is %d words (target %d); expanding once\n", words, req.TargetWords)
+	expanded, err := c.Orch.LLM.Generate(fmt.Sprintf(
+		"Expand the following %s about %q to about %d words by adding depth, concrete examples, and sections. Return the COMPLETE article only, keeping its markdown heading.\n\n%s",
+		req.Type, req.Topic, req.TargetWords, body))
+	if err != nil {
+		fmt.Printf("[Content] Expansion failed (keeping draft): %v\n", err)
+		return body
+	}
+	if len(strings.Fields(expanded)) > words {
+		return expanded
+	}
+	fmt.Println("[Content] Expansion was not longer; keeping draft")
+	return body
+}
+
 // Generate produces content based on the request using the LLM
 func (c *ContentModule) Generate(req ContentRequest) (*ContentResult, error) {
 	fmt.Printf("[Content] Generating %s about: %s\n", req.Type, req.Topic)
@@ -74,6 +102,7 @@ func (c *ContentModule) Generate(req ContentRequest) (*ContentResult, error) {
 	if err != nil {
 		return nil, fmt.Errorf("LLM content generation failed: %v", err)
 	}
+	body = c.expandIfShort(req, body)
 
 	// Extract title from the first heading if present
 	title := req.Topic

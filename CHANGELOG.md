@@ -457,3 +457,7 @@
 ## [1.9.18] - 2026-11-14
 ### Fixed
 - Federation was one-way: a joining node registered the seed locally and synced to it, but never told the seed its own address, so the seed could never route or sync back (two-node prod experiment: joiner peers=1, seed peers=0). On -seed joins with an API port, the node now announces itself via POST /register (AIMM_PEER_URL overrides the advertised callback; 3 retries while APIs start).
+
+## [1.9.19] - 2026-11-14
+### Fixed
+- Blog/newsletter/SEO generation accepted whatever length the LLM returned (prod agent run produced a 98-word blog against the 800-word target). Generate now makes ONE expansion pass when a long-form draft lands under half its target, keeps it only if actually longer, and logs the decision; social threads are exempt. Test: TestGenerateExpandsShortDraftOnce (call counts, title from expanded body, thread exemption).
