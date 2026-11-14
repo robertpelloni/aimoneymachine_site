@@ -14,13 +14,5 @@
       "hustle://curation?topic=AI",
       "hustle://social?platform=Twitter"
     ]
-  },
-  "luxury_chain_name": {
-    "name": "luxury_chain_name",
-    "description": "brief luxury-focused description",
-    "steps": [
-      "hustle://step1",
-      "hustle://step2"
-    ]
   }
 }
