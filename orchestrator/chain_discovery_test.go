@@ -35,7 +35,9 @@ func TestValidateChainSteps(t *testing.T) {
 // Discovery must reject them instead of persisting a doomed chain.
 func TestDiscoverRejectsPlaceholderSteps(t *testing.T) {
 	orch := NewOrchestrator()
-	orch.LLM = &MockLLM{Response: `{"name":"luxury_chain_name","description":"x","steps":["hustle://step1","hustle://step2"],"interval_minutes":60}`}
+	orch.LLM = &MockLLM{GenerateFunc: func(string) (string, error) {
+		return `{"name":"luxury_chain_name","description":"x","steps":["hustle://step1","hustle://step2"],"interval_minutes":60}`, nil
+	}}
 	mgr := NewChainManager(orch, testProtocol())
 	d := NewChainDiscoverer(orch, mgr)
 	if _, err := d.Discover(); err == nil || !strings.Contains(err.Error(), "rejected") {
@@ -49,7 +51,9 @@ func TestDiscoverRejectsPlaceholderSteps(t *testing.T) {
 func TestDiscoverRegistersValidChain(t *testing.T) {
 	t.Chdir(t.TempDir()) // Register saves chains.json in cwd
 	orch := NewOrchestrator()
-	orch.LLM = &MockLLM{Response: `{"name":"good_chain","description":"x","steps":["hustle://research?query=AI"],"interval_minutes":30}`}
+	orch.LLM = &MockLLM{GenerateFunc: func(string) (string, error) {
+		return `{"name":"good_chain","description":"x","steps":["hustle://research?query=AI"],"interval_minutes":30}`, nil
+	}}
 	mgr := NewChainManager(orch, testProtocol())
 	d := NewChainDiscoverer(orch, mgr)
 	got, err := d.Discover()

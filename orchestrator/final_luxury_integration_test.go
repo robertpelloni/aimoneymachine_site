@@ -1,6 +1,7 @@
 package orchestrator
 
 import (
+	"net/url"
 	"testing"
 	"strings"
 	"time"
@@ -9,6 +10,7 @@ import (
 func TestAbsoluteFinalLuxuryProtocol(t *testing.T) {
 	orch := NewOrchestrator()
 	protocol := NewHustleProtocol()
+	protocol.Register("research", func(p url.Values) error { return nil })
 	mgr := NewChainManager(orch, protocol)
 	disc := NewChainDiscoverer(orch, mgr)
 	broker := NewA2ABroker(orch)

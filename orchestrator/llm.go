@@ -58,6 +58,12 @@ func (m *MockLLM) Generate(prompt string) (string, error) {
 		return `[{"name": "mock_hustle", "description": "mock", "category": "Research", "steps": ["hustle://research"], "interval_min": 60, "priority": "high"}]`, nil
 	}
 
+	// Chain discovery: propose a chain whose steps are real modules. (The
+	// prompt's own example used to be parroted back, registering garbage.)
+	if strings.Contains(prompt, "Swarm Evolution Engine") {
+		return `{"name": "mock_discovered_chain", "description": "mock discovered chain", "steps": ["hustle://research?query=AI trends"], "interval_minutes": 60}`, nil
+	}
+
 	if m.Response != "" {
 		return m.Response, nil
 	}
