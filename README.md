@@ -14,7 +14,7 @@ Despite the repo name, this is not just a website: the site is one output of the
 
 "Fully automated revenue" is the *research goal*, not a measured result. The only income figures recorded in the tree are in `STATUS.json` (2026-07-03): revenue $171.60, expenses $1,005, profit **−$833.40**. Read the corpus as a well-organized research notebook attached to a working agent harness — that is what this repo verifiably is.
 
-**Note:** `VERSION.md` and `STATUS.json` both still contain unresolved merge-conflict markers (two competing versions, 1.0.0-alpha.83 vs v1.1.0-alpha.92). The version is unsettled until someone resolves them.
+**Note (updated 2026-11-14):** the merge conflicts that once sat in `VERSION.md`/`STATUS.json` (and in `go.work`/`go.mod`/`main.go`) were resolved in v1.2.0; the version is single-sourced from `VERSION.md` (currently 1.6.2) and the Go orchestrator, embedded dashboard, and Hetzner prod services are running. See [HANDOFF.md](HANDOFF.md) for current state and [CHANGELOG.md](CHANGELOG.md) for what changed.
 
 ## Related
 
