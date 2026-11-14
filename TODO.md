@@ -54,3 +54,4 @@
 - [x] Shorts FFmpeg render pipeline (v1.4.0/v1.4.1) - MP4 verified on prod: 1080x1920 h264+aac, 38s, drawtext cards
 - [ ] Shorts TTS: set ELEVENLABS_API_KEY in prod orchestrator .env to enable voice (currently silent cards, manifest says so)
 - [ ] Shorts YouTube upload: needs YOUTUBE_CLIENT_ID/YOUTUBE_REFRESH_TOKEN OAuth from user
+- [x] System tray controller (v1.5.0, tray/)

@@ -25,3 +25,6 @@
 
 ## 7. One-binary dashboard
 - go:embed dashboard.html into the orchestrator and serve it from :8082 itself, deleting the Python dashboard server entirely.
+
+## 6b. Tray follow-ups
+- Single-instance lock, autostart-on-login toggle, and a sparkline profit graph in the tray menu. Prod start/stop currently shells to ssh; a signed control endpoint on the orchestrator would remove the ssh dependency.

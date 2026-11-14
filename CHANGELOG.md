@@ -330,3 +330,7 @@
 ## [1.4.1] - 2026-11-14
 ### Fixed
 - Shorts render failed on prod ffmpeg 6.1 with 'Filter not found': escapeDrawtext used \\' for apostrophes, which is not an escape at filtergraph level and breaks parsing. Apostrophes now become Unicode right single quote (verified with exact-argv probes: raw ' and \\' fail rc=8, Unicode variant renders rc=0).
+
+## [1.5.0] - 2026-11-14
+### Added
+- aimm-tray (tray/): system-tray controller that finally answers 'where is the tray icon?' — polls the orchestrator API (green/red icon, tooltip + status menu), Open Dashboard, Refresh, and Start/Stop/Restart of the Hetzner aimm-* services over the ssh alias (Stop = quit the servers). Config via AIMM_API_URL / AIMM_SSH_HOST; headless aimm-tray --status mode. Tests for status parsing/formatting and control commands. Build: scripts/build-tray.ps1.

@@ -11,4 +11,5 @@ use (
 	./hustle/social
 	./hustle/trading
 	./orchestrator
+	./tray
 )

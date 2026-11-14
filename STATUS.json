@@ -1,7 +1,7 @@
 {
-  "version": "1.4.1",
+  "version": "1.5.0",
   "status": "Running",
-  "message": "Shorts drawtext escaping fix",
+  "message": "System tray controller",
   "revenue": 171.6,
   "expenses": 1005,
   "profit": -833.4
