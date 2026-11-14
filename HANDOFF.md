@@ -26,3 +26,9 @@ There is none, anywhere in the repo. Prod control = systemctl stop/start/restart
 - Wired hustle://calendar (status/process/add/schedule_week) + hustle://publisher (status/wordpress/wordpress_markdown/newsletter) in main.go; dashboard Publisher card now has live forms. publisher.ProcessPending() publishes due entries by index (GetPendingEntries copies lost status).
 - ROOT-CAUSE FIND: TestRollback (orchestrator/sync_test.go) executed RollbackHandler in the real working tree — git checkout . + git clean -fd in orchestrator/ — silently reverting uncommitted orchestrator/ edits and deleting new untracked files during full test runs (hit in both v1.2.0 and v1.2.1 sessions). Fixed: test now runs in a temp git repo and asserts the revert there. Do NOT reintroduce a bare Execute() in the repo root; consider hardening RollbackHandler.Execute to require an explicit directory.
 - GET /content now returns [] not 500 for an empty library. Full orchestrator suite green on Windows.
+
+## Update 2026-11-14 (v1.3.0)
+- Dashboard embedded via go:embed in orchestrator/api.go, served at / + /dashboard on :8082 with /api/* aliases incl. new Go handleLog/handleProgress. dashboard.html moved to orchestrator/dashboard.html (git rename). dashboard_server.py is fallback only.
+- RollbackHandler hardened: Execute() refuses without explicit Dir; Dir must be the git top level; commands scoped with cmd.Dir. Healer passes os.Getwd() explicitly. TestRollback covers refusal + revert.
+- Prod: aimm-dashboard (Python :8083) RETIRED (disable --now). Dashboard is now http://localhost:8082/ via ssh tunnel. healthcheck.sh on prod updated to check :8082/ instead of the dashboard unit (backup healthcheck.sh.bak-20261114). All other aimm-* active; healthcheck HEALTHY; site 200.
+- New prod noise: CoinGecko 429 rate limiting (no API key) failing some trading cycles — see TODO.

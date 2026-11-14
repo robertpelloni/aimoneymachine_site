@@ -46,3 +46,5 @@
 - [x] Wire hustle://calendar + hustle://publisher handlers (v1.2.1)
 - [x] Fix TestRollback destroying uncommitted work: it ran git checkout/clean in the real repo; now uses a temp repo (v1.2.1)
 - [x] Fix TestSyncProtocolIntegration on Windows — skips without bash (v1.2.1)
+- [ ] CoinGecko 429s on prod (no COINGECKO_API_KEY set): trading tasks for XRP/ADA failing with rate limited after 3 retries. User: set a free CoinGecko Demo key in prod .env, or raise per-symbol intervals in daemon scheduler.
+- [x] Embed dashboard in Go binary, retire Python aimm-dashboard service (v1.3.0)
