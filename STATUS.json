@@ -1,7 +1,7 @@
 {
-  "version": "1.5.1",
+  "version": "1.5.2",
   "status": "Running",
-  "message": "Tray single-instance + autostart",
+  "message": "Atomic state writes",
   "revenue": 171.6,
   "expenses": 1005,
   "profit": -833.4

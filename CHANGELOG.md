@@ -338,3 +338,7 @@
 ## [1.5.1] - 2026-11-14
 ### Added
 - aimm-tray: single-instance guard (Windows named mutex; O_EXCL lockfile with stale-PID takeover elsewhere) — a second launch prints 'aimm-tray is already running' and exits, verified live. Start-at-Login checkbox backed by the HKCU Run key (Windows; disabled elsewhere). Test: TestSingleInstanceGuard.
+
+## [1.5.2] - 2026-11-14
+### Fixed
+- All daemon JSON state writes (tasks, chains, ledger, memory, STATUS) now go through WriteFileAtomic (same-dir temp + fsync + rename): a SIGKILL mid-write can no longer truncate the file the next boot parses. Previously every restart/deploy raced plain os.WriteFile truncation. Tests cover roundtrip, crash-leftover temp ignored, scheduler+chain save/load roundtrip.
