@@ -1,7 +1,7 @@
 {
-  "version": "1.3.1",
+  "version": "1.3.2",
   "status": "Running",
-  "message": "CoinGecko batch + stale fallback",
+  "message": "Orphaned discovered-chain tasks dropped at load",
   "revenue": 171.6,
   "expenses": 1005,
   "profit": -833.4

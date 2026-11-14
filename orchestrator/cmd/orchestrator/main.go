@@ -636,6 +636,13 @@ func main() {
 	// ── Daemon Mode ──
 	if *daemon {
 		scheduler := orchestrator.NewScheduler(orch)
+		// Drop persisted DiscoveredChain tasks whose chain is not loaded
+		// (e.g. chains.json was replaced by a deploy) instead of failing
+		// them on every cycle.
+		scheduler.KnownChain = func(name string) bool {
+			_, ok := chainManager.Chains[name]
+			return ok
+		}
 		scheduler.LoadState("tasks.json", protocol)
 
 		scheduler.Register("Research", 1*time.Hour, func(o *orchestrator.Orchestrator) error {

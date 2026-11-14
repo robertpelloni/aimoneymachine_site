@@ -313,3 +313,7 @@
 ### Fixed
 - CoinGecko graceful degradation: one cache miss batch-fetches all 7 daemon symbols in a single /simple/price call and primes the cache (was 7 separate calls/cycle, causing 429 storms without an API key). When all retries fail, GetPrice now serves the last known (stale) price with a log line instead of failing the trading task; it still errors when no price was ever fetched.
 - Tests: TestCoinGeckoFetcher_BatchPrimesCache, TestCoinGeckoFetcher_StaleFallbackOnRateLimit; DifferentSymbols mock updated to answer multi-ID requests like the real API (same asserted prices).
+
+## [1.3.2] - 2026-11-14
+### Fixed
+- Scheduler.LoadState drops persisted DiscoveredChain:* tasks whose chain is not in the ChainManager (new KnownChain hook wired in the daemon), instead of re-registering orphans that fail 'chain not found' on every cycle after a deploy replaced chains.json. Test: TestLoadStateDropsOrphanedDiscoveredChains.

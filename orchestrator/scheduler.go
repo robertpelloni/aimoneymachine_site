@@ -20,7 +20,12 @@ type Task struct {
 type Scheduler struct {
 	Orchestrator *Orchestrator
 	Tasks        []*Task
-	mu           sync.Mutex
+	// KnownChain, when set, reports whether a chain name exists in the
+	// ChainManager. LoadState uses it to drop persisted DiscoveredChain
+	// tasks whose chain is gone (e.g. chains.json was replaced), instead
+	// of re-registering orphans that fail on every cycle forever.
+	KnownChain func(name string) bool
+	mu         sync.Mutex
 }
 
 func NewScheduler(orch *Orchestrator) *Scheduler {
@@ -115,6 +120,10 @@ func (s *Scheduler) LoadState(filepath string, protocol *HustleProtocol) error {
 		// Re-register discovered chains
 		if !found && strings.HasPrefix(loaded.Name, "DiscoveredChain:") {
 			chainName := strings.TrimPrefix(loaded.Name, "DiscoveredChain:")
+			if s.KnownChain != nil && !s.KnownChain(chainName) {
+				fmt.Printf("[Scheduler] Dropping orphaned task %s: chain %q not found\n", loaded.Name, chainName)
+				continue
+			}
 			s.Tasks = append(s.Tasks, &Task{
 				Name:     loaded.Name,
 				Interval: loaded.Interval,
