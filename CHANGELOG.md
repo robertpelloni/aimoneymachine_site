@@ -389,3 +389,7 @@
 ## [1.9.3] - 2026-11-14
 ### Fixed
 - Scheduler boot stagger: after every restart (i.e. every deploy) all overdue tasks fired in the same second - an LLM/API stampede that contributed to the overload timeouts. Start now assigns task i a not-before of Start+i*BootStagger (default 20s, ~4 min spread for the daemon's task set); taskDue enforces it. Test: TestTaskDueBootStagger.
+
+## [Unreleased] ops notes - 2026-11-14
+- Prod: LLM_TIMEOUT_SEC raised 240 -> 480 (long content/discovery generations legitimately exceed 4 min via FreeLLM auto-continue; timeout failures are now at least logged).
+- Prod+repo chains.json: curation chain step 2 switched Twitter -> Bluesky. X API diagnoses itself in logs: 402 {detail: credits depleted} (not only the earlier 401) - the chain now distributes via Bluesky, whose credentials are configured. One-line revert when X credits are topped up.

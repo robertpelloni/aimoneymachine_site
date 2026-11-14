@@ -9,10 +9,10 @@
   },
   "curation": {
     "name": "curation",
-    "description": "Curate AI news and post to Twitter",
+    "description": "Curate AI news and post to Bluesky (Twitter/X blocked: API returns 402 credits depleted; switch back when topped up)",
     "steps": [
       "hustle://curation?topic=AI",
-      "hustle://social?platform=Twitter"
+      "hustle://social?platform=Bluesky"
     ]
   }
 }
