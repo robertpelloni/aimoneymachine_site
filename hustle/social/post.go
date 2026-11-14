@@ -249,10 +249,21 @@ func GenerateContent(orch *orchestrator.Orchestrator, topic string) string {
 }
 
 func FormatForPlatform(content, platform string) string {
-	if platform == "Twitter" {
+	// Per-platform length caps. Bluesky rejects records over 300
+	// graphemes with XRPC InvalidRequest — the curation chain's
+	// affiliate-injected posts exceeded it because only Twitter was
+	// truncated here.
+	limit := 0
+	switch strings.ToLower(platform) {
+	case "twitter":
+		limit = 280
+	case "bluesky":
+		limit = 300
+	}
+	if limit > 0 {
 		runes := []rune(content)
-		if len(runes) > 280 {
-			return string(runes[:277]) + "..."
+		if len(runes) > limit {
+			return string(runes[:limit-3]) + "..."
 		}
 	}
 	return content

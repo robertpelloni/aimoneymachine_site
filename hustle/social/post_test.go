@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/robertpelloni/hustle/orchestrator"
@@ -126,5 +127,24 @@ func TestTwitterProvider_PostSuccess(t *testing.T) {
 	err := provider.Post(orch, "Twitter", "Test Content")
 	if err != nil {
 		t.Fatalf("expected success, got error: %v", err)
+	}
+}
+
+// Bluesky rejects posts over 300 graphemes (XRPC InvalidRequest); the
+// formatter must cap it the way it already capped Twitter at 280.
+func TestFormatForPlatformLimits(t *testing.T) {
+	long := strings.Repeat("a", 400)
+	if got := FormatForPlatform(long, "Bluesky"); len([]rune(got)) != 300 {
+		t.Errorf("Bluesky len = %d runes, want 300", len([]rune(got)))
+	}
+	if got := FormatForPlatform(long, "Twitter"); len([]rune(got)) != 280 {
+		t.Errorf("Twitter len = %d runes, want 280", len([]rune(got)))
+	}
+	short := "hello"
+	if got := FormatForPlatform(short, "Bluesky"); got != short {
+		t.Errorf("short Bluesky post modified: %q", got)
+	}
+	if got := FormatForPlatform(long, "LinkedIn"); got != long {
+		t.Error("LinkedIn must not be truncated at these limits")
 	}
 }

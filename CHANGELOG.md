@@ -393,3 +393,7 @@
 ## [Unreleased] ops notes - 2026-11-14
 - Prod: LLM_TIMEOUT_SEC raised 240 -> 480 (long content/discovery generations legitimately exceed 4 min via FreeLLM auto-continue; timeout failures are now at least logged).
 - Prod+repo chains.json: curation chain step 2 switched Twitter -> Bluesky. X API diagnoses itself in logs: 402 {detail: credits depleted} (not only the earlier 401) - the chain now distributes via Bluesky, whose credentials are configured. One-line revert when X credits are topped up.
+
+## [1.9.4] - 2026-11-14
+### Fixed
+- FormatForPlatform now caps Bluesky at 300 runes (it only capped Twitter at 280): affiliate-injected social posts exceeded Bluesky's grapheme limit and the AT Protocol rejected them with XRPC InvalidRequest, failing every curation chain at step 2 after the chain was switched off Twitter (X returns 402 credits depleted). Test: TestFormatForPlatformLimits.
