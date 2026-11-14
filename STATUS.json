@@ -1,7 +1,7 @@
 {
-  "version": "1.9.11",
+  "version": "1.9.12",
   "status": "Running",
-  "message": "Chain discovery strict-JSON retry",
+  "message": "LLM detection retry - no silent MockLLM downgrade",
   "revenue": 171.6,
   "expenses": 1005,
   "profit": -833.4

@@ -425,3 +425,7 @@
 ## [1.9.11] - 2026-11-14
 ### Fixed
 - Chain discovery died on reasoning-style LLM replies with no JSON ('The user wants me to act as...', seen in prod WorkflowDiscovery). Discover now retries once via GenerateJSON (strict 'Respond ONLY with valid JSON') before failing, and response parsing is extracted to parseDiscoveredChain. Test: TestDiscoverRetriesWithStrictJSON.
+
+## [1.9.12] - 2026-11-14
+### Fixed
+- A bounded prod agent dry-run exposed silent MockLLM downgrade: DetectModel had no HTTP status check and no retry, so one transient FreeLLM blip (body '503') surfaced as a cryptic unmarshal error and the whole process ran on MockLLM while the real LLM was healthy. DetectModel now names non-200 statuses, and bootstrap (primary + fallback) probes via DetectModelWithRetry (3x/3s, 2x/2s). Also fixed the agent prompt's publisher/products lines, whose descriptions had merged onto one line. Test: TestDetectModelWithRetryRecoversFromTransient503.

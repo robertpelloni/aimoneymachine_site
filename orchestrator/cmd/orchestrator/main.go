@@ -73,7 +73,7 @@ func main() {
 	// Wire up real LLM via LM Studio / OpenAI-compatible provider
 	llmProvider := orchestrator.NewOpenAICompatProvider()
 	// Auto-detect and test the LLM connection
-	if model, err := llmProvider.DetectModel(); err == nil {
+	if model, err := llmProvider.DetectModelWithRetry(3, 3*time.Second); err == nil {
 		fmt.Printf("[LLM] ✅ Connected to local LLM: %s\n", model)
 		orch.LLM = llmProvider
 		// Optional second-chance provider (LLM_FALLBACK_BASE_URL, e.g. a
@@ -83,7 +83,7 @@ func main() {
 		// against the fallback instead of failing the whole generation.
 		if fbURL := os.Getenv("LLM_FALLBACK_BASE_URL"); fbURL != "" {
 			fb := orchestrator.NewOpenAICompatProviderWithBaseURL(fbURL)
-			if fbModel, ferr := fb.DetectModel(); ferr == nil {
+			if fbModel, ferr := fb.DetectModelWithRetry(2, 2*time.Second); ferr == nil {
 				fmt.Printf("[LLM] Fallback provider ready: %s (%s)\n", fbURL, fbModel)
 				orch.LLM = &orchestrator.WaterfallLLM{Providers: []orchestrator.LLMProvider{llmProvider, fb}}
 			} else {

@@ -141,6 +141,12 @@ func (p *OpenAICompatProvider) DetectModel() (string, error) {
 		return "", fmt.Errorf("cannot reach LLM server at %s: %v", p.BaseURL, err)
 	}
 	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		// Without this check a transient 429/503 body surfaces as a
+		// cryptic "cannot unmarshal number into Go value..." and the
+		// caller silently downgrades to MockLLM.
+		return "", fmt.Errorf("LLM server at %s returned HTTP %d", p.BaseURL, resp.StatusCode)
+	}
 
 	var models struct {
 		Data []struct {
@@ -160,6 +166,30 @@ func (p *OpenAICompatProvider) DetectModel() (string, error) {
 		}
 	}
 	return models.Data[0].ID, nil
+}
+
+// DetectModelWithRetry probes /models up to attempts times with delay
+// between tries. Bootstrap uses this: one transient proxy blip must not
+// silently downgrade the whole process to MockLLM for its lifetime
+// (observed on prod 2026-11-14 — an agent run did all 3 iterations on
+// the mock while the real LLM was healthy seconds later).
+func (p *OpenAICompatProvider) DetectModelWithRetry(attempts int, delay time.Duration) (string, error) {
+	if attempts < 1 {
+		attempts = 1
+	}
+	var lastErr error
+	for i := 0; i < attempts; i++ {
+		if i > 0 {
+			time.Sleep(delay)
+		}
+		model, err := p.DetectModel()
+		if err == nil {
+			return model, nil
+		}
+		lastErr = err
+		fmt.Printf("[LLM] Model detection attempt %d/%d failed: %v\n", i+1, attempts, err)
+	}
+	return "", lastErr
 }
 
 // Generate implements LLMProvider
