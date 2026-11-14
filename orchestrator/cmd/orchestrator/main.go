@@ -411,6 +411,7 @@ func main() {
 
 		// Run Outreach
 		campaign := research.NewOutreachCampaign(orch)
+		campaign.WebSearch = research.NewResearchSearch(research.DuckDuckGo, orch, broker)
 		if err := campaign.Run(niche, topic); err != nil {
 			return err
 		}

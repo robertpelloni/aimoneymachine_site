@@ -367,3 +367,9 @@
 ## [1.7.1] - 2026-11-14
 ### Added
 - Kraken price source (TRADING_PRICE_SOURCE=kraken): public Ticker endpoint, XBT pair mapping for BTC, Kraken error-array surfacing, same 60s cache + stale fallback contract. Multi-exchange price plugin TODO complete: CoinGecko (default, batched), Binance, Kraken - all three verified reachable from prod. Tests: pair mapping, cache, API-error and stale paths.
+
+## [1.8.0] - 2026-11-14
+### Fixed
+- Outreach no longer fakes delivery: SendEmail previously printed 'Delivered' and charged the ledger whenever SMTP_HOST was set, without sending anything. It now sends via net/smtp (PlainAuth from SMTP_USER/SMTP_PASS, SMTP_FROM/PORT env), charges only after server acceptance, refuses leads with no address, and dry-run (no SMTP_HOST or -dry-run) is labeled [DRY-RUN] and charges nothing.
+### Added
+- Honest lead discovery: the two hardcoded leads are labeled Source demo-seed (never mistaken for prospects), and FindLeadsFromSearch discovers real businesses through the existing SearchInterface without inventing email addresses (delivery is refused until enrichment attaches one). Synergy lead-gen now tries web discovery first, demo seeds as fallback. Tests cover mapping, dry-run, delivery, refusal, and SMTP-failure paths.
