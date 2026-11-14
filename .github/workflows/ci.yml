@@ -17,14 +17,15 @@ jobs:
         go-version: '1.25.0'
 
     # The repo is a go.work workspace with no root module, so tests run
-    # per-module. Every directory containing a go.mod is covered —
-    # including tray, media and publisher, which the old six-line list
-    # silently skipped (exactly how placeholder-chain tests rotted).
+    # per-module over the workspace's actual Use list — including tray,
+    # media and publisher, which the old six-line list silently skipped
+    # (exactly how placeholder-chain tests rotted). Stub hustle/* modules
+    # with a go.mod but no entry in go.work (and no Go code) are excluded
+    # by construction; vet inside them errors in workspace mode.
     - name: Vet + test every module
       run: |
         set -e
-        for mod in orchestrator tray hustle/*/; do
-          [ -f "$mod/go.mod" ] || continue
+        for mod in $(go work edit -json | python3 -c "import json,sys; [print(u['DiskPath']) for u in json.load(sys.stdin)['Use']]"); do
           echo "== $mod =="
           (cd "$mod" && go vet ./... && go test ./...)
         done
