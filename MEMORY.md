@@ -1,54 +1,21 @@
 [PROJECT_MEMORY]
 
-# AI Hustle Machine — Project Memory & Architecture Summary
+# AI Hustle Machine — Project Memory & Architecture Summary (`v2.0.0`)
 
 ## 1. Core Vision & Philosophy
-The **AI Hustle Machine** (also referred to as the "Fully Automated Luxury Protocol") is a self-orchestrating, LLM-driven autonomous agent system designed to run revenue-generating "hustles" using local or free LLM models. The system operates on continuous autonomous execution: Observe → Think → Act → Learn → Evaluate. It is designed to require zero human intervention once deployed, aggressively targeting high-ROI, low-maintenance workflows.
+The **AI Hustle Machine** (`aimoneymachine_site`) is a self-orchestrating, LLM-driven autonomous agent monorepo designed to execute revenue-generating workflows (`Observe -> Think -> Act -> Learn -> Evaluate`) using zero-cost/low-cost LLM routers (`FreeLLM`, `LiteLLM`, `LM Studio`, `Ollama`).
 
-## 2. Monorepo Architecture
-The project is built in **Go 1.25.0** using a `go.work` monorepo structure. It moved away from submodules to a unified repository to prevent sync issues.
-*   **Orchestrator (`/orchestrator`)**: The core engine. It manages the Agent Loop, multi-agent Council, Memory tiers, Ledger, Scheduler, and Healer.
-*   **Hustle Modules (`/hustle/*`)**: Specialized domain execution environments:
-    *   `content`: Markdown CMS, static site generation, blogs, newsletters.
-    *   `curation`: RSS aggregation and summarizing.
-    *   `research`: Web search (Tavily/Brave) and alpha discovery.
-    *   `social`: Twitter/LinkedIn automated posting and engagement.
-    *   `trading`: Crypto trading and TA using CoinGecko.
+## 2. Monorepo Architecture (Go 1.25 `go.work`, 33 Modules)
+- **`orchestrator/`**: Core engine housing `AgentLoop` & `MultiAgentOrchestrator`, 4-persona `Council`, `L1/L2/L3` memory + pure-Go `modernc.org/sqlite` vector store (`hustle.db`), `CachingLLM` (SHA-256 prompt deduplication), `PromptOptimizer` (epsilon-greedy multi-armed bandit), `Identity` (`did:hustle` Ed25519 signing), `RingLogBuffer` (stdout tee for `/api/log`), `HustleProtocol` (`hustle://` router), `A2ABroker` + `MemorySwarm`, `Healer`, and the embedded Consolidated Dashboard (`orchestrator/dashboard.html`).
+- **`hustle/*` (31 Domain Modules -> 36 Protocol Handlers)**:
+  - **Tier 1 (Direct Markets & Arbitrage):** `trading` (CoinGecko/Binance/Kraken/Coinbase + RSI/SMA/MACD/Bollinger), `stocks` (Alpaca), `domains`, `retail` (FBA), `realestate` (STR).
+  - **Tier 2 (Commerce & Products):** `affiliate`, `products` (Digital Product Factory), `ecommerce`, `saas` (ideate + single-file HTML/JS MVP), `publishing` (`kdp`), `pod`.
+  - **Tier 3 (Content & Publishing):** `content` (blog/seo/newsletter/thread + 100K expander + static HTML/RSS CMS), `publisher` (WordPress/Newsletter/Shopify + `calendar`).
+  - **Tier 4 (Growth, Media & B2B Funnel):** `research`, `curation` (+ `rss`), `social` (Bluesky/Twitter/LinkedIn), `media` (FFmpeg vertical Shorts + `/api/hymns`), `outreach`, `crm` (+ `leadgen` & `synergy_leadgen`).
+  - **Tier 5 (Confluence & 11-Module AI Agency):** `confluence`, `automation`, `bi`, `finance`, `legal`, `design`, `devagency`, `marketing`, `localization`, `support`, `careers`, `qa`.
+- **`tray/` (`bin/aimm-tray.exe`)**: Windows `-H=windowsgui` system tray controller with single-instance mutex, auto-managed hidden SSH port-forwarding (`localhost:8082 -> hetzner:8082`), `BelowNormal` local server toggle, and 1-click quick dispatches.
 
-## 3. Key Design Patterns & Protocols
-*   **The `hustle://` Protocol**: Internal routing mechanism. The LLM decides actions by emitting URIs like `hustle://content?topic=AI&type=blog` or `hustle://trading?symbol=BTC`. The orchestrator parses this and dispatches it to the relevant module.
-*   **Agent Loop**: The main autonomous driver. It observes context from memory, uses the LLM to *think* (produce a `hustle://` URI), *acts* on it, and evaluates the financial/system result.
-*   **Tiered Memory**:
-    *   `L1`: Immediate short-term context.
-    *   `L2`: Episodic memory.
-    *   `L3`: Long-term vector-embedded memory (using pure-Go cosine similarity fallback or `sqlite-vec`).
-*   **Waterfall LLM & OpenAI Compatibility**: Built to interact with local servers (LM Studio, Ollama) via standard OpenAI schemas. Includes fallback wrappers (`WaterfallLLM`) for resilience.
-*   **Caching & Optimization (Phase 5 additions)**:
-    *   `CachingLLM`: SHA-256 hashed prompt caching with TTL to save tokens and time on duplicate requests.
-    *   `PromptOptimizer`: Uses an epsilon-greedy multi-arm bandit algorithm to randomly A/B test prompt variations and organically adopt the highest-performing prompts over time.
-
-## 4. Self-Healing & Wealth Preservation
-*   **The Healer**: A self-reflection module. If a task fails or an error is thrown, the Healer queries the LLM with the error logs, generates a diagnostic strategy, applies it, and audits if the fix was successful.
-*   **ROI Auditing**: The `Ledger` tracks financial performance for every registered task. The Scheduler continuously audits this ledger. If a hustle runs a deficit past a certain threshold, the system autonomously terminates and unregisters it ("Wealth Preservation").
-
-## 5. Mesh & Swarm Intelligence
-*   **A2A (Agent-to-Agent)**: The system supports decentralized peering. Nodes discover each other and broadcast their status, sharing insights ("alpha") and aggregating total mesh-wide profit ("Luxury Space Communism" collective wealth tracking).
-
-## 6. Engineering Decisions & Constraints
-*   **Pure Go SQLite**: Shifted from `go-sqlite3` to `modernc.org/sqlite` to permanently fix Windows CGO compilation blockers.
-*   **The Executive Protocol (`sync.sh`)**: A rigid bash script used to maintain repository hygiene. It handles upstream tracking, intelligent dual-direction merging between feature branches and `main`, submodule updates, and version synchronization before pushing.
-*   **Documentation Governance**: The project relies heavily on strict markdown file maintenance. `TODO.md`, `ROADMAP.md`, `CHANGELOG.md`, `VISION.md`, `HANDOFF.md`, and `VERSION.md` are the ground truth for system state and cross-agent communication. Any version bumps require atomic commits documenting the exact version string.
-
-## 7. Affiliate Marketing & LeadGen Pipeline
-*   **Affiliate Injection**: Social media posts (`hustle://social`) and content generation dynamically embed monetization links from `affiliate_links.json`. The LLM identifies relevance based on topic and appends the links prior to publishing via Twitter or LinkedIn APIs.
-
-## 9. Unified Revenue Strategy (Affiliate + LeadGen)
-*   **Strategy Proposal**: The recent injection of affiliate hooks into social channels (`hustle://social`) provides passive traffic monetization. When paired with the synergistic lead generation workflow (`hustle://research`), the orchestrator can autonomously parse high-value B2B queries and instantly dispatch content with relevant software recommendations (e.g., VPNs, Hostings).
-*   **Unified Execution URI**: `hustle://chain?name=luxury_leadgen_affiliate`
-
-## 10. unified execution
-* Verified cross-pollinated hustle strategy utilizing content generation injected with `hustle/affiliate` links and auto-published to output pipelines.
-
-## 11. Affiliate Formatting & ROI Assessment
-*   **ROI Impact of `synergy_leadgen` (Commit d41a028 & f84177f)**: Injecting dummy affiliate hooks directly into the social engine immediately establishes a 100% attachment rate of monetization to every autonomous lead generation and content broadcast. By tracking L2 episodic memory (e.g. `[AgentLoop] ✅ Action succeeded`), we verified that each `hustle://synergy_leadgen` iteration properly identifies B2B SaaS leads, sends dry-run outreach emails, and generates an associated social media post bundled with an affiliate hook.
-*   **Edge Case Handled**: Twitter's 280-character limit can severely truncate posts when combined with long affiliate links or dense LLM responses. `hustle/social/post.go` truncates `content[:277] + "..."` to prevent API rejection, ensuring zero downtime in the automated pipeline, but in production, link shorteners or native X card metadata should be utilized.
+## 3. Critical Operational Invariants Learned
+1. **Cloudflare Bot Fight / WAF vs Python `urllib` & Go `net/http`:** `aimoneymachine.site` sits behind Cloudflare, which returns `403 Forbidden` on default `Python-urllib/*` user agents. Every WordPress REST client (`fixes/expand.py`, `fixes/batch_publisher.py`, `content_audit.py`, `hustle/publisher/wordpress.go`) MUST send a browser-compatible `User-Agent` header and load credentials from `.env` rather than source literals.
+2. **Dashboard & Smoke Contracts:** `orchestrator/api_dashboard_test.go` requires `"Consolidated Dashboard"` in `/`, and `scripts/smoke_prod.py` requires `"diskPct"`, `"dispatchAction"`, and `"dispatched successfully"` on `POST /api/dispatch`.
+3. **Nondestructive & Low-Priority Discipline:** Heavy builds and local daemons run at `BelowNormal` (`nice -n 10` on Linux), superseded files are archived in `archive/` and `fixes/archive/` (never deleted), compiled binaries are preserved, and `.memory/`, `.pi/`, and `hustle.db` are tracked in git while secrets (`.env`, `node.key`, `token_*.json`) remain strictly gitignored.

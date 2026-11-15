@@ -2,18 +2,43 @@
 """Expand all blog posts to 100K+ chars via FreeLLM in chunks. Indefinite retry."""
 
 import json
-import time
-import urllib.request
-import urllib.error
-import sys
-import re
 import os
+import re
+import sys
+import time
 import traceback
+import urllib.error
+import urllib.request
 
 sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
-WP = "https://aimoneymachine.site"
+
+def load_dotenv():
+    for candidate in (".env", "../.env", "/opt/aimoneymachine/.env"):
+        if os.path.exists(candidate):
+            try:
+                with open(candidate, "r", encoding="utf-8", errors="replace") as f:
+                    for raw in f:
+                        line = raw.strip()
+                        if not line or line.startswith("#") or "=" not in line:
+                            continue
+                        k, v = line.split("=", 1)
+                        k = k.strip()
+                        v = v.strip().strip('"').strip("'")
+                        if k and k not in os.environ:
+                            os.environ[k] = v
+            except Exception:
+                pass
+
+
+load_dotenv()
+
+WP = os.environ.get("WORDPRESS_URL", "https://aimoneymachine.site").rstrip("/")
+WP_USER = os.environ.get("WORDPRESS_USERNAME", os.environ.get("WP_USER", "admin"))
+WP_PASS = os.environ.get("WORDPRESS_PASSWORD", os.environ.get("WP_PASS", ""))
+USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; compatible; AIMM-Expander/2.0; +https://aimoneymachine.site)"
+
 LLM_URLS = [
     "http://localhost:4000/v1/chat/completions",
     "http://localhost:4000/api/proxy/v1/chat/completions",
@@ -26,42 +51,63 @@ PROGRESS_FILE = "expansion_progress.json"
 def log(msg):
     try:
         print(msg, flush=True)
-    except:
+    except Exception:
         try:
             print(str(msg).encode("ascii", errors="replace").decode(), flush=True)
-        except:
+        except Exception:
             pass
+
+
+_cached_token = None
+_token_ts = 0.0
+
+
+def get_wp_token(force=False):
+    global _cached_token, _token_ts
+    if not force and _cached_token and (time.time() - _token_ts) < 1800:
+        return _cached_token
+    if not WP_PASS:
+        raise RuntimeError("WORDPRESS_PASSWORD (or WP_PASS) is not set in environment or .env")
+    d = json.dumps({"username": WP_USER, "password": WP_PASS}).encode()
+    req = urllib.request.Request(
+        f"{WP}/wp-json/jwt-auth/v1/token",
+        data=d,
+        headers={"Content-Type": "application/json", "User-Agent": USER_AGENT},
+    )
+    token = json.loads(urllib.request.urlopen(req, timeout=30).read())["token"]
+    _cached_token = token
+    _token_ts = time.time()
+    return token
 
 
 def wp_api(method, path, data=None):
     for attempt in range(10):
         try:
-            d = json.dumps(
-                {"username": "admin", "password": "AIMoneyMachine2026!"}
-            ).encode()
-            req = urllib.request.Request(
-                f"{WP}/wp-json/jwt-auth/v1/token",
-                data=d,
-                headers={"Content-Type": "application/json"},
-            )
-            token = json.loads(urllib.request.urlopen(req, timeout=30).read())["token"]
+            token = get_wp_token(force=(attempt > 0))
             headers = {
                 "Authorization": f"Bearer {token}",
                 "Content-Type": "application/json",
+                "User-Agent": USER_AGENT,
             }
             url = f"{WP}/wp-json/wp/v2/{path}"
             body = json.dumps(data).encode() if data else None
             req = urllib.request.Request(url, data=body, headers=headers, method=method)
-            resp = urllib.request.urlopen(req, timeout=30)
+            resp = urllib.request.urlopen(req, timeout=45)
             return json.loads(resp.read())
+        except urllib.error.HTTPError as e:
+            # WordPress returns HTTP 400 (rest_post_invalid_page_number) past the last page.
+            if method == "GET" and e.code == 400 and "page=" in path:
+                return []
+            log(f"  WP API HTTP {e.code} (attempt {attempt + 1}): {e}")
+            time.sleep(min(15 * (2**attempt), 180))
         except Exception as e:
             log(f"  WP API error (attempt {attempt + 1}): {e}")
-            time.sleep(min(30 * (2**attempt), 300))
+            time.sleep(min(15 * (2**attempt), 180))
     return None
 
 
 def llm_chunk(prompt):
-    """Call LLM with INDEFINITE retry -- never gives up, exponential backoff."""
+    """Call LLM with indefinite retry and exponential backoff."""
     delay = 5
     attempt = 0
     llm_idx = 0
@@ -93,6 +139,8 @@ def llm_chunk(prompt):
                 elif "text" in choice:
                     text = choice["text"]
 
+            if text:
+                text = re.sub(r"<think>[\s\S]*?</think>", "", text, flags=re.IGNORECASE).strip()
             if text and len(text) > 100:
                 return text
             elif text:
@@ -100,15 +148,9 @@ def llm_chunk(prompt):
             else:
                 log(f"    Empty/malformed response: {json.dumps(result)[:300]}")
                 llm_idx += 1
-                log(f"    Switching to endpoint: {LLM_URLS[llm_idx % len(LLM_URLS)]}")
-        except KeyError as e:
-            log(f"    LLM response format error (attempt {attempt}): missing key {e}")
-            llm_idx += 1
-            log(f"    Switching to endpoint: {LLM_URLS[llm_idx % len(LLM_URLS)]}")
-        except json.JSONDecodeError as e:
-            log(f"    LLM JSON error (attempt {attempt}): {e}")
         except Exception as e:
             log(f"    LLM error (attempt {attempt}): {e}")
+            llm_idx += 1
 
         log(f"    Waiting {delay}s before retry...")
         time.sleep(delay)
@@ -177,9 +219,8 @@ INSTRUCTIONS:
         if result and result.get("id"):
             log(f"  OK Updated: {new_len} chars (+{new_len - current_len})")
             return True, new_len
-        else:
-            log("  WP update failed, will retry on next pass")
-            return False, current_len
+        log("  WP update failed, will retry on next pass")
+        return False, current_len
     except Exception as e:
         log(f"  POST ERROR: {e}")
         traceback.print_exc()
@@ -189,9 +230,9 @@ INSTRUCTIONS:
 def load_progress():
     try:
         if os.path.exists(PROGRESS_FILE):
-            with open(PROGRESS_FILE) as f:
+            with open(PROGRESS_FILE, encoding="utf-8") as f:
                 return json.load(f)
-    except:
+    except Exception:
         pass
     return {"done": [], "current": 0}
 
@@ -202,9 +243,9 @@ def save_progress(pid):
         if pid not in prog["done"]:
             prog["done"].append(pid)
         prog["current"] = pid
-        with open(PROGRESS_FILE, "w") as f:
+        with open(PROGRESS_FILE, "w", encoding="utf-8") as f:
             json.dump(prog, f)
-    except:
+    except Exception:
         pass
 
 
@@ -238,26 +279,26 @@ def main():
             clen = len(re.sub(r"<[^>]+>", "", content))
             if clen < MIN_CHARS:
                 needs_expand.append((p, clen))
+            else:
+                save_progress(pid)
 
-        log(f"Already done: {len(done_ids)}")
+        log(f"Already done: {len(load_progress().get('done', []))}")
         log(f"Need expansion: {len(needs_expand)}")
 
         expanded = 0
-        for p, clen in needs_expand:
+        for p, _ in needs_expand:
             try:
                 pid = p["id"]
                 title = p["title"]["rendered"]
                 log(f"\n[{expanded + 1}/{len(needs_expand)}] ID {pid}: {title[:60]}")
-                ok, newlen = expand_post(p)
+                ok, _ = expand_post(p)
                 if ok:
                     expanded += 1
-                save_progress(pid)
+                    save_progress(pid)
             except Exception as e:
                 log(f"  FATAL: {e}")
                 traceback.print_exc()
-                save_progress(p["id"])
                 time.sleep(5)
-                continue
 
         log(f"\nDone! Expanded {expanded} posts this session")
     except Exception as e:
@@ -269,7 +310,7 @@ if __name__ == "__main__":
     while True:
         try:
             main()
-            log("All posts completed! Sleeping 1 hour then checking for new ones...")
+            log("Cycle complete! Sleeping 1 hour then checking for unexpanded posts...")
             time.sleep(3600)
         except SystemExit:
             break

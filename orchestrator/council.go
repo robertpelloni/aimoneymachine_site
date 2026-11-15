@@ -19,11 +19,24 @@ type Council struct {
 }
 
 func NewCouncil(orch *Orchestrator) *Council {
+	bullLLM := LLMProvider(&MockLLM{Response: "This is an incredible opportunity with high ROI potential!"})
+	bearLLM := LLMProvider(&MockLLM{Response: "The risks are too high and the market is saturated."})
+	criticLLM := LLMProvider(&MockLLM{Response: "A balanced approach is needed. Focus on the niche segments identified."})
+
+	// Use the live LLM provider when connected (preserving deterministic MockLLM behavior in unit tests).
+	if orch != nil && orch.LLM != nil {
+		if _, isMock := orch.LLM.(*MockLLM); !isMock {
+			bullLLM = orch.LLM
+			bearLLM = orch.LLM
+			criticLLM = orch.LLM
+		}
+	}
+
 	return &Council{
 		Agents: map[AgentRole]LLMProvider{
-			Bull:   &MockLLM{Response: "This is an incredible opportunity with high ROI potential!"},
-			Bear:   &MockLLM{Response: "The risks are too high and the market is saturated."},
-			Critic: &MockLLM{Response: "A balanced approach is needed. Focus on the niche segments identified."},
+			Bull:   bullLLM,
+			Bear:   bearLLM,
+			Critic: criticLLM,
 		},
 		Weights: map[AgentRole]float64{
 			Bull:   0.3,

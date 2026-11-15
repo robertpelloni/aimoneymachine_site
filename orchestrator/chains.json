@@ -1,9 +1,9 @@
 {
-  "mock_discovered_chain": {
-    "name": "mock_discovered_chain",
-    "description": "mock discovered chain",
+  "c": {
+    "name": "c",
+    "description": "",
     "steps": [
-      "hustle://research?query=AI trends"
+      "hustle://research"
     ]
   }
 }

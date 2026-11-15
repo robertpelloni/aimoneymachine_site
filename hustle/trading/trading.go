@@ -420,6 +420,115 @@ func (t *TradingModule) HistoryFor(symbol string) []float64 {
 	return out
 }
 
+// BotSnapshot exposes live per-symbol technical indicators and recent price history
+// for the Consolidated Dashboard's Trading Desk and inline Bot Inspector.
+type BotSnapshot struct {
+	Symbol     string    `json:"symbol"`
+	Price      float64   `json:"price"`
+	SMA        float64   `json:"sma"`
+	RSI        float64   `json:"rsi"`
+	MACD       float64   `json:"macd"`
+	MACDSignal float64   `json:"macd_signal"`
+	MACDHist   float64   `json:"macd_hist"`
+	BBUpper    float64   `json:"bb_upper"`
+	BBMid      float64   `json:"bb_mid"`
+	BBLower    float64   `json:"bb_lower"`
+	BBPctB     float64   `json:"bb_pct_b"`
+	Divergence string    `json:"divergence"`
+	Decision   string    `json:"decision"`
+	Points     int       `json:"points"`
+	Sparkline  []float64 `json:"sparkline"`
+}
+
+// SnapshotAll computes thread-safe technical indicator snapshots across all tracked symbols.
+func (t *TradingModule) SnapshotAll() []BotSnapshot {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+
+	seen := make(map[string]bool)
+	ordered := make([]string, 0, len(batchSymbols)+len(t.Watchlist))
+	for _, s := range batchSymbols {
+		seen[s] = true
+		ordered = append(ordered, s)
+	}
+	for _, s := range t.Watchlist {
+		u := strings.ToUpper(strings.TrimSpace(s))
+		if u != "" && !seen[u] {
+			seen[u] = true
+			ordered = append(ordered, u)
+		}
+	}
+	for sym := range t.histories {
+		if !seen[sym] {
+			seen[sym] = true
+			ordered = append(ordered, sym)
+		}
+	}
+
+	out := make([]BotSnapshot, 0, len(ordered))
+	for _, sym := range ordered {
+		hist := t.histories[sym]
+		rsiHist := t.rsiHistories[sym]
+		snap := BotSnapshot{
+			Symbol:   sym,
+			Decision: "WARMUP",
+			Points:   len(hist),
+			Sparkline: []float64{},
+		}
+		if len(hist) > 0 {
+			price := hist[len(hist)-1]
+			sma := calculateSMA(hist, 5)
+			rsi := calculateRSI(hist, 14)
+			macdLine, macdSig, macdHist, prevHist := calculateMACD(hist)
+			bbUp, bbMid, bbLow, bbPct := calculateBollinger(hist, 20, 2)
+			div := detectDivergence(hist, rsiHist)
+
+			decision := "HOLD"
+			if len(hist) >= 14 {
+				if (rsi < 30 && price < sma) || div == "BULLISH" {
+					decision = "BUY"
+				} else if (rsi > 70 && price > sma) || div == "BEARISH" {
+					decision = "SELL"
+				}
+			}
+			if len(hist) >= 35 && decision == "HOLD" {
+				if prevHist <= 0 && macdHist > 0 && bbPct < 0.8 {
+					decision = "BUY"
+				} else if prevHist >= 0 && macdHist < 0 && bbPct > 0.2 {
+					decision = "SELL"
+				} else if price < bbLow && rsi < 35 {
+					decision = "BUY"
+				} else if price > bbUp && rsi > 65 {
+					decision = "SELL"
+				}
+			}
+
+			spark := hist
+			if len(spark) > 48 {
+				spark = spark[len(spark)-48:]
+			}
+			sparkCopy := make([]float64, len(spark))
+			copy(sparkCopy, spark)
+
+			snap.Price = price
+			snap.SMA = sma
+			snap.RSI = rsi
+			snap.MACD = macdLine
+			snap.MACDSignal = macdSig
+			snap.MACDHist = macdHist
+			snap.BBUpper = bbUp
+			snap.BBMid = bbMid
+			snap.BBLower = bbLow
+			snap.BBPctB = bbPct
+			snap.Divergence = div
+			snap.Decision = decision
+			snap.Sparkline = sparkCopy
+		}
+		out = append(out, snap)
+	}
+	return out
+}
+
 // ExecuteFor runs one strategy cycle for symbol, atomically: the shared
 // module's Symbol field is only mutated under the module lock, so
 // concurrent per-symbol daemon tasks cannot cross-contaminate each other.

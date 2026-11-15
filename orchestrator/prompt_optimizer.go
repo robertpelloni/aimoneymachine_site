@@ -89,3 +89,17 @@ func (po *PromptOptimizer) RecordWin(category string, index int) {
 func (po *PromptOptimizer) RecordLoss(category string, index int) {
 	// A loss is just a use without a win, we already incremented Uses
 }
+
+
+// Snapshot returns a thread-safe copy of prompt bandit categories and win rates for the Dashboard.
+func (po *PromptOptimizer) Snapshot() map[string][]PromptVariation {
+	po.mu.RLock()
+	defer po.mu.RUnlock()
+	out := make(map[string][]PromptVariation, len(po.Variations))
+	for k, v := range po.Variations {
+		cp := make([]PromptVariation, len(v))
+		copy(cp, v)
+		out[k] = cp
+	}
+	return out
+}

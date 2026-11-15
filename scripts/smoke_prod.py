@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Prod smoke sweep for the AI Hustle Machine (stdlib only).
 
-Checks every public orchestrator/dashboard surface used by the UI plus two
+Checks every public orchestrator/dashboard surface used by the UI plus fast
 read-only dispatches. Run ON the server (defaults to localhost:8082), or
-point it at a tunnel:  python3 smoke_prod.py http://localhost:18082
+point it at a tunnel:  python3 smoke_prod.py http://localhost:8082
 
 Exit code 0 only when every check passes.
 """
@@ -24,7 +24,7 @@ def check(name, ok, detail=""):
 
 def get(path, timeout=15):
     with urllib.request.urlopen(BASE + path, timeout=timeout) as r:
-        return r.status, r.read().decode()
+        return r.status, r.read().decode("utf-8", errors="replace")
 
 
 TOKEN = os.environ.get("SMOKE_API_TOKEN") or os.environ.get("AIMM_API_TOKEN", "")
@@ -36,15 +36,15 @@ def dispatch(uri):
         headers["Authorization"] = "Bearer " + TOKEN
     req = urllib.request.Request(
         BASE + "/api/dispatch",
-        data=json.dumps({"uri": uri}).encode(),
+        data=json.dumps({"uri": uri}).encode("utf-8"),
         headers=headers,
     )
     with urllib.request.urlopen(req, timeout=60) as r:
-        return r.read().decode()
+        return r.read().decode("utf-8", errors="replace")
 
 
 code, dash = get("/")
-check("dashboard /", code == 200 and "diskPct" in dash and "dispatchAction" in dash)
+check("dashboard /", code == 200 and "Consolidated Dashboard" in dash and "diskPct" in dash and "dispatchAction" in dash)
 
 code, body = get("/api/status")
 st = json.loads(body)
@@ -57,14 +57,27 @@ code, body = get("/api/chains")
 chains = json.loads(body)
 check("api/chains", code == 200 and len(chains) >= 2, ",".join(sorted(chains)))
 
-for path in ("/api/agents", "/api/content", "/api/strategy", "/api/progress"):
+for path in (
+    "/api/agents",
+    "/api/content",
+    "/api/strategy",
+    "/api/progress",
+    "/api/ledger",
+    "/api/outputs",
+    "/api/hymns",
+    "/api/service-logs?service=orchestrator",
+):
     try:
         code, _ = get(path)
         check(path, code == 200)
     except Exception as e:
         check(path, False, str(e)[:80])
 
-for uri in ("hustle://publisher?action=status", "hustle://calendar?action=status"):
+for uri in (
+    "hustle://publisher?action=status",
+    "hustle://calendar?action=status",
+    "hustle://crm?email=smoke@aimoneymachine.site&status=Contacted",
+):
     try:
         out = dispatch(uri)
         check(f"dispatch {uri}", "dispatched successfully" in out)

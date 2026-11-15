@@ -1,10 +1,12 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 )
@@ -14,14 +16,17 @@ type Status struct {
 	Status      string  `json:"status"`
 	Version     string  `json:"version"`
 	Profit      float64 `json:"profit"`
+	Revenue     float64 `json:"revenue"`
+	Expenses    float64 `json:"expenses"`
 	Memories    int     `json:"memories"`
 	Peers       int     `json:"peers"`
+	PriceSource string  `json:"price_source"`
+	DryRun      bool    `json:"dry_run"`
 	DiskUsedPct float64 `json:"disk_used_pct"`
 	DiskFreeGB  float64 `json:"disk_free_gb"`
 }
 
-// FetchStatus GETs <base>/api/status, falling back to <base>/status (the
-// bare orchestrator route) so the tray works against either.
+// FetchStatus GETs <base>/api/status, falling back to <base>/status.
 func FetchStatus(client *http.Client, base string) (*Status, error) {
 	if client == nil {
 		client = &http.Client{Timeout: 5 * time.Second}
@@ -57,6 +62,33 @@ func FetchStatus(client *http.Client, base string) (*Status, error) {
 	return nil, lastErr
 }
 
+// DispatchURI sends a POST /api/dispatch request for a hustle:// URI.
+func DispatchURI(client *http.Client, base, uri string) (string, error) {
+	if client == nil {
+		client = &http.Client{Timeout: 45 * time.Second}
+	}
+	base = strings.TrimRight(base, "/")
+	payload, _ := json.Marshal(map[string]string{"uri": uri})
+	req, err := http.NewRequest("POST", base+"/api/dispatch", bytes.NewReader(payload))
+	if err != nil {
+		return "", err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	if tok := os.Getenv("AIMM_API_TOKEN"); tok != "" {
+		req.Header.Set("Authorization", "Bearer "+tok)
+	}
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+	body, _ := io.ReadAll(io.LimitReader(resp.Body, 64<<10))
+	if resp.StatusCode >= 300 {
+		return "", fmt.Errorf("HTTP %d: %s", resp.StatusCode, strings.TrimSpace(string(body)))
+	}
+	return strings.TrimSpace(string(body)), nil
+}
+
 // Tooltip is the one-line tray hover text.
 func (s *Status) Tooltip() string {
 	if s == nil || s.Status == "offline" || s.Status == "" {
@@ -64,7 +96,6 @@ func (s *Status) Tooltip() string {
 	}
 	tip := fmt.Sprintf("AI Hustle Machine v%s: %s, profit $%.2f, %d memories, %d peers",
 		s.Version, s.Status, s.Profit, s.Memories, s.Peers)
-	// Surface the disk before it is fatal (2026-11-14: 100% -> site 504).
 	if s.DiskUsedPct >= 85 {
 		tip += fmt.Sprintf(" | ⚠ disk %.0f%% used (%.1f GB free)", s.DiskUsedPct, s.DiskFreeGB)
 	}
@@ -74,9 +105,13 @@ func (s *Status) Tooltip() string {
 // MenuLabel is the (disabled) first menu item text.
 func (s *Status) MenuLabel() string {
 	if s == nil || s.Status == "offline" || s.Status == "" {
-		return "● Offline — check orchestrator / tunnel"
+		return "● Offline — auto-tunnel / start local server"
 	}
-	return fmt.Sprintf("● %s  v%s  $%.2f", s.Status, s.Version, s.Profit)
+	mode := ""
+	if s.DryRun {
+		mode = " [DryRun]"
+	}
+	return fmt.Sprintf("● %s  v%s  $%.2f  (Disk %.0f%%)%s", s.Status, s.Version, s.Profit, s.DiskUsedPct, mode)
 }
 
 // Healthy drives the icon colour.
@@ -85,8 +120,6 @@ func (s *Status) Healthy() bool {
 }
 
 // ControlCommand builds the ssh invocation for a prod service action.
-// host is an ssh alias (default "hetzner" from ~/.ssh/config). Quitting
-// the servers = action "stop" (aimm-orchestrator + aimm-freellm).
 func ControlCommand(action, host string) (name string, args []string, err error) {
 	if host == "" {
 		host = "hetzner"
@@ -104,5 +137,25 @@ func ControlCommand(action, host string) (name string, args []string, err error)
 	default:
 		return "", nil, fmt.Errorf("unknown action %q", action)
 	}
-	return "ssh", []string{"-o", "ConnectTimeout=10", host, remote}, nil
+	return "ssh", []string{"-o", "BatchMode=yes", "-o", "ConnectTimeout=10", host, remote}, nil
+}
+
+// TunnelCommand returns the background ssh port-forward invocation mapping localPort -> remote localhost:8082.
+func TunnelCommand(host, localPort string) (string, []string) {
+	if host == "" {
+		host = "hetzner"
+	}
+	if localPort == "" {
+		localPort = "8082"
+	}
+	return "ssh", []string{
+		"-N",
+		"-o", "BatchMode=yes",
+		"-o", "ExitOnForwardFailure=yes",
+		"-o", "ServerAliveInterval=30",
+		"-o", "ServerAliveCountMax=3",
+		"-o", "ConnectTimeout=10",
+		"-L", localPort + ":localhost:8082",
+		host,
+	}
 }

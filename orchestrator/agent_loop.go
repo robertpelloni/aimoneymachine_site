@@ -1,9 +1,9 @@
 package orchestrator
 
 import (
-	"encoding/json"
 	"fmt"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -316,6 +316,7 @@ type MultiAgentOrchestrator struct {
 	Broker  *A2ABroker
 	Agents  map[string]*AgentLoop
 	Verbose bool
+	mu      sync.RWMutex
 }
 
 // NewMultiAgentOrchestrator creates a manager for multiple concurrent agents
@@ -332,8 +333,27 @@ func NewMultiAgentOrchestrator(orch *Orchestrator, proto *HustleProtocol, broker
 func (m *MultiAgentOrchestrator) AddAgent(hustleType string, maxIter int) *AgentLoop {
 	agent := NewAgentLoop(m.Orch, m.Proto, m.Broker, hustleType)
 	agent.State.MaxIter = maxIter
+	m.mu.Lock()
 	m.Agents[agent.State.AgentID] = agent
+	m.mu.Unlock()
 	fmt.Printf("[MultiAgent] Registered agent: %s for hustle type: %s\n", agent.State.AgentID, hustleType)
+	return agent
+}
+
+// LaunchAgentAsync starts a single bounded agent loop in a background goroutine (used by the web dashboard).
+func (m *MultiAgentOrchestrator) LaunchAgentAsync(hustleType string, maxIter int) *AgentLoop {
+	if maxIter <= 0 {
+		maxIter = 5
+	}
+	if maxIter > 50 {
+		maxIter = 50
+	}
+	agent := m.AddAgent(hustleType, maxIter)
+	go func() {
+		if err := agent.Run(); err != nil {
+			fmt.Printf("[MultiAgent] Async agent %s failed: %v\n", agent.State.AgentID, err)
+		}
+	}()
 	return agent
 }
 
@@ -372,7 +392,9 @@ func (m *MultiAgentOrchestrator) RunAll() {
 
 // StatusReport returns a summary of all agents
 func (m *MultiAgentOrchestrator) StatusReport() []AgentLoopState {
-	var states []AgentLoopState
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	states := make([]AgentLoopState, 0, len(m.Agents))
 	for _, agent := range m.Agents {
 		states = append(states, agent.State)
 	}
@@ -412,16 +434,16 @@ Generate plans from these categories:
 1. Research — Web intelligence gathering on trending topics
 2. Curation — Content aggregation and newsletter generation
 3. Social — Automated content posting for audience growth
-4. Trading — Crypto trading with technical analysis
-5. Content — Blog/article/SEO content generation
+4. Trading — Crypto & stock trading with technical analysis
+5. Content — Blog/article/SEO content, digital products, and affiliate monetization
 
-Respond with a JSON array of exactly 5 objects:
+Respond with a JSON array of exactly 5 objects using ONLY valid hustle:// module URIs:
 [
   {
-    "name": "short_name",
+    "name": "short_snake_case_name",
     "description": "what this hustle does and why it will be profitable",
     "category": "Research|Curation|Social|Trading|Content",
-    "steps": ["hustle://step1", "hustle://step2"],
+    "steps": ["hustle://research?query=AI+automation+tools", "hustle://content?topic=AI+automation+tools&type=blog"],
     "interval_min": 60,
     "priority": "high|medium|low"
   }
@@ -429,22 +451,8 @@ Respond with a JSON array of exactly 5 objects:
 
 Be specific. Use real trending topics. Focus on LUXURY (high-ROI, low-maintenance).`, profitAnalysis, activityStr)
 
-	llm, ok := orch.LLM.(*OpenAICompatProvider)
-	if !ok {
-		// Fallback for non-OpenAI compat providers
-		response, err := orch.LLM.Generate(prompt)
-		if err != nil {
-			return nil, err
-		}
-		var plans []HustlePlan
-		if err := json.Unmarshal([]byte(response), &plans); err != nil {
-			return nil, fmt.Errorf("failed to parse LLM plan response: %v", err)
-		}
-		return plans, nil
-	}
-
 	var plans []HustlePlan
-	if err := llm.GenerateJSON(prompt, &plans); err != nil {
+	if err := orch.LLM.GenerateJSON(prompt, &plans); err != nil {
 		return nil, fmt.Errorf("failed to generate hustle plans: %v", err)
 	}
 

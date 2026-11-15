@@ -1,17 +1,42 @@
 #!/usr/bin/env python3
-"""Batch publish diverse articles across categories using FreeLLM."""
+"""Batch publish diverse articles across categories using FreeLLM (deduplicated & Cloudflare-safe)."""
 
 import json
-import time
-import urllib.request
-import sys
+import os
 import re
+import sys
+import time
 import traceback
+import urllib.parse
+import urllib.request
 
 sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
-WP = "https://aimoneymachine.site"
-LLM_URL = "http://localhost:4000/api/proxy/v1/chat/completions"
+
+def load_dotenv():
+    for candidate in (".env", "../.env", "/opt/aimoneymachine/.env"):
+        if os.path.exists(candidate):
+            try:
+                with open(candidate, "r", encoding="utf-8", errors="replace") as f:
+                    for raw in f:
+                        line = raw.strip()
+                        if not line or line.startswith("#") or "=" not in line:
+                            continue
+                        k, v = line.split("=", 1)
+                        k = k.strip()
+                        v = v.strip().strip('"').strip("'")
+                        if k and k not in os.environ:
+                            os.environ[k] = v
+            except Exception:
+                pass
+
+
+load_dotenv()
+
+WP = os.environ.get("WORDPRESS_URL", "https://aimoneymachine.site").rstrip("/")
+WP_USER = os.environ.get("WORDPRESS_USERNAME", os.environ.get("WP_USER", "admin"))
+WP_PASS = os.environ.get("WORDPRESS_PASSWORD", os.environ.get("WP_PASS", ""))
+USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; compatible; AIMM-Publisher/2.0; +https://aimoneymachine.site)"
 
 ARTICLES = [
     # SEO Marketing
@@ -131,25 +156,41 @@ ARTICLES = [
 ]
 
 
+
 def log(m):
     print(m, flush=True)
 
 
+_cached_token = None
+_token_ts = 0.0
+
+
+def get_wp_token(force=False):
+    global _cached_token, _token_ts
+    if not force and _cached_token and (time.time() - _token_ts) < 1800:
+        return _cached_token
+    if not WP_PASS:
+        raise RuntimeError("WORDPRESS_PASSWORD (or WP_PASS) is not set in environment or .env")
+    d = json.dumps({"username": WP_USER, "password": WP_PASS}).encode()
+    req = urllib.request.Request(
+        f"{WP}/wp-json/jwt-auth/v1/token",
+        data=d,
+        headers={"Content-Type": "application/json", "User-Agent": USER_AGENT},
+    )
+    token = json.loads(urllib.request.urlopen(req, timeout=30).read())["token"]
+    _cached_token = token
+    _token_ts = time.time()
+    return token
+
+
 def wp_api(method, path, data=None):
-    for attempt in range(10):
+    for attempt in range(8):
         try:
-            d = json.dumps(
-                {"username": "admin", "password": "AIMoneyMachine2026!"}
-            ).encode()
-            req = urllib.request.Request(
-                f"{WP}/wp-json/jwt-auth/v1/token",
-                data=d,
-                headers={"Content-Type": "application/json"},
-            )
-            token = json.loads(urllib.request.urlopen(req, timeout=30).read())["token"]
+            token = get_wp_token(force=(attempt > 0))
             headers = {
                 "Authorization": f"Bearer {token}",
                 "Content-Type": "application/json",
+                "User-Agent": USER_AGENT,
             }
             url = f"{WP}/wp-json/wp/v2/{path}"
             body = json.dumps(data).encode() if data else None
@@ -158,13 +199,13 @@ def wp_api(method, path, data=None):
             return json.loads(resp.read())
         except Exception as e:
             log(f"  WP API error (attempt {attempt + 1}): {e}")
-            time.sleep(min(30 * (2**attempt), 300))
+            time.sleep(min(15 * (2**attempt), 180))
     return None
 
 
 LLM_URLS = [
-    "http://localhost:4000/api/proxy/v1/chat/completions",
     "http://localhost:4000/v1/chat/completions",
+    "http://localhost:4000/api/proxy/v1/chat/completions",
 ]
 
 
@@ -199,14 +240,13 @@ def llm(prompt):
                 elif "text" in choice:
                     text = choice["text"]
             if text:
-                return text.strip()
-            log("  Empty/malformed response, switching endpoint...")
-            llm_idx += 1
-        except KeyError as e:
-            log(f"  LLM response format error (attempt {attempt}): missing key {e}")
+                text = re.sub(r"<think>[\s\S]*?</think>", "", text, flags=re.IGNORECASE).strip()
+            if text:
+                return text
             llm_idx += 1
         except Exception as e:
-            log(f"  LLM error: {e}, retrying...")
+            log(f"  LLM error (attempt {attempt}): {e}, retrying...")
+            llm_idx += 1
         time.sleep(delay)
         delay = min(delay * 1.5, 300)
 
@@ -220,6 +260,19 @@ def get_category_id(slug):
     return None
 
 
+def post_already_exists(title):
+    q = urllib.parse.quote(title[:50])
+    posts = wp_api("GET", f"posts?search={q}&per_page=20")
+    if not posts:
+        return False
+    norm = re.sub(r"[^a-z0-9]+", "", title.lower())
+    for p in posts:
+        rendered = p.get("title", {}).get("rendered", "")
+        if re.sub(r"[^a-z0-9]+", "", rendered.lower()) == norm:
+            return True
+    return False
+
+
 def publish(article):
     title = article["title"]
     cat = article["cat"]
@@ -227,36 +280,31 @@ def publish(article):
     cat_slug = cat.lower().replace(" ", "-")
 
     log(f"\n{'=' * 60}")
-    log(f"  Generating: {title}")
-    log(f"  Category: {cat}")
+    log(f"  Checking: {title}")
+    if post_already_exists(title):
+        log("  ⏭ Already published on WordPress — skipping duplicate")
+        return False
 
-    # Get category ID
     cat_id = get_category_id(cat_slug)
     if not cat_id:
         log(f"  Category not found: {cat}")
         return False
 
-    # Generate content
     log("  Waiting for LLM...")
     content = llm(prompt)
     log(f"  Generated {len(content)} chars")
 
-    # Strip markdown fences
     if content.startswith("```"):
         content = re.sub(r"^```.*?\n", "", content)
         content = re.sub(r"\n```$", "", content)
 
-    # Validate content -- reject obvious junk, but allow content that starts with markdown headings
     if not content or len(content) < 500:
         log(f"  SKIP: too short ({len(content)} chars)")
         return False
-    if "Content generation failed" in content or "Generated content" in content:
-        # Check if these are just passing mentions vs the whole thing being garbage
-        if len(content) < 2000:
-            log(f"  SKIP: likely junk content ({len(content)} chars)")
-            return False
+    if ("Content generation failed" in content or "Generated content" in content) and len(content) < 2000:
+        log(f"  SKIP: likely junk content ({len(content)} chars)")
+        return False
 
-    # Publish
     result = wp_api(
         "POST",
         "posts",
@@ -272,9 +320,8 @@ def publish(article):
     if result and result.get("id"):
         log(f"  ✅ Published! ID: {result['id']} — {result.get('link', '')[:60]}")
         return True
-    else:
-        log("  ❌ Failed to publish")
-        return False
+    log("  ❌ Failed to publish")
+    return False
 
 
 def main():
@@ -287,14 +334,14 @@ def main():
         try:
             if publish(article):
                 published += 1
-            time.sleep(5)
+            time.sleep(3)
         except Exception as e:
             log(f"  CRASHED: {e}")
             traceback.print_exc()
             time.sleep(10)
 
     log(f"\n{'=' * 60}")
-    log(f"  DONE: {published}/{len(ARTICLES)} articles published")
+    log(f"  DONE: {published}/{len(ARTICLES)} new articles published")
     log(f"{'=' * 60}")
 
 
@@ -306,6 +353,6 @@ if __name__ == "__main__":
             time.sleep(86400)
         except SystemExit:
             break
-        except:
+        except Exception:
             traceback.print_exc()
             time.sleep(60)

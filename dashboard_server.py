@@ -1,15 +1,9 @@
 #!/usr/bin/env python3
-"""Consolidated dashboard server (replaces dashboard.py + bot.html subpage).
+"""Consolidated dashboard fallback proxy server (stdlib only).
 
-Serves the single-page dashboard.html on :8083 and proxies the Go
-orchestrator API (:8082) so the browser never hits CORS:
-  GET  /              -> dashboard.html
-  GET  /api/status    -> :8082/status      GET /api/chains  -> :8082/chains
-  GET  /api/agents    -> :8082/agents      GET /api/content -> :8082/content
-  GET  /api/strategy  -> :8082/strategy    POST /api/dispatch -> :8082/dispatch {uri}
-  GET  /api/log       -> orchestrator_live.log (same dir, fallback ../)
-  GET  /api/progress  -> expansion_progress.json (same dir, fallback ../)
-Prod: aimm-dashboard.service runs this file from /opt/aimoneymachine/bin/.
+Note: Since v1.3.0+, the Go orchestrator embeds orchestrator/dashboard.html directly
+on :8082 (`/` and `/dashboard`) alongside every `/api/*` endpoint. This Python script
+remains as a lightweight standalone proxy on :8083 when needed.
 """
 import json
 import os
@@ -17,15 +11,17 @@ import urllib.request
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
 DIR = os.path.dirname(os.path.abspath(__file__))
-ORCH = os.environ.get("ORCHESTRATOR_URL", "http://localhost:8082")
+ORCH = os.environ.get("ORCHESTRATOR_URL", "http://localhost:8082").rstrip("/")
 PORT = int(os.environ.get("DASHBOARD_PORT", "8083"))
 
 
 def sibling(name):
-    # dashboard.html moved into orchestrator/ in v1.3.0 (embedded in the Go
-    # binary); this Python server is now only a fallback, so look there too.
-    for base in (DIR, os.path.join(DIR, ".."), os.path.join(DIR, "orchestrator"),
-                 os.path.join(DIR, "..", "orchestrator")):
+    for base in (
+        os.path.join(DIR, "orchestrator"),
+        os.path.join(DIR, "..", "orchestrator"),
+        DIR,
+        os.path.join(DIR, ".."),
+    ):
         p = os.path.join(base, name)
         if os.path.exists(p):
             return p
@@ -35,18 +31,19 @@ def sibling(name):
 class Handler(BaseHTTPRequestHandler):
     def _send(self, code, body, ctype="application/json"):
         if isinstance(body, str):
-            body = body.encode()
+            body = body.encode("utf-8")
         self.send_response(code)
         self.send_header("Content-Type", ctype)
         self.end_headers()
         self.wfile.write(body)
 
-    def _proxy(self, path):
+    def _proxy_get(self, full_path, fallback=b'{"status":"offline"}', ctype="application/json"):
         try:
-            with urllib.request.urlopen(ORCH + path, timeout=5) as r:
-                self._send(200, r.read())
+            with urllib.request.urlopen(ORCH + full_path, timeout=8) as r:
+                rc = r.headers.get("Content-Type", ctype)
+                self._send(200, r.read(), rc)
         except Exception:
-            self._send(200, b'{"status":"offline"}')
+            self._send(200, fallback, ctype)
 
     def do_GET(self):
         path = self.path.split("?")[0]
@@ -57,43 +54,46 @@ class Handler(BaseHTTPRequestHandler):
                     self._send(200, f.read(), "text/html; charset=utf-8")
             else:
                 self._send(404, b"dashboard.html not found", "text/plain")
-        elif path == "/api/log":
-            p = sibling("orchestrator_live.log")
-            self._send(200, open(p, "rb").read() if p else b"", "text/plain")
-        elif path == "/api/progress":
-            p = sibling("expansion_progress.json")
-            self._send(200, open(p, "rb").read() if p else b'{"done":[]}')
-        elif path in ("/api/status", "/api/chains", "/api/agents", "/api/content", "/api/strategy"):
-            self._proxy(path.replace("/api", "", 1))
+        elif path == "/bot":
+            self.send_response(302)
+            qs = ("?" + self.path.split("?", 1)[1]) if "?" in self.path else ""
+            self.send_header("Location", "/" + qs + "#trading")
+            self.end_headers()
+        elif path in ("/api/log", "/api/service-logs"):
+            self._proxy_get(self.path, fallback=b"", ctype="text/plain; charset=utf-8")
+        elif path.startswith("/api/"):
+            self._proxy_get(self.path)
         else:
             self._send(404, b"404", "text/plain")
 
     def do_POST(self):
-        if self.path.split("?")[0] != "/api/dispatch":
+        path = self.path.split("?")[0]
+        if path not in ("/api/dispatch", "/register", "/sync", "/healer"):
             self._send(404, b"404", "text/plain")
             return
         try:
             length = int(self.headers.get("Content-Length", 0))
-            payload = json.loads(self.rfile.read(length) or b"{}")
-            uri = payload.get("uri", "")
-            if not uri.startswith("hustle://"):
-                self._send(400, b"uri must start with hustle://", "text/plain")
-                return
-            req = urllib.request.Request(
-                ORCH + "/dispatch",
-                data=json.dumps({"uri": uri}).encode(),
-                headers={"Content-Type": "application/json"},
-                method="POST",
-            )
+            raw = self.rfile.read(length) or b"{}"
+            if path == "/api/dispatch":
+                payload = json.loads(raw)
+                uri = payload.get("uri", "")
+                if not uri.startswith("hustle://"):
+                    self._send(400, b"uri must start with hustle://", "text/plain")
+                    return
+            headers = {"Content-Type": "application/json"}
+            auth = self.headers.get("Authorization")
+            if auth:
+                headers["Authorization"] = auth
+            req = urllib.request.Request(ORCH + self.path, data=raw, headers=headers, method="POST")
             with urllib.request.urlopen(req, timeout=120) as r:
-                self._send(200, r.read(), "text/plain")
-        except Exception as e:  # orchestrator down or rejected the URI
-            self._send(502, f"dispatch failed: {e}".encode(), "text/plain")
+                self._send(200, r.read(), r.headers.get("Content-Type", "text/plain"))
+        except Exception as e:
+            self._send(502, f"dispatch failed: {e}".encode("utf-8"), "text/plain")
 
     def log_message(self, *a):
         pass
 
 
 if __name__ == "__main__":
-    print(f"Dashboard: http://0.0.0.0:{PORT}/ (orchestrator: {ORCH})")
+    print(f"Dashboard proxy: http://0.0.0.0:{PORT}/ (orchestrator: {ORCH})")
     HTTPServer(("0.0.0.0", PORT), Handler).serve_forever()

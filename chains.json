@@ -14,5 +14,18 @@
       "hustle://curation?topic=AI",
       "hustle://social?platform=Bluesky"
     ]
+  },
+  "luxury_passive_income_engine": {
+    "name": "luxury_passive_income_engine",
+    "description": "Automated luxury wealth engine that researches high-ROI passive vehicles, curates affluent portfolios, and syndicates evergreen content plus affiliate offers with minimal maintenance.",
+    "steps": [
+      "hustle://research?query=luxury+passive+income+vehicles",
+      "hustle://curation?topic=luxury+wealth+portfolios",
+      "hustle://content?topic=luxury+passive+income&type=blog",
+      "hustle://affiliate?action=run&niche=luxury+investments",
+      "hustle://synergy_leadgen?topic=private+wealth&niche=high+net+worth+investors",
+      "hustle://publisher?action=status",
+      "hustle://calendar?action=schedule_week&niche=luxury+passive+income"
+    ]
   }
 }

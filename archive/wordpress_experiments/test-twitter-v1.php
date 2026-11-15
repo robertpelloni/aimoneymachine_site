@@ -1,9 +1,9 @@
 <?php
 // Test Twitter API v1.1 with new credentials (might still work)
-$api_key = "hrHCxGaQi8ztbfaG0cs8sjfl2";
-$api_secret = "A6hDigI5JbnjQQR1NvtvOGl3BdqoBPtGNrJkVPt7nDYX0MBWBU";
-$access_token = "2044648665470406656-Xi00tuystgpXF37IYpgeE8u4NeJFzR";
-$access_secret = "eTqo69Lnq1e4B4LQxeykBdmd3WgCIn3gQMw9qdqrUtZLl";
+$api_key = getenv('TWITTER_API_KEY');
+$api_secret = getenv('TWITTER_API_SECRET');
+$access_token = getenv('TWITTER_ACCESS_TOKEN');
+$access_secret = getenv('TWITTER_ACCESS_SECRET');
 
 // Try v1.1 endpoint
 $url = "https://api.twitter.com/1.1/statuses/update.json";

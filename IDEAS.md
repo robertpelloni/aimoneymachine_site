@@ -1,30 +1,22 @@
-# Aggressive Pivot & Refactoring Ideas
+# Strategic Evolution & Next-Wave Ideas (`v2.0.0+`)
 
-## 1. The "Ghost Protocol" (Stealth Mode)
-- Implement a mode where the Orchestrator runs entirely within a WASM sandbox in the browser, using WebRTC for the A2A mesh.
-- This would allow for "headless" operation on any device with a browser, bypassing traditional OS-level detection.
+## Implemented Foundations (Graduated to Core in `v1.3`–`v2.0.0`)
+- **One-Binary Consolidated Dashboard (`v1.3.0` -> `v2.0.0`):** `orchestrator/dashboard.html` is embedded directly via `go:embed` in `orchestrator/api.go`, exposing all 36 `hustle://` modules, inline SVG Bot Inspector, Dispatch Output Drawer, and 10-service log viewer on `:8082`.
+- **System-Tray Controller v2 (`v1.5.0` -> `v2.0.0`):** Shipped in `tray/` (`bin\aimm-tray.exe`) with single-instance mutex, Windows login autostart, automatic SSH tunnel management to Hetzner `:8082`, `BelowNormal` local server toggle, and 1-click quick hustle dispatches.
 
-## 2. Tokenized Agent Labor
-- Introduce a local "Hustle Token" to track compute resources shared across the mesh.
-- Nodes can "bid" on chain steps based on their local GPU/CPU availability, creating a true decentralized compute market for side hustles.
+## High-ROI Next-Horizon Ideas
 
-## 3. Self-Modifying Protocol (Genetic URIs)
-- Allow the `ChainDiscoverer` to mutate the protocol URIs themselves (e.g., changing parameters like `interval` or `query` strings).
-- Use a genetic algorithm to "breed" the most profitable chains over multiple generations.
+### 1. Autonomous Stripe / LemonSqueezy Checkout Provisioner
+- Extend `hustle/products` (`Digital Product Factory`) and `hustle/saas` (`GenerateMVP`) to automatically create a live Stripe Payment Link (`stripe_setup.py` bridge) and embed the real checkout button into WordPress pillar articles and generated static landing pages.
 
-## 4. Cross-Monorepo Intelligence
-- Use the MCP (Model Context Protocol) to allow the Orchestrator to "reach out" to other repositories in the user's workspace.
-- If a Trading bug is found in a different repo, the Healer should be able to propose a PR to *that* repo to fix the dependency.
+### 2. Search Console CTR & Indexing Feedback Loop
+- Feed Google Search Console impression/CTR exports directly into `hustle://content` and `PromptOptimizer` so articles ranking positions 5–15 automatically receive title/meta A/B tests, internal links from top pillars, and FAQ schema blocks.
 
-## 5. Neural Dashboard
-- Replace the terminal dashboard with a real-time 3D visualization (using something like `tview` or a separate web frontend) of the mesh as a "living organism".
+### 3. Genetic Workflow Chain Breeding
+- Upgrade `ChainDiscoverer` to mutate parameters on top-earning `chains.json` pipelines, run shadow dry-run evaluations through the 4-persona `Council`, and promote chains that outperform the median ledger ROI.
 
-## 6. System-tray / menubar controller (answers 'where is the tray icon?')
-- Today: none. Orchestrator is a headless daemon (systemd aimm-* on Hetzner, Ctrl+C locally).
-- Build a tiny Go tray app (fyne.io/systray) that polls :8082/status, shows profit + per-service dots, and offers Start/Stop/Restart/Quit (= systemctl or process kill), Open Dashboard, Tail Logs. Ship for Windows + Linux.
+### 4. Signed Tray-to-Orchestrator Control Endpoint
+- Replace SSH-shelled `systemctl` calls in `aimm-tray` with Ed25519-signed (`did:hustle`) control requests over the authenticated `:8082` API so mobile/remote operators can manage companion services without local SSH keys.
 
-## 7. One-binary dashboard
-- go:embed dashboard.html into the orchestrator and serve it from :8082 itself, deleting the Python dashboard server entirely.
-
-## 6b. Tray follow-ups
-- Single-instance lock, autostart-on-login toggle, and a sparkline profit graph in the tray menu. Prod start/stop currently shells to ssh; a signed control endpoint on the orchestrator would remove the ssh dependency.
+### 5. Cross-Repo HyperNexus MCP Bridge
+- Expose all 36 `hustle://` protocol handlers as an MCP tool server (`orchestrator/mcp_client.go` counterpart) so sibling agents in the HyperNexus workspace can invoke research, valuation, legal drafting, or publishing directly.

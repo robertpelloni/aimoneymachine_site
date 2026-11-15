@@ -1,74 +1,42 @@
 # Project Roadmap
 
-## Phase 1: Federated Foundation (v1.0.0-alpha.1 – v1.0.0-alpha.30) ✅ COMPLETE
-- Tiered Memory (L1/L2/L3)
-- Basic Multi-Agent Council
-- Agent-to-Agent (A2A) Broker
-- Initial Hustle Modules (Research, Social, Curation)
-- hustle:// Protocol routing
+## Phase 1: Federated Foundation (`v1.0.0-alpha.1` – `v1.0.0-alpha.30`) — COMPLETE
+- [x] Tiered Memory (`L1` / `L2` / `L3`)
+- [x] Multi-Agent Council of Supervisors
+- [x] Agent-to-Agent (`A2A`) Broker
+- [x] Initial Hustle Modules (`research`, `social`, `curation`)
+- [x] `hustle://` Protocol Router
 
-## Phase 2: Intelligence & Autonomy (v1.0.0-alpha.31 – v1.0.0-alpha.43) ✅ COMPLETE
-- Delta-Sync Memory Swarming
-- Chain Orchestration & Discovery
-- Autonomous Luxury Logic
-- Mesh Aggregation & Status Scaling
-- Wealth Preservation (ROI auditing → auto-termination)
+## Phase 2: Intelligence & Autonomy (`v1.0.0-alpha.31` – `v1.0.0-alpha.43`) — COMPLETE
+- [x] Delta-Sync Memory Swarming
+- [x] Chain Orchestration & Discovery
+- [x] Mesh Aggregation & Collective Wealth Goal
+- [x] Wealth Preservation (ROI auditing -> auto-termination)
 
-## Phase 3: Real AI Integration (v1.0.0-alpha.44 – v1.0.0-alpha.66) ✅ COMPLETE
-- OpenAI-compatible LLM provider (LM Studio, Ollama, vLLM)
-- Real embedding provider (Nomic via LM Studio)
-- Agent Loop (Observe → Think → Act → Learn → Evaluate)
-- Multi-Agent Orchestrator (concurrent agent loops)
-- Content Hustle module (blog, newsletter, SEO, social thread)
-- HustlePlan strategic planner (LLM-generated plans)
-- Interactive menu with all 5 hustle modules
-- Agent mode CLI flag (`-agent`, `-autoplan`)
-- Refactored Healer with LLM-verification
+## Phase 3: Real AI Integration (`v1.0.0-alpha.44` – `v1.0.0-alpha.66`) — COMPLETE
+- [x] OpenAI-compatible LLM provider (`LM Studio`, `Ollama`, `FreeLLM`, `LiteLLM`)
+- [x] Vector Embeddings (`modernc.org/sqlite` + cosine similarity search)
+- [x] Autonomous Agent Loop (`Observe -> Think -> Act -> Learn -> Evaluate`)
+- [x] Multi-Agent Concurrent Orchestrator & `PlanHustles` Strategic Planner
+- [x] LLM-Verified Self-Healer
 
-## Phase 4: Production Hustle Operations (v1.0.0-alpha.67 – v1.0.0-alpha.78) ✅ COMPLETE
-- [x] **Real Research API** — Tavily integration for live intelligence (v1.0.0-alpha.68)
-- [x] **Graceful Shutdown** — State persistence on SIGINT/SIGTERM (v1.0.0-alpha.67)
-- [x] **Git Rollback** — Automated recovery to stable commits (v1.0.0-alpha.69)
-- [x] **Mesh UI** — Federated profit and status observability (v1.0.0-alpha.70)
-- [x] **API Expansion** — REST endpoints for remote orchestration (v1.0.0-alpha.72)
-- [x] **Safety Modes** — Social dry-run and manual diagnostics (v1.0.0-alpha.73)
-- [x] **Dynamic RSS** — User-managed feed lists for curation (v1.0.0-alpha.74)
-- [x] **Wealth Goals** — Mesh-wide financial targets and leaderboards (v1.0.0-alpha.75)
+## Phase 4: Production Hustle Operations (`v1.0.0-alpha.67` – `v1.9.19`) — COMPLETE
+- [x] Pure-Go SQLite (`modernc.org/sqlite`) — zero CGO requirement on Windows & Linux
+- [x] Real Multi-Source Crypto Feeds (`CoinGecko`, `Binance`, `Kraken`, `Coinbase`) + RSI/SMA/MACD/Bollinger TA
+- [x] Real Social Providers (`Bluesky` ATProto, `Twitter/X` OAuth1/v2, `LinkedIn` UGC v2) + Dry-Run mode
+- [x] Digital Product Factory (`output/products/*/manifest.json`) & FFmpeg YouTube Shorts Factory (`output/shorts/`)
+- [x] Bidirectional Mesh Peer Registration (`POST /register` + `-seed` callback) & Optional Bearer Auth (`AIMM_API_TOKEN`)
 
-## Phase 5: Advanced Autonomy & Scaling (v1.0.0-alpha.78 – v1.0.0-beta.10) 🔧 IN PROGRESS
-- [ ] **Real Social API Integration** — Twitter/X and LinkedIn OAuth2/API calls
-- [ ] **Trading with real CoinGecko data** — verified in daemon mode with -real-prices
-- [ ] **Content output pipeline** — automated hosting/deployment of generated markdown
-- [ ] **Windows CGO build fix** — Migrate to `modernc.org/sqlite`
+## Phase 5: Consolidated Command Center & Full 36-Module Suite (`v2.0.0`) — COMPLETE
+- [x] **36/36 `hustle://` Modules Restored & Wired:** Full Go workspace integration across trading, equities (`Alpaca`), domain flipping, retail FBA, STR real estate, affiliate, digital products, dropshipping/Shopify, Micro-SaaS MVP generation, KDP, POD, content/100K/CMS, publisher/calendar, B2B leadgen/outreach/CRM, Confluence recipes, and 11 AI Agency modules.
+- [x] **SHA-256 `CachingLLM` & Ed25519 Node Identity (`did:hustle`):** Active in runtime and surfaced on `/api/status`.
+- [x] **Single-Page Consolidated Dashboard (`orchestrator/dashboard.html`):** ROI-prioritized layout, inline SVG Bot Inspector (replacing `/bot`), Inline Dispatch Output Drawer, `ⓘ` tooltips on every control, and 10-service live log console.
+- [x] **System Tray Controller v2 (`bin/aimm-tray.exe`):** Auto-SSH tunnel to Hetzner `:8082`, `BelowNormal` local server toggle, hidden console windows, and 1-click quick dispatches.
+- [x] **Cloudflare-Safe WordPress & Hetzner Pipeline:** Fixed `403 Forbidden` across `expand.py`, `batch_publisher.py`, `content_audit.py`, and `wordpress.go`.
 
-## Phase 5: Advanced Autonomy (v1.0.0-beta.11 – v1.0.0-rc.1) 📋 PLANNED
-- [x] **Self-optimizing prompts** — A/B test prompt variations, track win rates
-- [ ] **Advanced trading indicators** — MACD, Bollinger Bands, volume analysis
-- [ ] **Multi-exchange trading** — Binance, Kraken exchange plugins
-- [ ] **Cross-hustle feedback** — research discoveries feed content topics, content feeds social
-- [x] **LLM response cache** — content-addressable cache for identical prompts
-
-## Phase 6: Federation & Scale (v1.0.0-rc.2 – v1.0.0) 📋 PLANNED
-- [ ] **Multi-node cluster testing** — 10+ peers with real mesh sync
-- [ ] **Global profit leaderboard** — mesh-wide ranking via A2A topic
-- [ ] **Decentralized identity** — DID for peer verification
-- [ ] **Adaptive sync intervals** — sync more during volatility, less during calm
-
-## Phase 7: Fully Automated Digital Real Estate Engine 🚀 PLANNED
-- [ ] **Programmatic SEO (pSEO) Content Factory**: Auto-generating and indexing high-intent long-tail keyword landing pages
-- [ ] **API-as-a-Service**: Dynamic micro-tools with token-based rate limiting (Leaky Bucket) and micro-billing
-- [ ] **Digital Product Archive Generator**: LLM-generated templates, boilerplate code, and clean datasets listed dynamically on an internal storefront
-- [ ] **Dynamic Data Arbitrage & Lead Capture**: Aggregating and summarizing public/API data into actionable, subscription-paywalled insights
-- [x] **Affiliate Marketing Engine**: Fetch trending products, generate LLM reviews, and auto-post to Twitter and Blog
-
-## Phase 8: Consolidated Dashboard & Prod Revival (v1.2.0) � IN PROGRESS
-- [x] Single-page dashboard: all hustle:// features grouped Overview > Money > Growth > Automation > System, with tooltips + forms (dashboard.html + dashboard_server.py)
-- [x] Merge-conflict purge (go.work/go.mod/go.sum/main.go/agent_loop/post.go/VERSION/STATUS) � repo builds again
-- [x] LLMProvider.GenerateJSON for all providers (Mock/Anthropic/Waterfall/Limited via GenerateJSONViaGenerate)
-- [ ] Publisher/calendar hustle:// wiring (hustle/publisher exists, no handler yet)
-- [ ] Shorts TTS + FFmpeg + YouTube upload
-- [ ] System-tray / menubar controller (none exists today; systemd is the prod control plane)
-- [ ] Rotate API keys stored in plaintext in aimm-freellm.service unit on Hetzner
-
-## Status correction (2026-11-14, through v1.9.12)
-Earlier phase checkboxes under-report reality. Verified live on Hetzner prod: real social posting code (X blocked by 402 credits-depleted; Bluesky posting live in both chains), real CoinGecko prices in the daemon (plus Binance/Kraken price sources, TRADING_PRICE_SOURCE), content -> publisher -> WordPress pipeline, affiliate engine, digital product factory (v1.9.0), Shorts MP4 rendering (v1.4.x), per-symbol trading indicators, LLM waterfall fallback, consolidated embedded dashboard + tray controller, agent loop verified end-to-end in dry-run (research -> content -> social). Still genuinely open: MACD/Bollinger indicators, multi-node cluster testing (10+ peers), decentralized identity, pSEO factory, API-as-a-Service, data-arbitrage paywall, Shorts TTS/upload (credentials), lead-gen Places/email enrichment (credentials).
+## Phase 6: External Monetization Activation (`v2.1+`) — NEXT
+- [ ] Configure `GUMROAD_ACCESS_TOKEN` or Stripe Payment Links to auto-publish `output/products/*` listings for direct checkout
+- [ ] Whitelist Hetzner IP (`5.161.250.43`) or rotate `BINANCE_API_KEY` on Binance.US to transition `aimm-python-trader` from public-data/401 to live/authenticated execution
+- [ ] Add `BUTTONDOWN_API_KEY` / `CONVERTKIT_API_SECRET` to activate automated email newsletter issues
+- [ ] Add `YOUTUBE_CLIENT_ID` / `YOUTUBE_REFRESH_TOKEN` + `ELEVENLABS_API_KEY` for voiced automated YouTube Shorts & HymnMania uploads
+- [ ] Move `aimm-freellm.service` inline provider keys into `/opt/aimoneymachine/.freellm.env` (`chmod 600`) and rotate exposed keys

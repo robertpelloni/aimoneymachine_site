@@ -1,9 +1,9 @@
 <?php
 // Test Twitter API v2 with all new credentials
-$api_key = "PlRsMkKpUGOzMOaumlWI9GtxA";
-$api_secret = "CrEQnwjYAPOXKX2SlWZQILmOcqlkMbIuahTQvVuiCCGZ6I5aXF";
-$access_token = "2044648665470406656-zXTs7oqOjOOdNQpM7EEoSkciSTRbBQ";
-$access_secret = "dCyrB5bnc6MZS2kwweRB4buoFEr1Pbl7U2f8dwTHRNtVi";
+$api_key = getenv('TWITTER_API_KEY');
+$api_secret = getenv('TWITTER_API_SECRET');
+$access_token = getenv('TWITTER_ACCESS_TOKEN');
+$access_secret = getenv('TWITTER_ACCESS_SECRET');
 
 // First verify credentials
 echo "Verifying credentials...\n";

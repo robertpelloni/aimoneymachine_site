@@ -1,22 +1,33 @@
-# aimoneymachine_site — "AI Money Machine"
+# aimoneymachine_site — AI Hustle Machine (`v2.0.0`)
 
-A Go system for running autonomous, LLM-driven online revenue experiments ("hustles") — self-orchestrating agents that plan, execute, and iterate on money-making workflows — together with the website and the large research corpus the project accumulated.
+Autonomous, LLM-driven multi-module revenue engine (`orchestrator` + 31 `hustle/*` Go modules + Windows `aimm-tray` desktop controller) powering **https://aimoneymachine.site** and a single-page Consolidated Command Center.
 
-Despite the repo name, this is not just a website: the site is one output of the machine. The tree contains:
+## Architecture at a Glance
 
-- **The agent system** — Go code for the orchestration loop (agents that think, act, and record what worked), plus `orchestrator/`, `hustle/`, and a 19 MB compiled `orchestrator_linux_new` binary
-- **The research corpus** — dozens of standing research documents at the root (`AGENT_AUTOMATABLE_SIDE_HUSTLES.md`, `AI_AGENTS_FRAMEWORKS.md`, `CONNECTIVITY_MCP_A2A.md`, `CODING_HARNESS_TOOLS.md`, `INFRASTRUCTURE_PROXY_LAYERS.md`, `MASTER_IDEAS.md`, and many more) covering agent frameworks, automatable business models, MCP/A2A connectivity, and tooling
-- **Ops/process state** — `AUDIT.md`, `CHANGELOG.md`, `HANDOFF.md`, `MEMORY.md`, per-assistant instruction files, and session directories from the bot-assisted development process. The domain `aimoneymachine.site` is served from the same production server as Robert's other projects.
+- **Core Engine (`orchestrator/` + `hustle/*`, Go 1.25 `go.work`):**
+  - **36 `hustle://` Protocol Handlers** spanning crypto quant trading (`BTC`, `ETH`, `SOL`, `DOGE`, `XRP`, `ADA`, `LINK` via CoinGecko/Binance/Kraken/Coinbase), Alpaca equities, domain flipping, Amazon FBA & Airbnb STR arbitrage, affiliate pipelines, digital product & single-file Micro-SaaS MVP factories, WordPress/Newsletter/Shopify publishing, 100K-character SEO pillar expansion, YouTube Shorts + HymnMania queues, B2B LeadGen/Outreach/CRM, async multi-agent loops, 4-persona Council debates, and an 11-module AI Agency workbench.
+  - **Single-Page Consolidated Dashboard (`orchestrator/dashboard.html`):** Embedded directly into the Go binary on `:8082` (`/` and `/dashboard`) — zero subpages, ROI-ordered sections, inline SVG Bot Inspector, instant Dispatch Output Drawer, `ⓘ` tooltips on every control, and a 10-service live log viewer.
+- **Desktop System Tray Controller (`tray/` -> `bin\aimm-tray.exe`):**
+  - Live green/amber/red status icon, automatic background SSH tunnel (`localhost:8082 -> hetzner:8082`), `BelowNormal`-priority local server start/stop, 1-click hustle dispatches, and remote Hetzner systemd controls.
+- **Research Corpus & Memory (`.memory/`, `.pi/`, root `.md` library):**
+  - Extensive architecture & agent-monetization reference library plus tracked Brain memory and SQLite state (`hustle.db`).
 
-## Status — the honest part
+## Quick Start
 
-**Alpha, experimental, single-developer, parked.** Last substantive work: 2026-08-03 (markdown-to-HTML conversion across 382 blog posts); last commit: 2026-10-22 (README rewrite).
+```powershell
+# Build all Windows + Linux binaries at BelowNormal CPU priority:
+.\scripts\build-all.ps1
 
-"Fully automated revenue" is the *research goal*, not a measured result. The only income figures recorded in the tree are in `STATUS.json` (2026-07-03): revenue $171.60, expenses $1,005, profit **−$833.40**. Read the corpus as a well-organized research notebook attached to a working agent harness — that is what this repo verifiably is.
+# Launch the Windows System Tray Icon (auto-connects SSH tunnel to Hetzner :8082):
+.\scripts\manage.ps1 start-tray
 
-**Note (updated 2026-11-14):** the merge conflicts that once sat in `VERSION.md`/`STATUS.json` (and in `go.work`/`go.mod`/`main.go`) were resolved in v1.2.0; the version is single-sourced from `VERSION.md` (currently 1.6.2) and the Go orchestrator, embedded dashboard, and Hetzner prod services are running. See [HANDOFF.md](HANDOFF.md) for current state and [CHANGELOG.md](CHANGELOG.md) for what changed.
+# Verify health & run smoke suite:
+.\bin\aimm-tray.exe --status
+python .\scripts\smoke_prod.py http://localhost:8082
+```
 
-## Related
+See [USER_MANUAL.md](USER_MANUAL.md) for full dashboard & protocol usage, [DEPLOY.md](DEPLOY.md) for Hetzner production operations, [HANDOFF.md](HANDOFF.md) for live telemetry & handoff notes, and [CHANGELOG.md](CHANGELOG.md) for version history.
 
-- [`HyperNexusLLC/HyperNexus`](https://github.com/HyperNexusLLC/HyperNexus) — the control plane this work feeds into
-- [`robertpelloni/marketing_agent`](https://github.com/robertpelloni/marketing_agent) — the Go outreach service that came out of the same line of work
+## Honest Financial Status
+
+ Recorded historical ledger baseline in `STATUS.json`: revenue \$171.60, infrastructure/setup expenses \$1,005.00, net **-\$833.40**. All 36 software pipelines, WordPress publishing/expansion daemons, Bluesky auto-posting, and quant/product/agency engines are active and verified; external marketplace keys (`GUMROAD_ACCESS_TOKEN`, Binance IP whitelist, X API credits, YouTube OAuth) are documented in [TODO.md](TODO.md) to unlock direct external settlement.

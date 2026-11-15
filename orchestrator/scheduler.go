@@ -328,3 +328,40 @@ func (s *Scheduler) checkROICorrections() {
 		}
 	}
 }
+
+
+// TaskSnapshot represents a scheduled daemon task's runtime state for GET /api/tasks.
+type TaskSnapshot struct {
+	Name          string    `json:"name"`
+	IntervalSec   int64     `json:"interval_sec"`
+	IntervalHuman string    `json:"interval_human"`
+	LastRun       time.Time `json:"last_run"`
+	NextInSec     int64     `json:"next_in_sec"`
+	Running       bool      `json:"running"`
+}
+
+// Snapshot returns a thread-safe slice of all registered daemon tasks.
+func (s *Scheduler) Snapshot() []TaskSnapshot {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	now := time.Now()
+	out := make([]TaskSnapshot, 0, len(s.Tasks))
+	for _, t := range s.Tasks {
+		rem := t.Interval - now.Sub(t.LastRun)
+		if nb := t.notBefore.Sub(now); nb > rem {
+			rem = nb
+		}
+		if rem < 0 {
+			rem = 0
+		}
+		out = append(out, TaskSnapshot{
+			Name:          t.Name,
+			IntervalSec:   int64(t.Interval.Seconds()),
+			IntervalHuman: t.Interval.String(),
+			LastRun:       t.LastRun,
+			NextInSec:     int64(rem.Seconds()),
+			Running:       s.running[t.Name],
+		})
+	}
+	return out
+}

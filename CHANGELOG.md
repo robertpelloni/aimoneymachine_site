@@ -1,3 +1,19 @@
+# Changelog
+
+## [2.0.0] - 2026-11-14
+
+### Added
+- **Full 36-Module `hustle://` Protocol Restoration**: Rebuilt and wired all 20+ previously hollow `hustle/*` Go modules (`stocks`, `domains`, `retail`, `realestate`, `kdp`, `pod`, `ecommerce`, `saas`, `crm`, `outreach`, `bi`, `careers`, `confluence`, `automation`, `design`, `devagency`, `legal`, `localization`, `marketing`, `support`, `education`, `hymns`) plus `CachingLLM` (`orchestrator/llm_cache.go`), Ed25519 decentralized identity (`orchestrator/identity.go`), `LogBuffer` (`orchestrator/log_buffer.go`), `/api/hymns`, `/api/ledger`, `/api/outputs`, `/api/memory`, and `/api/service-logs`.
+- **Single-Page Consolidated Dashboard v2.0.0 (`orchestrator/dashboard.html`)**: Unified 100% of all 36 `hustle://` modules onto one zero-subpage operational console ordered by direct ROI/value, featuring a 6-KPI header strip, Integration Readiness bar, Direct `hustle://` Omnibox, Inline Dispatch Output Drawer, inline SVG Crypto Bot Inspector (`?bot=SYM`), 11-tab condensed AI Agency Workbench, SQLite Task History, L1/L2/L3 + Vector Memory Search, Prompt Bandit/Cache telemetry, HymnMania queue, and 10-service Live Log Console with `â“˜` tooltips on every metric, input, and button.
+- **Windows System Tray Controller v2 (`tray/` -> `bin/aimm-tray.exe`)**: Upgraded native `-H=windowsgui` tray app with automatic background SSH tunnel management (`localhost:8082 -> hetzner:8082`), hidden console child processes (`SysProcAttr{HideWindow: true}`), `BelowNormal` local orchestrator start/stop, 1-click quick hustle dispatches, and clean Quit/Stop server controls.
+- **Cloudflare-Safe Content Audit (`fixes/content_audit.py`)**: Added browser-compatible `User-Agent`, `.env` credential loading, cached JWT auth, and `<think>` tag stripping to `content_audit.py`, eliminating `HTTP Error 403: Forbidden` in `aimm-audit`.
+
+### Fixed
+- **Cloudflare Bot Fight Mode `403 Forbidden` on WordPress REST API**: Updated `hustle/publisher/wordpress.go`, `fixes/expand.py`, `fixes/batch_publisher.py`, and `fixes/content_audit.py` to send explicit browser-compatible `User-Agent` headers and load credentials from `.env`, plus title-deduplication in `batch_publisher.py` to prevent `-2/-3` duplicate slugs.
+- **X/Twitter Auto-Poster & Systemd Timer (`fixes/twitter_poster.py`, `aimm-twitter.timer`)**: Stripped `<think>...</think>` reasoning leaks from LLM-generated tweets, handled X API `402 Payment Required` / `401` gracefully without crashing oneshot runs, and added `OnUnitInactiveSec=6h` to `aimm-twitter.timer`.
+- **Watchdog Service Coverage (`scripts/watchdog.sh`)**: Expanded `/opt/aimoneymachine/bin/watchdog.sh` to monitor all 9 active `aimm-*` systemd services, removed false `PM2 has offline processes` log spam, and added automatic `journalctl --vacuum-size=200M` at `>=95%` disk usage.
+- **Nondestructive Workspace Organization & BelowNormal Builds**: Archived 32 superseded WordPress/CSS/patch experiments into `archive/` and `fixes/archive/` (sanitizing legacy Twitter OAuth test scripts to `getenv(...)`), standardized `BelowNormal` / `renice -n 10` + `-buildvcs=false` across `build.sh`, `scripts/build-all.ps1`, `scripts/build-tray.ps1`, `scripts/manage.ps1`, and `scripts/deploy-hetzner.sh`, and preserved all compiled binaries.
+
 ## [1.0.0-alpha.82] - 2026-06-13
 
 ### Fixed
@@ -333,11 +349,11 @@
 
 ## [1.5.0] - 2026-11-14
 ### Added
-- aimm-tray (tray/): system-tray controller that finally answers 'where is the tray icon?' — polls the orchestrator API (green/red icon, tooltip + status menu), Open Dashboard, Refresh, and Start/Stop/Restart of the Hetzner aimm-* services over the ssh alias (Stop = quit the servers). Config via AIMM_API_URL / AIMM_SSH_HOST; headless aimm-tray --status mode. Tests for status parsing/formatting and control commands. Build: scripts/build-tray.ps1.
+- aimm-tray (tray/): system-tray controller that finally answers 'where is the tray icon?' â€” polls the orchestrator API (green/red icon, tooltip + status menu), Open Dashboard, Refresh, and Start/Stop/Restart of the Hetzner aimm-* services over the ssh alias (Stop = quit the servers). Config via AIMM_API_URL / AIMM_SSH_HOST; headless aimm-tray --status mode. Tests for status parsing/formatting and control commands. Build: scripts/build-tray.ps1.
 
 ## [1.5.1] - 2026-11-14
 ### Added
-- aimm-tray: single-instance guard (Windows named mutex; O_EXCL lockfile with stale-PID takeover elsewhere) — a second launch prints 'aimm-tray is already running' and exits, verified live. Start-at-Login checkbox backed by the HKCU Run key (Windows; disabled elsewhere). Test: TestSingleInstanceGuard.
+- aimm-tray: single-instance guard (Windows named mutex; O_EXCL lockfile with stale-PID takeover elsewhere) â€” a second launch prints 'aimm-tray is already running' and exits, verified live. Start-at-Login checkbox backed by the HKCU Run key (Windows; disabled elsewhere). Test: TestSingleInstanceGuard.
 
 ## [1.5.2] - 2026-11-14
 ### Fixed

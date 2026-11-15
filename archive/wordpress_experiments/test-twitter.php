@@ -1,9 +1,9 @@
 <?php
 // Test Twitter API connection
-$api_key = "hrHCxGaQi8ztbfaG0cs8sjfl2";
-$api_secret = "A6hDigI5JbnjQQR1NvtvOGl3BdqoBPtGNrJkVPt7nDYX0MBWBU";
-$access_token = "2044648665470406656-K6ZREJ7Ab7ve6zx0T9QPcjoTVf9vEg";
-$access_secret = "HBJr0tARufOKDsAKTUXt14YNr06VO3KVrj45GfG70d6La";
+$api_key = getenv('TWITTER_API_KEY');
+$api_secret = getenv('TWITTER_API_SECRET');
+$access_token = getenv('TWITTER_ACCESS_TOKEN');
+$access_secret = getenv('TWITTER_ACCESS_SECRET');
 
 // Test tweet
 $tweet = "Test post from AI Money Machine - Automated content publishing is live! #AIMoney #Automation";

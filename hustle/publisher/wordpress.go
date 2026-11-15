@@ -75,6 +75,8 @@ func (w *WordPressPublisher) IsConfigured() bool {
 	return w.BaseURL != "" && w.Username != "" && w.Password != ""
 }
 
+const wpUserAgent = "Mozilla/5.0 (compatible; AIMM-Publisher/2.0; +https://aimoneymachine.site)"
+
 // getJWTToken authenticates and gets a JWT token
 func (w *WordPressPublisher) getJWTToken() (string, error) {
 	if w.Token != "" {
@@ -89,6 +91,7 @@ func (w *WordPressPublisher) getJWTToken() (string, error) {
 	
 	req, _ := http.NewRequest("POST", w.BaseURL+"/wp-json/jwt-auth/v1/token", bytes.NewReader(bodyBytes))
 	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("User-Agent", wpUserAgent)
 	
 	resp, err := w.HTTPClient.Do(req)
 	if err != nil {
@@ -146,6 +149,7 @@ func (w *WordPressPublisher) PublishPost(title, content, status string, categori
 	}
 
 	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("User-Agent", wpUserAgent)
 
 	// Set authentication based on method
 	switch w.AuthMethod {
@@ -324,6 +328,7 @@ func (w *WordPressPublisher) PublishHTMLPost(title, htmlContent, status string, 
 	}
 
 	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("User-Agent", wpUserAgent)
 
 	// Set authentication based on method
 	switch w.AuthMethod {

@@ -3,6 +3,7 @@ package orchestrator
 import (
 	"fmt"
 	"net/url"
+	"sort"
 	"strings"
 )
 
@@ -51,4 +52,18 @@ func (p *HustleProtocol) HandleURI(rawURI string) error {
 	}
 
 	return handler(params)
+}
+
+
+// RegisteredModules returns all registered hustle:// module names in alphabetical order.
+func (p *HustleProtocol) RegisteredModules() []string {
+	if p == nil {
+		return nil
+	}
+	names := make([]string, 0, len(p.Handlers))
+	for k := range p.Handlers {
+		names = append(names, k)
+	}
+	sort.Strings(names)
+	return names
 }

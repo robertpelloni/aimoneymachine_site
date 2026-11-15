@@ -1,95 +1,1139 @@
 <!doctype html>
-<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>AI Hustle Machine — Consolidated Dashboard v1.9.19</title>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AI Hustle Machine — Consolidated Dashboard v2.0.0</title>
 <style>
-*{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#0f172a;color:#e2e8f0;padding:20px;max-width:1400px;margin:0 auto}
-.logo{font-size:1.8rem;font-weight:800;background:linear-gradient(135deg,#2563eb,#a855f7);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
-header{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;margin-bottom:8px}
-nav{position:sticky;top:0;background:#0f172aee;padding:10px 0;z-index:9;display:flex;gap:8px;flex-wrap:wrap;border-bottom:1px solid #1e293b}
-nav a{color:#93c5fd;text-decoration:none;font-size:.8rem;border:1px solid #334155;padding:5px 10px;border-radius:999px}nav a:hover{border-color:#2563eb}
-h2{font-size:1rem;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em;margin:26px 0 6px}.desc{color:#64748b;font-size:.8rem;margin-bottom:10px}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}.card{background:#1e293b;border:1px solid #334155;border-radius:12px;padding:16px}
-.card h3{font-size:.85rem;color:#cbd5e1}.card p{font-size:.75rem;color:#94a3b8;margin:6px 0;line-height:1.45}.value{font-size:1.35rem;font-weight:700;color:#fff}.sub{font-size:.72rem;color:#64748b}
-.tip{cursor:help;color:#60a5fa;font-size:.75rem}label{font-size:.7rem;color:#94a3b8;display:block;margin-top:8px}
-input,select{width:100%;background:#0f172a;color:#e2e8f0;border:1px solid #334155;border-radius:8px;padding:7px;margin-top:3px;font-size:.8rem}
-button{background:#2563eb;color:#fff;border:0;border-radius:8px;padding:8px 10px;font-size:.75rem;cursor:pointer;margin-top:10px}button:hover{background:#1d4ed8}button.secondary{background:#334155}
-.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px}.on{background:#22c55e}.off{background:#ef4444}.unknown{background:#eab308}
-table{width:100%;border-collapse:collapse}th,td{text-align:left;font-size:.8rem;padding:7px 4px;border-bottom:1px solid #1e293b}th{color:#64748b;text-transform:uppercase;font-size:.7rem}
-#toast{position:fixed;right:16px;bottom:16px;background:#14532d;color:#dcfce7;padding:12px 16px;border-radius:10px;display:none;max-width:420px;font-size:.8rem;z-index:20}
-pre{background:#020617;border:1px solid #1e293b;border-radius:10px;padding:12px;font-size:.7rem;overflow:auto;max-height:260px;white-space:pre-wrap}
-.green{color:#22c55e}.red{color:#ef4444}.yellow{color:#eab308}
-</style></head><body>
-<header><div><div class="logo">AI Hustle Machine</div><div class="sub">One-page control plane &middot; v<span id="ver">1.9.19</span> &middot; every backend feature below dispatches a real <code>hustle://</code> URI to the orchestrator API</div></div>
-<div class="sub" id="lastUpdated">Loading&hellip;</div></header>
-<nav><a href="#overview">Overview</a><a href="#money">💰 Money</a><a href="#growth">📈 Growth</a><a href="#automation">🤖 Automation</a><a href="#system">🛠 System</a><a href="#logs">Logs</a></nav>
+:root{
+  --bg:#070d19;--bg-elev:#0f172a;--card:#111c33;--card-alt:#162340;
+  --border:#1f3154;--border-hi:#3b82f6;--text:#e2e8f0;--muted:#94a3b8;--dim:#64748b;
+  --blue:#2563eb;--blue-hi:#1d4ed8;--purple:#8b5cf6;--green:#22c55e;--amber:#f59e0b;--red:#ef4444;--cyan:#06b6d4;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:radial-gradient(circle at 15% 0%,#122244 0%,var(--bg) 42%);color:var(--text);padding:16px 20px 64px;max-width:1540px;margin:0 auto;line-height:1.45}
+code,pre{font-family:"JetBrains Mono",Consolas,monospace}
+.topbar{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;padding:12px 16px;background:rgba(15,23,42,.92);border:1px solid var(--border);border-radius:14px;margin-bottom:10px}
+.brand-wrap{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.logo{font-size:1.45rem;font-weight:800;letter-spacing:-.02em;background:linear-gradient(135deg,#60a5fa,#a855f7,#22d3ee);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:.72rem;font-weight:600;padding:4px 10px;border-radius:999px;border:1px solid var(--border);background:#0b1325;color:var(--muted)}
+.pill.ok{border-color:#166534;background:#052e16;color:#86efac}
+.pill.warn{border-color:#92400e;background:#451a03;color:#fcd34d}
+.pill.err{border-color:#991b1b;background:#450a0a;color:#fca5a5}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%}
+.dot.on{background:var(--green);box-shadow:0 0 8px var(--green)}.dot.off{background:var(--red)}.dot.warn{background:var(--amber)}
+nav.sticky-nav{position:sticky;top:6px;z-index:30;background:rgba(11,19,37,.94);backdrop-filter:blur(10px);border:1px solid var(--border);border-radius:12px;padding:8px 12px;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.nav-links{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.nav-links a{color:#bfdbfe;text-decoration:none;font-size:.76rem;font-weight:600;padding:5px 10px;border-radius:8px;border:1px solid transparent;transition:.15s}
+.nav-links a:hover{background:#172554;border-color:#2563eb}
+.quick-bar{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.kpi-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(225px,1fr));gap:10px;margin-bottom:12px}
+.kpi{background:linear-gradient(180deg,var(--card),#0c1528);border:1px solid var(--border);border-radius:12px;padding:13px 15px;position:relative}
+.kpi h3{font-size:.73rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);display:flex;justify-content:space-between;align-items:center}
+.kpi .value{font-size:1.45rem;font-weight:800;color:#fff;margin:4px 0 2px}
+.kpi .sub{font-size:.72rem;color:var(--dim)}
+.prog-track{height:6px;background:#09101f;border-radius:999px;overflow:hidden;margin-top:6px;border:1px solid #1e293b}
+.prog-fill{height:100%;background:linear-gradient(90deg,#2563eb,#22c55e);width:0%;transition:width .4s}
+.int-bar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;background:var(--bg-elev);border:1px solid var(--border);border-radius:11px;padding:8px 12px;margin-bottom:12px;font-size:.72rem}
+.int-chip{display:inline-flex;align-items:center;gap:5px;padding:3px 8px;border-radius:999px;background:#09101f;border:1px solid #1e293b;color:var(--muted)}
+.int-chip.ready{border-color:#14532d;color:#bbf7d0;background:#052e16}
+.omnibox{display:flex;gap:8px;align-items:center;flex-wrap:wrap;background:var(--bg-elev);border:1px solid var(--border);border-radius:11px;padding:9px 12px;margin-bottom:12px}
+.omnibox input{flex:1;min-width:240px;margin:0}
+#dispatchDrawer{display:none;background:#071224;border:1px solid #1d4ed8;border-radius:12px;padding:12px 15px;margin-bottom:16px}
+#dispatchDrawer .drawer-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px;font-size:.78rem}
+section.tier{margin-top:24px}
+.sec-head{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px;margin-bottom:10px;border-bottom:1px solid var(--border);padding-bottom:6px}
+.sec-head h2{font-size:1.02rem;font-weight:700;color:#f8fafc;display:flex;align-items:center;gap:8px}
+.sec-badge{font-size:.68rem;text-transform:uppercase;letter-spacing:.06em;padding:2px 8px;border-radius:999px;background:#172554;color:#93c5fd;border:1px solid #1d4ed8}
+.sec-desc{font-size:.77rem;color:var(--muted)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:12px}
+.grid-4{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px}
+.grid-2{display:grid;grid-template-columns:repeat(auto-fit,minmax(420px,1fr));gap:12px}
+@media(max-width:640px){.grid-2{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:15px;display:flex;flex-direction:column;gap:6px}
+.card.hi{border-color:#2563eb66;background:linear-gradient(180deg,#13203d,var(--card))}
+.card h3{font-size:.88rem;font-weight:700;color:#f1f5f9;display:flex;justify-content:space-between;align-items:center;gap:6px}
+.card p.help{font-size:.74rem;color:var(--muted);line-height:1.4}
+.row{display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap}
+.row > div{flex:1;min-width:110px}
+label{font-size:.69rem;font-weight:600;color:#94a3b8;display:flex;align-items:center;gap:4px;margin-top:4px}
+input,select,textarea{width:100%;background:#081020;color:var(--text);border:1px solid #263a63;border-radius:8px;padding:7px 9px;margin-top:3px;font-size:.78rem;outline:none}
+input:focus,select:focus,textarea:focus{border-color:var(--blue)}
+textarea{min-height:62px;resize:vertical;font-family:inherit}
+.btns{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+button{background:var(--blue);color:#fff;border:1px solid transparent;border-radius:8px;padding:7px 11px;font-size:.74rem;font-weight:600;cursor:pointer;transition:.14s;display:inline-flex;align-items:center;gap:5px}
+button:hover{background:var(--blue-hi)}
+button.sec{background:#1b2a4a;border-color:#2b4270;color:#dbeafe}
+button.sec:hover{background:#243861}
+button.ok{background:#15803d}button.ok:hover{background:#166534}
+button.warn{background:#b45309}button.warn:hover{background:#92400e}
+button.sm{padding:4px 8px;font-size:.69rem;border-radius:6px}
+.tip{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;background:#172554;color:#93c5fd;font-size:.68rem;font-weight:700;cursor:help;position:relative;flex-shrink:0;border:1px solid #2563eb66}
+.tip:hover::after{content:attr(data-tip);position:absolute;bottom:130%;right:-8px;width:270px;background:#020617;color:#e2e8f0;border:1px solid #3b82f6;border-radius:9px;padding:8px 10px;font-size:.71rem;font-weight:400;line-height:1.4;z-index:99;box-shadow:0 10px 25px rgba(0,0,0,.65);pointer-events:none;white-space:normal;text-transform:none;letter-spacing:0}
+.bot-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(195px,1fr));gap:9px;margin:8px 0}
+.bot-card{background:#091224;border:1px solid #1e325c;border-radius:10px;padding:10px;cursor:pointer;transition:.15s}
+.bot-card:hover,.bot-card.active{border-color:#3b82f6;background:#0e1c38}
+.bot-top{display:flex;justify-content:space-between;align-items:center;font-size:.82rem;font-weight:700}
+.bot-price{font-size:1.08rem;font-weight:800;color:#fff;margin:3px 0}
+.bot-meta{font-size:.68rem;color:var(--muted);display:flex;justify-content:space-between;gap:4px;flex-wrap:wrap}
+.inspector{background:#081121;border:1px solid #2563eb88;border-radius:12px;padding:14px;margin-top:8px}
+.tabs{display:flex;gap:5px;flex-wrap:wrap;border-bottom:1px solid var(--border);padding-bottom:8px;margin-bottom:10px}
+.tab-btn{background:#0b1528;color:var(--muted);border:1px solid var(--border);padding:5px 10px;border-radius:8px;font-size:.73rem;cursor:pointer}
+.tab-btn.active{background:var(--blue);color:#fff;border-color:var(--blue)}
+.tab-pane{display:none}.tab-pane.active{display:block}
+table{width:100%;border-collapse:collapse}
+th,td{text-align:left;font-size:.75rem;padding:6px 6px;border-bottom:1px solid #192846;vertical-align:top}
+th{color:var(--dim);text-transform:uppercase;font-size:.67rem;letter-spacing:.04em}
+pre{background:#040914;border:1px solid #192846;border-radius:9px;padding:10px;font-size:.71rem;overflow:auto;max-height:280px;white-space:pre-wrap;color:#cbd5e1}
+.mini-list{max-height:150px;overflow:auto;background:#070f1f;border:1px solid #1a2a4a;border-radius:8px;padding:7px 9px;font-size:.72rem;color:#cbd5e1}
+.mini-item{padding:4px 0;border-bottom:1px dashed #172542;display:flex;justify-content:space-between;gap:8px}
+.mini-item:last-child{border-bottom:0}
+.green{color:var(--green)}.red{color:var(--red)}.yellow{color:var(--amber)}.cyan{color:var(--cyan)}
+#toast{position:fixed;right:18px;bottom:18px;background:#052e16;border:1px solid #22c55e;color:#dcfce7;padding:11px 15px;border-radius:10px;display:none;max-width:460px;font-size:.78rem;z-index:99;box-shadow:0 10px 30px rgba(0,0,0,.6)}
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(2,6,23,.78);z-index:90;align-items:center;justify-content:center;padding:16px}
+.modal{background:var(--card);border:1px solid var(--border-hi);border-radius:14px;padding:18px;max-width:440px;width:100%}
+</style>
+</head>
+<body>
 
-<h2 id="overview">Overview — highest value first</h2><p class="desc">Live profit and health from <code>GET /status</code> on the orchestrator (proxied as <code>/api/status</code>). If this says offline, start there — everything else depends on it.</p>
-<div class="grid">
-<div class="card"><h3>Net profit <span class="tip" title="Ledger revenue minus expenses across all hustles. Wealth Preservation auto-terminates hustles running a deficit.">ⓘ</span></h3><div class="value" id="profit">—</div><div class="sub" id="profitSub">orchestrator /status</div></div>
-<div class="card"><h3>Orchestrator <span class="tip" title="Go daemon: agent loop, scheduler, hustle:// router, API on :8082 (prod). Quit: systemctl stop aimm-orchestrator (there is no system-tray icon — see HANDOFF.md).">ⓘ</span></h3><div class="value" id="orchStatus">—</div><div class="sub">version <span id="orchVer">—</span> &middot; memories <span id="memCount">—</span> &middot; peers <span id="peerCount">—</span></div></div>
-<div class="card"><h3>Content library <span class="tip" title="Files in output/content on the server, via GET /content. Blog/newsletter/SEO output lands here before publishing.">ⓘ</span></h3><div class="value" id="contentCount">—</div><div class="sub" id="contentList">—</div></div>
-<div class="card"><h3>Agents <span class="tip" title="Multi-agent orchestrator status via GET /agents. Agents run Observe → Think → Act → Learn loops.">ⓘ</span></h3><div class="value" id="agentCount">—</div><div class="sub" id="agentList">—</div></div>
+<header class="topbar">
+  <div class="brand-wrap">
+    <div>
+      <div class="logo">AI Hustle Machine — Consolidated Dashboard</div>
+      <div style="font-size:.73rem;color:var(--muted)">Single-page autonomous revenue command center &middot; all 36 <code>hustle://</code> backend modules wired live &middot; zero subpages</div>
+    </div>
+    <span class="pill ok" id="orchPill"><span class="dot on" id="orchDot"></span><span id="orchStatus">Connecting…</span></span>
+    <span class="pill" title="Single source of truth from VERSION.md">v<span id="orchVer">2.0.0</span></span>
+    <span class="pill" id="dryRunPill" title="When Dry-Run is ON, external posts/orders/emails simulate safely without spending or mutating live accounts.">Mode: Live</span>
+    <span class="pill" id="priceSourcePill" title="Market price feed source used by the Go TradingModule">Feed: —</span>
+  </div>
+  <div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap">
+    <span style="font-size:.72rem;color:var(--dim)" id="lastUpdated">Syncing…</span>
+    <button class="sec sm" onclick="refreshAll()" title="Poll all orchestrator telemetry endpoints immediately">↻ Refresh</button>
+    <button class="sec sm" id="tokenBtn" onclick="openTokenModal()" title="Set Bearer API token (AIMM_API_TOKEN) stored in browser localStorage for authenticated POST dispatches">🔐 API Token</button>
+  </div>
+</header>
+
+<nav class="sticky-nav">
+  <div class="nav-links">
+    <a href="#trading">1. Trading &amp; Arbitrage</a>
+    <a href="#commerce">2. Affiliate, Products &amp; SaaS</a>
+    <a href="#content">3. Content, 100K &amp; CMS</a>
+    <a href="#growth">4. Social, Video &amp; LeadGen</a>
+    <a href="#automation">5. Agents, Chains &amp; Agency</a>
+    <a href="#system">6. Ledger, Memory &amp; Logs</a>
+  </div>
+  <div class="quick-bar">
+    <button class="sm ok" onclick="dispatchAction('hustle://trading?symbol=BTC')" title="Execute an immediate RSI/SMA/MACD/Bollinger cycle on BTC">⚡ BTC Cycle</button>
+    <button class="sm" onclick="dispatchAction('hustle://affiliate?action=run&niche=AI+productivity+tools')" title="Discover affiliate products, write a high-converting review, and publish">💰 Run Affiliate</button>
+    <button class="sm" onclick="dispatchAction('hustle://council?topic=Highest+ROI+autonomous+revenue+focus+this+week')" title="Convene the 4-persona Council of Supervisors to rank revenue allocation">🧠 Council Debate</button>
+    <button class="sm sec" onclick="dispatchAction('hustle://healer?issue=Proactive+profitability+and+health+audit')" title="Run self-healing &amp; wealth-preservation diagnostics">🩺 Self-Heal</button>
+  </div>
+</nav>
+
+<!-- EXECUTIVE KPI STRIP -->
+<div class="kpi-strip" id="overview">
+  <div class="kpi">
+    <h3>Net Profit (P&amp;L) <span class="tip" data-tip="Realized net profit from the Orchestrator Ledger (Total Revenue minus Total Expenses). Wealth Preservation automatically flags hustles running a persistent deficit." title="Ledger Net Profit">ⓘ</span></h3>
+    <div class="value" id="profit">—</div>
+    <div class="sub" id="profitSub">Rev $0.00 &middot; Exp $0.00</div>
+    <div class="prog-track" title="Progress toward Collective Wealth Goal"><div class="prog-fill" id="goalBar"></div></div>
+    <div class="sub" style="margin-top:3px;display:flex;justify-content:space-between"><span id="goalText">Goal: $10,000</span><a href="#system" style="color:#93c5fd;text-decoration:none">Ledger →</a></div>
+  </div>
+  <div class="kpi">
+    <h3>Trading Desk <span class="tip" data-tip="7 crypto symbols (BTC, ETH, SOL, DOGE, XRP, ADA, LINK) evaluated continuously on 1–7 min staggered intervals using RSI(14), SMA20/50, MACD(12,26,9), and Bollinger Bands." title="Crypto Quant Desk">ⓘ</span></h3>
+    <div class="value" id="activeBotsKpi">7 Bots</div>
+    <div class="sub" id="botSummary">Loading live indicator snapshots…</div>
+  </div>
+  <div class="kpi">
+    <h3>Content &amp; 100K Pillars <span class="tip" data-tip="Markdown articles in output/content plus WordPress posts expanded to 100,000 characters by expand.py and static HTML pages built into output/site." title="Content &amp; SEO Assets">ⓘ</span></h3>
+    <div class="value"><span id="contentCount">0</span> <span style="font-size:.82rem;color:var(--muted);font-weight:500">drafts &middot; <span id="expandedCount">0</span> 100K</span></div>
+    <div class="sub" id="contentList">Checking output/content…</div>
+  </div>
+  <div class="kpi">
+    <h3>Agents &amp; Protocol <span class="tip" data-tip="Autonomous Observe→Think→Act→Learn loops plus total registered hustle:// URI handlers compiled into this orchestrator binary." title="Agents &amp; Protocol Handlers">ⓘ</span></h3>
+    <div class="value"><span id="agentCount">0</span> <span style="font-size:.82rem;color:var(--muted);font-weight:500">agents &middot; <span id="modCount">36</span> modules</span></div>
+    <div class="sub" id="agentList">Ready to launch async loops</div>
+  </div>
+  <div class="kpi">
+    <h3>Memory &amp; LLM Cache <span class="tip" data-tip="3-tier memory (L1 short-term, L2 discoveries, L3 archive) backed by SQLite vector embeddings, plus SHA-256 prompt cache hit rate avoiding duplicate LLM calls." title="Memory Tiers &amp; Prompt Cache">ⓘ</span></h3>
+    <div class="value" id="memCount">—</div>
+    <div class="sub" id="cacheSub">L1/L2/L3 &middot; Cache 0% hit &middot; Peers <span id="peerCount">0</span></div>
+  </div>
+  <div class="kpi">
+    <h3>Disk &amp; Host Health <span class="tip" data-tip="Filesystem capacity on the orchestrator host. Watchdog warns at 85% and triggers emergency cleanup at 95% to prevent WordPress/MySQL 504 outages." title="Host Disk Telemetry">ⓘ</span></h3>
+    <div class="value" id="diskPct">—</div>
+    <div class="sub"><span id="diskFree">—</span> GB free &middot; DID <code id="didShort">local</code></div>
+  </div>
 </div>
 
-<div class="card"><h3>Disk <span class="tip" title="Filesystem usage for the orchestrator working directory, from GET /api/status. The 2026-11-14 outage hit 100 percent and WordPress went 504; the watchdog warns at 85 and logs CRITICAL at 95.">i</span></h3><div class="value" id="diskPct">-</div><div class="sub"><span id="diskFree">-</span> GB free</div></div>
-<h2 id="money">💰 Money — trading, affiliate, content that sells</h2><p class="desc">Direct revenue paths. Trading needs <code>-real-prices</code> + CoinGecko for live data; otherwise it uses mock prices. Affiliate currently discovers products via the LLM (see TODO for a real catalog API).</p>
-<div class="grid">
-<div class="card"><h3>Crypto trading <span class="tip" title="hustle://trading?symbol=X — RSI/TA strategy per symbol. Daemon runs BTC/ETH/SOL/DOGE/XRP/ADA/LINK on staggered 1–7 min intervals. Paper/mock unless -real-prices.">ⓘ</span></h3><p>Run one trading cycle for a symbol.</p><label>Symbol</label><select id="tradeSym"><option>BTC</option><option>ETH</option><option>SOL</option><option>DOGE</option><option>XRP</option><option>ADA</option><option>LINK</option></select><button onclick="dispatchAction('hustle://trading?symbol='+document.getElementById('tradeSym').value)">Run trading cycle</button><div class="sub" id="botSummary" style="margin-top:8px">Log-derived cycles: loading…</div></div>
-<div class="card"><h3>Affiliate engine <span class="tip" title="hustle://affiliate?action=run — discover products for a niche, generate a review, inject links, post to social. batch_insert adds links into existing files in a directory.">ⓘ</span></h3><p>Discover → review → monetised post.</p><label>Niche</label><input id="affNiche" value="AI productivity tools"><button onclick="dispatchAction('hustle://affiliate?action=run&niche='+enc('affNiche'))">Run pipeline</button> <button class="secondary" onclick="dispatchAction('hustle://affiliate?action=batch_insert&dir=output/content')">Batch-insert links</button></div>
-<div class="card"><h3>Digital product factory <span class="tip" title="hustle://products?type=template|guide|preset&amp;topic= - LLM generates a sellable product (full markdown), storefront listing copy, and manifest.json under output/products/. Gumroad listing happens only when GUMROAD_ACCESS_TOKEN is set; otherwise the manifest honestly records not_configured.">i</span></h3><p>Generate a sellable digital product.</p><label>Topic</label><input id="prodTopic" value="Notion CRM for freelancers"><label>Type</label><select id="prodType"><option>template</option><option>guide</option><option>preset</option></select><button onclick="dispatchAction('hustle://products?topic='+enc('prodTopic')+'&amp;type='+document.getElementById('prodType').value)">Generate product</button></div>
-<div class="card"><h3>Content factory <span class="tip" title="hustle://content?topic=&type=blog|newsletter|seo|thread — LLM-written monetisable content in output/content. action=expand grows a post toward 100k chars and auto-inserts affiliate links.">ⓘ</span></h3><p>Generate or expand a post.</p><label>Topic</label><input id="contentTopic" value="AI automation trends"><label>Type</label><select id="contentType"><option>blog</option><option>newsletter</option><option>seo</option><option>thread</option></select><button onclick="dispatchAction('hustle://content?topic='+enc('contentTopic')+'&type='+document.getElementById('contentType').value)">Generate</button> <button class="secondary" onclick="dispatchAction('hustle://content?action=expand&topic='+enc('contentTopic'))">Expand to 100k</button></div>
-<div class="card"><h3>Publisher / calendar <span class="tip" title="hustle://publisher?action=wordpress|newsletter|wordpress_markdown|status publishes via WordPress (JWT) or Buttondown/Substack. hustle://calendar?action=add|process|schedule_week|status manages the persisted content calendar (content_calendar.json). Calendar process only publishes entries whose content is set and due.">ⓘ</span></h3><p>WordPress + newsletter + schedule.</p><label>Title / subject</label><input id="pubTitle" value="AI automation trends"><label>Content (for publish / calendar add)</label><input id="pubBody" value=""><button onclick="dispatchAction('hustle://publisher?action=status')">Check config</button> <button class="secondary" onclick="dispatchAction('hustle://publisher?action=wordpress&title='+enc('pubTitle')+'&content='+enc('pubBody')+'&status=draft')">WP draft</button> <button class="secondary" onclick="dispatchAction('hustle://calendar?action=add&topic='+enc('pubTitle')+'&content='+enc('pubBody'))">＋ Calendar</button> <button class="secondary" onclick="dispatchAction('hustle://calendar?action=process')">Process due</button> <button class="secondary" onclick="dispatchAction('hustle://calendar?action=schedule_week')">Schedule week</button></div>
+<!-- INTEGRATION READINESS STRIP -->
+<div class="int-bar">
+  <strong style="color:#cbd5e1">Integrations <span class="tip" data-tip="Live environment variable readiness reported by GET /api/status. Green = credentials configured on server; Slate = running in safe local/dry-run/fallback mode until keys are added to .env." title="Integration Readiness">ⓘ</span>:</strong>
+  <div id="integrationChips" style="display:flex;gap:6px;flex-wrap:wrap">Loading integration flags…</div>
 </div>
 
-<h2 id="growth">📈 Growth — research, curation, social, video</h2><p class="desc">Audience and intelligence in. Social posting uses real X/LinkedIn/Bluesky APIs when keys are set in prod <code>.env</code>; use the daemon's dry-run mode to test safely.</p>
-<div class="grid">
-<div class="card"><h3>Research <span class="tip" title="hustle://research?query= — web search (Tavily if TAVILY_API_KEY set, else DuckDuckGo) synthesised into memory. Feeds content + trading watchlist.">ⓘ</span></h3><p>Search the web for alpha.</p><label>Query</label><input id="researchQ" value="AI agent trends"><button onclick="dispatchAction('hustle://research?query='+enc('researchQ'))">Run research</button></div>
-<div class="card"><h3>Curation <span class="tip" title="hustle://curation?topic= — fetch configured RSS feeds (orch.RSSFeeds, default Hacker News), summarise with the LLM, store in memory.">ⓘ</span></h3><p>Summarise RSS on a topic.</p><label>Topic</label><input id="curTopic" value="AI"><button onclick="dispatchAction('hustle://curation?topic='+enc('curTopic'))">Curate</button></div>
-<div class="card"><h3>Social posting <span class="tip" title="hustle://social?platform=Twitter|LinkedIn|Bluesky&topic= — generate a post, inject an affiliate link, format per platform, publish. X keys returning 401 must be regenerated (docs/ai/maintenance-2026-08-01.md).">ⓘ</span></h3><p>Generate + publish a post.</p><label>Platform</label><select id="socPlat"><option>Twitter</option><option>LinkedIn</option><option>Bluesky</option></select><label>Topic</label><input id="socTopic" value="AI automation"><button onclick="dispatchAction('hustle://social?platform='+document.getElementById('socPlat').value+'&topic='+enc('socTopic'))">Post now</button></div>
-<div class="card"><h3>YouTube Shorts factory <span class="tip" title="hustle://media (action=shorts) — LLM script, scene cards, optional ElevenLabs TTS (ELEVENLABS_API_KEY), FFmpeg-rendered vertical MP4 under output/shorts/ with a manifest.json stating which stages ran. YouTube upload needs YOUTUBE_CLIENT_ID/YOUTUBE_REFRESH_TOKEN (not configured).">ⓘ</span></h3><p>Script to scenes to rendered MP4.</p><label>Topic</label><input id="shortsTopic" value="AI Automation"><button onclick="dispatchAction('hustle://media?action=shorts&topic='+enc('shortsTopic'))">Run Shorts pipeline</button></div>
+<!-- CUSTOM PROTOCOL OMNIBOX -->
+<div class="omnibox">
+  <strong style="font-size:.76rem;color:#93c5fd;white-space:nowrap">⚡ Direct Protocol URI <span class="tip" data-tip="Execute any hustle:// protocol URI directly against POST /api/dispatch. Every card below constructs and sends real hustle:// URIs through this exact router." title="Custom URI Dispatcher">ⓘ</span></strong>
+  <input id="customUri" value="hustle://publisher?action=status" placeholder="hustle://module?action=...&param=...">
+  <button onclick="dispatchAction($('customUri').value.trim())">Dispatch URI</button>
+  <button class="sec" onclick="$('dispatchDrawer').style.display=($('dispatchDrawer').style.display==='block'?'none':'block')">Toggle Output Drawer</button>
 </div>
 
-<h2 id="automation">🤖 Automation — chains, agents, lead-gen</h2><p class="desc">Multi-step workflows. Chains are defined in <code>chains.json</code> and listed live from <code>GET /chains</code>.</p>
-<div class="grid">
-<div class="card"><h3>Workflow chains <span class="tip" title="hustle://chain?name=X runs a chain; hustle://chain?action=discover asks the LLM to invent a new high-ROI chain. Built-ins: curation (curate→post), research_affiliate_social (research→affiliate).">ⓘ</span></h3><p>Run a multi-step chain.</p><label>Chain</label><select id="chainName"><option>curation</option><option>research_affiliate_social</option></select><button onclick="dispatchAction('hustle://chain?name='+document.getElementById('chainName').value)">Run chain</button> <button class="secondary" onclick="dispatchAction('hustle://chain?action=discover')">Discover new chain</button><div class="sub" id="chainList" style="margin-top:8px">—</div></div>
-<div class="card"><h3>Synergy lead-gen <span class="tip" title="hustle://synergy_leadgen?topic=&niche= — outreach campaign for a niche, then a social post with an affiliate link. Email sending is rate-limited SMTP in hustle/research/outreach.go.">ⓘ</span></h3><p>Find leads → pitch → post.</p><label>Topic</label><input id="leadTopic" value="AI automation services"><label>Niche</label><input id="leadNiche" value="B2B SaaS"><button onclick="dispatchAction('hustle://synergy_leadgen?topic='+enc('leadTopic')+'&niche='+enc('leadNiche'))">Run lead-gen</button></div>
-<div class="card"><h3>Agent loop / auto-plan <span class="tip" title="Started from the CLI, not HTTP: orchestrator -agent -agent-iterations 20, or -autoplan (LLM plans, then multi-agent executes). Status appears in Overview → Agents.">ⓘ</span></h3><p>Autonomous LLM decision loop.</p><div class="value">CLI only</div><div class="sub"><code>-agent</code> / <code>-autoplan</code> &middot; see DEPLOY.md</div></div>
-<div class="card"><h3>Collective strategy <span class="tip" title="GET /strategy — latest collective_strategy memories shared across the mesh. Broadcast yours from the terminal menu (Space Communication).">ⓘ</span></h3><p>Mesh-shared alpha.</p><div class="sub" id="strategyList">—</div></div>
+<!-- INLINE DISPATCH RESULT DRAWER -->
+<div id="dispatchDrawer">
+  <div class="drawer-head">
+    <div><strong style="color:#93c5fd">Latest Dispatch Output:</strong> <code id="lastUriLabel">—</code> <span class="pill" id="lastDurPill">0 ms</span></div>
+    <div style="display:flex;gap:6px">
+      <button class="sec sm" onclick="navigator.clipboard.writeText($('lastResultPre').textContent);toast('Copied output to clipboard')">Copy</button>
+      <button class="sec sm" onclick="$('dispatchDrawer').style.display='none'">Hide</button>
+    </div>
+  </div>
+  <pre id="lastResultPre">Dispatch any module below to inspect its live output here.</pre>
 </div>
 
-<h2 id="system">🛠 System — mesh, healing, sync, quit</h2><p class="desc">Operations. <strong>Tray app: aimm-tray (tray/, v1.9.19+) — green/red status icon, Open Dashboard, Start/Stop/Restart prod via ssh. Originally no tray icon existed; the orchestrator is a headless Go daemon</strong> in this project — the orchestrator is a headless Go daemon. On Hetzner it is controlled with systemd (<code>aimm-*</code> units); locally with Ctrl+C / closing the terminal. A tray app is listed as an idea in IDEAS.md.</p>
-<div class="grid">
-<div class="card"><h3>Mesh / swarm <span class="tip" title="hustle://swarm?action=sync|aggregate|set_goal — delta-sync memory with peers, aggregate mesh profit, set the collective wealth goal. Peers register via POST /register.">ⓘ</span></h3><p>Federated sync + wealth goal.</p><label>Wealth goal (USD)</label><input id="goalAmt" value="10000"><button onclick="dispatchAction('hustle://swarm?action=sync')">Sync mesh</button> <button class="secondary" onclick="dispatchAction('hustle://swarm?action=set_goal&amount='+enc('goalAmt'))">Set goal</button></div>
-<div class="card"><h3>Healer <span class="tip" title="hustle://healer?issue= (or POST /healer) — LLM diagnoses an issue, proposes a fix, verifies it. Also runs Wealth Preservation audits in the daemon.">ⓘ</span></h3><p>Self-diagnosis loop.</p><label>Issue</label><input id="healIssue" value="Manual dashboard diagnostic"><button onclick="dispatchAction('hustle://healer?issue='+enc('healIssue'))">Run healer</button></div>
-<div class="card"><h3>Repo sync <span class="tip" title="hustle://sync (or POST /sync) — runs ./sync.sh: fetch, reconcile feature branches with main, push. On prod prefer git pull + systemctl restart (DEPLOY.md).">ⓘ</span></h3><p>Synchronise code with GitHub.</p><button onclick="dispatchAction('hustle://sync')">Run sync</button></div>
-<div class="card"><h3>Quit / restart (prod) <span class="tip" title="There is no tray Quit button. On Hetzner: systemctl stop aimm-orchestrator aimm-dashboard (and other aimm-* units). Health: systemctl status aimm-*; logs: journalctl -u aimm-orchestrator -f.">ⓘ</span></h3><p>Stop or restart the servers.</p><div class="sub"><code>systemctl restart aimm-orchestrator aimm-dashboard</code><br><code>systemctl stop aimm-orchestrator</code> = quit</div></div>
+<!-- ===================================================================== -->
+<!-- SECTION 1: TIER-1 DIRECT REVENUE — CRYPTO, STOCKS & ARBITRAGE DESK     -->
+<!-- ===================================================================== -->
+<section class="tier" id="trading">
+  <div class="sec-head">
+    <h2>💰 1. Quant Trading &amp; High-Velocity Arbitrage Desk <span class="sec-badge">Highest Direct ROI</span></h2>
+    <span class="sec-desc">Live 7-pair crypto technical analysis + inline chart inspector (replaces <code>/bot</code>), Alpaca equities, domain flipping, FBA &amp; STR arbitrage.</span>
+  </div>
+
+  <div class="card hi" style="margin-bottom:12px">
+    <h3>
+      <span>Live Crypto Quant Bots (BTC · ETH · SOL · DOGE · XRP · ADA · LINK)</span>
+      <span class="tip" data-tip="Click any symbol card to open its full price + SMA20 + Bollinger Band chart inline below. Each cycle computes RSI(14), SMA20/50 crossover, MACD histogram, and Bollinger %B." title="Click any bot card to inspect">ⓘ</span>
+    </h3>
+    <div class="bot-grid" id="botCardsGrid"></div>
+
+    <!-- INLINE BOT INSPECTOR (folds former /bot subpage into main page) -->
+    <div class="inspector" id="botInspector">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:8px">
+        <div>
+          <strong style="font-size:.92rem;color:#fff">📈 Inline Bot Inspector: <span id="inspSym" class="cyan">BTC</span></strong>
+          <span style="font-size:.73rem;color:var(--muted);margin-left:8px" id="inspStats">Select a bot card above or run a cycle to populate price &amp; indicator curves.</span>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+          <select id="tradeSym" style="width:auto;margin:0" onchange="selectBot(this.value)">
+            <option>BTC</option><option>ETH</option><option>SOL</option><option>DOGE</option><option>XRP</option><option>ADA</option><option>LINK</option>
+          </select>
+          <button class="sm ok" onclick="dispatchAction('hustle://trading?symbol='+$('tradeSym').value)">▶ Run Cycle Now</button>
+          <input id="watchSym" placeholder="New ticker (e.g. AVAX)" style="width:145px;margin:0">
+          <button class="sm sec" onclick="if($('watchSym').value.trim())dispatchAction('hustle://trading?action=watchlist&symbol='+enc('watchSym'))" title="Add a custom ticker to the active daemon watchlist">+ Watchlist</button>
+        </div>
+      </div>
+      <div id="inspChartWrap" style="background:#040914;border:1px solid #192846;border-radius:9px;padding:8px;min-height:155px;display:flex;align-items:center;justify-content:center">
+        <span style="font-size:.75rem;color:var(--dim)">Waiting for price history…</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid-4">
+    <!-- Equities & Alpaca -->
+    <div class="card">
+      <h3>Equities &amp; Alpaca Quant <span class="tip" data-tip="hustle://stocks — Generates quantitative sentiment, risk factors &amp; BUY/SELL/HOLD rating, or submits a market order via Alpaca Paper/Live API when ALPACA_API_KEY is configured." title="Stock Quant &amp; Alpaca">ⓘ</span></h3>
+      <p class="help">AI equity research + paper/live Alpaca market execution.</p>
+      <div class="row">
+        <div><label>Ticker</label><input id="stkSym" value="NVDA"></div>
+        <div><label>Side</label><select id="stkSide"><option value="buy">BUY</option><option value="sell">SELL</option></select></div>
+        <div><label>Shares</label><input id="stkQty" type="number" value="1" min="0.1" step="0.5"></div>
+      </div>
+      <div class="btns">
+        <button onclick="dispatchAction('hustle://stocks?action=analyze&symbol='+enc('stkSym'))">Analyze Ticker</button>
+        <button class="sec" onclick="dispatchAction('hustle://stocks?action=order&symbol='+enc('stkSym')+'&side='+$('stkSide').value+'&qty='+enc('stkQty'))">Alpaca Order</button>
+      </div>
+    </div>
+
+    <!-- Domain Flipping -->
+    <div class="card">
+      <h3>Domain Valuation &amp; Sniper <span class="tip" data-tip="hustle://domains — Appraises domain resale value (TLD strength, keyword demand, buyer niches) or builds a walk-away &amp; sniping bid plan for auctions." title="Domain Flipping">ⓘ</span></h3>
+      <p class="help">Appraise expired/premium domains &amp; plan auction bids.</p>
+      <div class="row">
+        <div style="flex:2"><label>Domain Name</label><input id="domName" value="aiworkflowhub.com"></div>
+        <div><label>Curr Bid ($)</label><input id="domBid" type="number" value="120"></div>
+      </div>
+      <div class="btns">
+        <button onclick="dispatchAction('hustle://domains?domain='+enc('domName'))">Appraise Value</button>
+        <button class="sec" onclick="dispatchAction('hustle://domains?action=bid&domain='+enc('domName')+'&bid='+enc('domBid'))">Auction Bid Plan</button>
+      </div>
+    </div>
+
+    <!-- Retail / Amazon FBA Arbitrage -->
+    <div class="card">
+      <h3>Retail &amp; FBA Arbitrage <span class="tip" data-tip="hustle://retail — Deducts 15% referral + $5 FBA fulfillment fee to calculate net unit margin, ROI %, and BUY/SKIP risk assessment." title="Amazon FBA Arbitrage">ⓘ</span></h3>
+      <p class="help">Instant net margin &amp; FBA fee spread calculator.</p>
+      <label>Product Category / Item</label>
+      <input id="retCat" value="Smart Home Matter Sensors">
+      <div class="row">
+        <div><label>Buy Cost ($)</label><input id="retBuy" type="number" value="16"></div>
+        <div><label>Target Sell ($)</label><input id="retSell" type="number" value="54"></div>
+      </div>
+      <div class="btns">
+        <button onclick="dispatchAction('hustle://retail?category='+enc('retCat')+'&buy='+enc('retBuy')+'&sell='+enc('retSell'))">Calculate FBA ROI</button>
+      </div>
+    </div>
+
+    <!-- Real Estate STR Arbitrage -->
+    <div class="card">
+      <h3>Airbnb / STR Arbitrage <span class="tip" data-tip="hustle://realestate — Models monthly net cashflow at 65% occupancy minus 15% ops cost, or drafts dynamic-pricing + check-in guest replies." title="Short-Term Rental Arbitrage">ⓘ</span></h3>
+      <p class="help">Model lease-to-Airbnb spread &amp; automate guest replies.</p>
+      <div class="row">
+        <div style="flex:2"><label>City / Submarket</label><input id="reLoc" value="Austin, TX"></div>
+        <div><label>Rent ($)</label><input id="reRent" type="number" value="2200"></div>
+        <div><label>Night ($)</label><input id="reRate" type="number" value="185"></div>
+      </div>
+      <input id="reMsg" value="Hi! Is 1 PM early check-in available tomorrow?" placeholder="Guest message for AI host reply">
+      <div class="btns">
+        <button onclick="dispatchAction('hustle://realestate?location='+enc('reLoc')+'&rent='+enc('reRent')+'&rate='+enc('reRate'))">Model STR Cashflow</button>
+        <button class="sec" onclick="dispatchAction('hustle://realestate?action=manage&location='+enc('reLoc')+'&message='+enc('reMsg'))">Host Reply</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================================================================== -->
+<!-- SECTION 2: TIER-2 MONETIZED ASSETS — AFFILIATE, PRODUCTS, ECOM, SAAS  -->
+<!-- ===================================================================== -->
+<section class="tier" id="commerce">
+  <div class="sec-head">
+    <h2>🛒 2. Affiliate Funnels, Digital Products, Dropshipping &amp; Micro-SaaS <span class="sec-badge">Compounding Assets</span></h2>
+    <span class="sec-desc">End-to-end product creation, affiliate monetization, Shopify/Gumroad listings, KDP books, Print-on-Demand &amp; single-file SaaS MVPs.</span>
+  </div>
+
+  <div class="grid">
+    <!-- Affiliate Engine -->
+    <div class="card hi">
+      <h3>Affiliate Revenue Engine <span class="tip" data-tip="hustle://affiliate — Discovers high-commission tools in your niche, writes a conversion-focused review, injects tracked affiliate links, and distributes to social or existing Markdown articles." title="Affiliate Engine">ⓘ</span></h3>
+      <p class="help">Discover offers → write review → inject affiliate links.</p>
+      <label>Target Niche</label>
+      <input id="affNiche" value="AI productivity tools">
+      <label>Batch Link Target Directory</label>
+      <input id="affDir" value="output/content">
+      <div class="btns">
+        <button class="ok" onclick="dispatchAction('hustle://affiliate?action=run&niche='+enc('affNiche'))">Run Full Pipeline</button>
+        <button class="sec" onclick="dispatchAction('hustle://affiliate?action=discover&niche='+enc('affNiche'))">Discover Offers</button>
+        <button class="sec" onclick="dispatchAction('hustle://affiliate?action=batch_insert&dir='+enc('affDir'))">Inject Links in Dir</button>
+      </div>
+    </div>
+
+    <!-- Digital Product Factory -->
+    <div class="card hi">
+      <h3>Digital Product Factory <span class="tip" data-tip="hustle://products — Synthesizes a complete sellable Markdown template/guide/preset, sales copy, and manifest.json in output/products/ (auto-lists on Gumroad when GUMROAD_ACCESS_TOKEN is set)." title="Digital Product Factory">ⓘ</span></h3>
+      <p class="help">Build ready-to-sell templates, playbooks &amp; prompt packs.</p>
+      <div class="row">
+        <div style="flex:2"><label>Product Topic</label><input id="prodTopic" value="Notion AI Agency Operating System"></div>
+        <div><label>Format</label><select id="prodType"><option value="template">Template</option><option value="guide">Playbook / Guide</option><option value="preset">Prompt / Preset Pack</option></select></div>
+      </div>
+      <div class="btns">
+        <button onclick="dispatchAction('hustle://products?topic='+enc('prodTopic')+'&type='+$('prodType').value)">Build Sellable Product</button>
+      </div>
+      <div class="mini-list" id="productManifests">No product manifests generated yet.</div>
+    </div>
+
+    <!-- Ecommerce & Shopify -->
+    <div class="card">
+      <h3>Dropshipping &amp; Shopify Studio <span class="tip" data-tip="hustle://ecommerce + hustle://publisher?action=shopify — Finds high-demand products, writes high-converting store copy, TikTok/IG ad hooks, supplier fulfillment SOPs, and pushes draft products to Shopify." title="Ecommerce &amp; Shopify">ⓘ</span></h3>
+      <p class="help">Product discovery → store copy → ad creatives → Shopify.</p>
+      <div class="row">
+        <div><label>Niche</label><input id="ecNiche" value="smart desk gadgets"></div>
+        <div><label>Product Title</label><input id="ecProd" value="MagSafe Desk Dock Pro"></div>
+      </div>
+      <div class="row">
+        <div><label>Ad Channel</label><select id="ecPlat"><option>TikTok &amp; Instagram</option><option>Meta Reels</option><option>Google Shopping</option></select></div>
+        <div><label>Price Band</label><input id="ecPrice" value="$39-$69"></div>
+      </div>
+      <div class="btns">
+        <button onclick="dispatchAction('hustle://ecommerce?action=discover&niche='+enc('ecNiche'))">1. Discover</button>
+        <button class="sec" onclick="dispatchAction('hustle://ecommerce?action=listing&niche='+enc('ecNiche')+'&product='+enc('ecProd')+'&price='+enc('ecPrice'))">2. Listing</button>
+        <button class="sec" onclick="dispatchAction('hustle://ecommerce?action=ads&niche='+enc('ecNiche')+'&product='+enc('ecProd')+'&platform='+encodeURIComponent($('ecPlat').value))">3. Ads</button>
+        <button class="sec" onclick="dispatchAction('hustle://publisher?action=shopify&title='+enc('ecProd'))">4. Shopify Draft</button>
+      </div>
+    </div>
+
+    <!-- Micro-SaaS & KDP / POD -->
+    <div class="card">
+      <h3>Micro-SaaS, KDP &amp; Merch Studio <span class="tip" data-tip="Combines hustle://saas (ideate + generate single-file HTML/JS MVP in output/saas/), hustle://kdp (Amazon KDP book interiors + backend keywords), and hustle://pod (Etsy/Redbubble merch plans + SEO listings)." title="SaaS, KDP &amp; POD">ⓘ</span></h3>
+      <p class="help">Single-file SaaS MVPs, Amazon KDP books &amp; POD listings.</p>
+      <label>Target Niche / Concept</label>
+      <input id="makerNiche" value="AI Freelancer Proposal Calculator">
+      <div class="btns">
+        <button onclick="dispatchAction('hustle://saas?action=ideate&niche='+enc('makerNiche'))">SaaS Ideate</button>
+        <button class="ok" onclick="dispatchAction('hustle://saas?action=mvp&niche='+enc('makerNiche'))" title="Writes a complete single-file HTML/Tailwind/JS MVP into output/saas/">Build SaaS MVP</button>
+        <button class="sec" onclick="dispatchAction('hustle://kdp?niche='+enc('makerNiche'))">KDP Interior</button>
+        <button class="sec" onclick="dispatchAction('hustle://kdp?action=keywords&niche='+enc('makerNiche'))">KDP Keywords</button>
+        <button class="sec" onclick="dispatchAction('hustle://pod?niche='+enc('makerNiche'))">POD Designs</button>
+        <button class="sec" onclick="dispatchAction('hustle://pod?action=listing&niche='+enc('makerNiche')+'&design='+enc('makerNiche'))">POD Listing</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================================================================== -->
+<!-- SECTION 3: TIER-3 ORGANIC TRAFFIC — CONTENT, 100K EXPANDER, CMS       -->
+<!-- ===================================================================== -->
+<section class="tier" id="content">
+  <div class="sec-head">
+    <h2>📝 3. Content Factory, 100K SEO Pillar Expander, Static CMS &amp; Calendar <span class="sec-badge">Search Dominance</span></h2>
+    <span class="sec-desc">High-intent SEO articles, 100,000-character pillar expansion, WordPress + Newsletter publishing, static HTML/RSS builder &amp; editorial calendar.</span>
+  </div>
+
+  <div class="grid">
+    <!-- Content Factory -->
+    <div class="card hi">
+      <h3>AI Content &amp; 100K Pillar Factory <span class="tip" data-tip="hustle://content — Writes monetized Markdown posts in output/content, brainstorms 8 viral angles, or expands an existing article toward 100,000 characters with automatic affiliate link insertion." title="Content Factory">ⓘ</span></h3>
+      <p class="help">Write SEO blogs, newsletters, threads, or 100K-char pillars.</p>
+      <div class="row">
+        <div style="flex:2"><label>Topic / Headline</label><input id="contentTopic" value="Autonomous AI Side Hustles in 2026"></div>
+        <div><label>Format</label><select id="contentType"><option value="blog">Blog Post</option><option value="seo">SEO Pillar</option><option value="newsletter">Newsletter</option><option value="thread">Social Thread</option></select></div>
+      </div>
+      <label>Comma Keywords</label>
+      <input id="contentKw" value="AI automation, passive income, agent workflows">
+      <div class="btns">
+        <button class="ok" onclick="dispatchAction('hustle://content?topic='+enc('contentTopic')+'&type='+$('contentType').value+'&keywords='+enc('contentKw'))">Generate Article</button>
+        <button class="sec" onclick="dispatchAction('hustle://content?action=brainstorm&niche='+enc('contentTopic'))">Brainstorm 8 Ideas</button>
+        <button class="sec" onclick="dispatchAction('hustle://content?action=expand&topic='+enc('contentTopic'))">Expand to 100K</button>
+      </div>
+      <div class="mini-list" id="contentFilesBox">Loading output/content…</div>
+    </div>
+
+    <!-- WordPress, Newsletter & Static pSEO CMS -->
+    <div class="card">
+      <h3>WordPress, Newsletter &amp; Static CMS <span class="tip" data-tip="hustle://publisher publishes to aimoneymachine.site (WordPress REST API with Cloudflare-safe User-Agent) or Buttondown/Substack. hustle://content?action=cms builds a fast static HTML + RSS site into output/site/." title="Multi-Channel Publisher">ⓘ</span></h3>
+      <p class="help">Publish to WordPress, send email issues, or build static HTML.</p>
+      <div class="row">
+        <div style="flex:2"><label>Title / Email Subject</label><input id="pubTitle" value="Weekly AI Money Machine Playbook"></div>
+        <div><label>WP Status</label><select id="pubStatus"><option value="draft">Draft</option><option value="publish">Publish Live</option></select></div>
+      </div>
+      <label>Markdown / HTML Body (or File Path for Markdown Publish)</label>
+      <textarea id="pubBody" placeholder="Paste article body here, or enter output/content/example.md when clicking Publish .md File"></textarea>
+      <div class="btns">
+        <button onclick="dispatchAction('hustle://publisher?action=wordpress&title='+enc('pubTitle')+'&content='+enc('pubBody')+'&status='+$('pubStatus').value)">WordPress Post</button>
+        <button class="sec" onclick="dispatchAction('hustle://publisher?action=wordpress_markdown&path='+enc('pubBody'))">Publish .md File</button>
+        <button class="sec" onclick="dispatchAction('hustle://publisher?action=newsletter&subject='+enc('pubTitle')+'&content='+enc('pubBody'))">Send Newsletter</button>
+        <button class="sec" onclick="dispatchAction('hustle://content?action=cms&theme=dark')">Build Static Site</button>
+        <button class="sec" onclick="dispatchAction('hustle://publisher?action=status')">Check Config</button>
+      </div>
+      <div style="font-size:.71rem;color:var(--muted)" id="cmsPagesInfo">Static pSEO pages: 0</div>
+    </div>
+
+    <!-- Editorial Calendar & 100K Progress -->
+    <div class="card">
+      <h3>Editorial Calendar &amp; 100K Daemon <span class="tip" data-tip="hustle://calendar manages content_calendar.json (add, populate weekly cadence, publish due entries). Below it, /api/progress tracks the Hetzner 100K WordPress post expansion daemon." title="Calendar &amp; 100K Progress">ⓘ</span></h3>
+      <p class="help">Schedule recurring multi-channel drops &amp; monitor 100K expansion.</p>
+      <div class="row">
+        <div style="flex:2"><label>Scheduled Topic</label><input id="calTopic" value="Best AI Coding Agents Compared"></div>
+        <div><label>Channel</label><select id="calPlat"><option value="wordpress">WordPress</option><option value="newsletter">Newsletter</option><option value="social">Social</option></select></div>
+      </div>
+      <div class="btns">
+        <button onclick="dispatchAction('hustle://calendar?action=add&topic='+enc('calTopic')+'&platform='+$('calPlat').value+'&content='+enc('pubBody'))">＋ Add Entry</button>
+        <button class="sec" onclick="dispatchAction('hustle://calendar?action=schedule_week')">Auto-Fill Week</button>
+        <button class="sec" onclick="dispatchAction('hustle://calendar?action=process')">Publish Due</button>
+      </div>
+      <div id="expansionSummary" style="font-size:.73rem;color:#93c5fd;margin-top:4px">100K Expander: loading…</div>
+      <div class="mini-list" id="calendarEntriesBox">No scheduled calendar items yet.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================================================================== -->
+<!-- SECTION 4: TIER-4 AUDIENCE, VIDEO FACTORIES & B2B LEADGEN/CRM         -->
+<!-- ===================================================================== -->
+<section class="tier" id="growth">
+  <div class="sec-head">
+    <h2>📣 4. Audience Distribution, Video Factories &amp; B2B Client Funnel <span class="sec-badge">Traffic &amp; Pipeline</span></h2>
+    <span class="sec-desc">Web research, live RSS curation, Bluesky/X/LinkedIn auto-posting, YouTube Shorts + Hymn Remixes, and B2B LeadGen → Cold Outreach → CRM.</span>
+  </div>
+
+  <div class="grid">
+    <!-- Research & RSS Curation -->
+    <div class="card">
+      <h3>Web Research &amp; RSS Feed Curator <span class="tip" data-tip="hustle://research queries DuckDuckGo/Tavily for live market alpha. hustle://curation summarizes your active RSS feeds into memory, and hustle://rss adds/removes feed URLs." title="Research &amp; RSS Manager">ⓘ</span></h3>
+      <p class="help">Harvest breaking news &amp; curate niche RSS feeds into memory.</p>
+      <div class="row">
+        <div style="flex:2"><label>Search / Curation Topic</label><input id="researchQ" value="autonomous AI agent monetization 2026"></div>
+      </div>
+      <div class="btns">
+        <button onclick="dispatchAction('hustle://research?query='+enc('researchQ'))">Web Research</button>
+        <button class="sec" onclick="dispatchAction('hustle://curation?topic='+enc('researchQ'))">Curate RSS</button>
+      </div>
+      <label>Manage Active RSS Feeds</label>
+      <div class="row">
+        <div style="flex:2"><input id="rssUrlInput" placeholder="https://hnrss.org/frontpage"></div>
+        <button class="sm sec" onclick="if($('rssUrlInput').value.trim())dispatchAction('hustle://rss?action=add&url='+enc('rssUrlInput'))">+ Add Feed</button>
+      </div>
+      <div class="mini-list" id="rssFeedsBox">Loading RSS feeds…</div>
+    </div>
+
+    <!-- Multi-Platform Social Poster -->
+    <div class="card">
+      <h3>Social Distribution Engine <span class="tip" data-tip="hustle://social — Generates platform-native hooks using Multi-Armed Bandit prompt optimization, injects affiliate links, and posts to Bluesky, Twitter/X, or LinkedIn (respecting Dry-Run mode)." title="Social Auto-Poster">ⓘ</span></h3>
+      <p class="help">Generate + monetize + publish to Bluesky, X, or LinkedIn.</p>
+      <div class="row">
+        <div><label>Platform</label><select id="socPlat"><option value="Bluesky">Bluesky (Active)</option><option value="Twitter">Twitter / X</option><option value="LinkedIn">LinkedIn</option></select></div>
+        <div style="flex:2"><label>Topic</label><input id="socTopic" value="AI workflow automation"></div>
+      </div>
+      <label>Optional Custom Post Copy (leave blank for AI + Affiliate auto-gen)</label>
+      <input id="socCustom" placeholder="Optional exact text to post…">
+      <div class="btns">
+        <button class="ok" onclick="dispatchAction('hustle://social?platform='+$('socPlat').value+'&topic='+enc('socTopic')+($('socCustom').value.trim()?'&content='+enc('socCustom'):''))">Publish Social Post</button>
+      </div>
+    </div>
+
+    <!-- Video Desk: YouTube Shorts + Hymn Remixes -->
+    <div class="card">
+      <h3>YouTube Shorts &amp; Hymn Remixes <span class="tip" data-tip="hustle://media renders vertical MP4 Shorts (script → scene cards → optional ElevenLabs voiceover → FFmpeg MP4 in output/shorts/). Also displays rendered HymnMania MP4 remixes queued in /opt/hymnmania/youtube_ready." title="Video Factories">ⓘ</span></h3>
+      <p class="help">FFmpeg vertical Shorts pipeline + HymnMania YouTube queue.</p>
+      <label>Short Video Topic</label>
+      <input id="shortsTopic" value="3 AI Agents That Replace Manual Busywork">
+      <div class="btns">
+        <button onclick="dispatchAction('hustle://media?action=shorts&topic='+enc('shortsTopic'))">Render MP4 Short</button>
+        <button class="sec" onclick="dispatchAction('hustle://media?action=plan&topic='+enc('shortsTopic'))">Script &amp; Storyboard</button>
+      </div>
+      <div class="mini-list" id="videoAssetsBox">Checking Shorts &amp; HymnMania queue…</div>
+    </div>
+
+    <!-- B2B LeadGen, Cold Outreach & CRM -->
+    <div class="card">
+      <h3>B2B LeadGen, Outreach &amp; CRM <span class="tip" data-tip="Unifies hustle://leadgen (web prospect discovery), hustle://outreach (personalized cold email/DM templates + SMTP cadences), hustle://synergy_leadgen (outreach + social combo), and hustle://crm (pipeline stage &amp; AI follow-up)." title="B2B Revenue Funnel">ⓘ</span></h3>
+      <p class="help">Prospect discovery → cold cadence → AI CRM follow-ups.</p>
+      <div class="row">
+        <div><label>Target Niche</label><input id="leadNiche" value="B2B SaaS Agencies"></div>
+        <div><label>Offer / Topic</label><input id="leadTopic" value="AI lead qualification"></div>
+      </div>
+      <div class="row">
+        <div><label>Prospect Email</label><input id="crmEmail" value="founder@example.com"></div>
+        <div><label>CRM Stage</label><select id="crmStage"><option value="contacted">Contacted</option><option value="qualified">Qualified</option><option value="proposal">Proposal Sent</option><option value="closed">Closed Won</option></select></div>
+      </div>
+      <div class="btns">
+        <button onclick="dispatchAction('hustle://leadgen?niche='+enc('leadNiche'))">1. Find Leads</button>
+        <button class="sec" onclick="dispatchAction('hustle://outreach?platform=Email&niche='+enc('leadNiche')+'&topic='+enc('leadTopic')+'&email='+enc('crmEmail'))">2. Cold Cadence</button>
+        <button class="sec" onclick="dispatchAction('hustle://synergy_leadgen?niche='+enc('leadNiche')+'&topic='+enc('leadTopic'))">3. Synergy Blast</button>
+        <button class="sec" onclick="dispatchAction('hustle://crm?action=followup&email='+enc('crmEmail')+'&status='+$('crmStage').value+'&niche='+enc('leadNiche'))">4. CRM Follow-Up</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================================================================== -->
+<!-- SECTION 5: TIER-5 AUTONOMOUS INTELLIGENCE & 11-MODULE AGENCY SUITE    -->
+<!-- ===================================================================== -->
+<section class="tier" id="automation">
+  <div class="sec-head">
+    <h2>🤖 5. Autonomous Agents, Council, Workflow Chains &amp; AI Agency Suite <span class="sec-badge">Full Autonomy</span></h2>
+    <span class="sec-desc">Async Observe→Think→Act→Learn loops, Council debates, multi-step chains, Confluence recipes, and 11 agency service generators.</span>
+  </div>
+
+  <div class="grid" style="margin-bottom:12px">
+    <!-- Async Agent Loop + AutoPlan + Council -->
+    <div class="card hi">
+      <h3>Autonomous Agent Launcher &amp; Council <span class="tip" data-tip="hustle://agent launches an asynchronous Observe→Think→Act→Learn loop right inside the daemon. hustle://autoplan asks the LLM to invent &amp; register multi-step hustle plans. hustle://council runs a 4-persona weighted strategic debate." title="Agents, AutoPlan &amp; Council">ⓘ</span></h3>
+      <p class="help">Launch background AI agents, auto-generate plans, or convene the Council.</p>
+      <div class="row">
+        <div><label>Agent Focus</label><select id="agFocus"><option value="general">General Revenue</option><option value="trading">Quant Trading</option><option value="content">Content &amp; SEO</option><option value="research">Alpha Research</option><option value="social">Social Growth</option></select></div>
+        <div><label>Max Iterations</label><input id="agIter" type="number" value="5" min="1" max="50"></div>
+      </div>
+      <label>Council Strategic Question</label>
+      <input id="councilQ" value="Where should we allocate compute for fastest $1,000/mo net profit?">
+      <div class="btns">
+        <button class="ok" onclick="dispatchAction('hustle://agent?type='+$('agFocus').value+'&iterations='+enc('agIter'))">🚀 Launch Async Agent</button>
+        <button class="sec" onclick="dispatchAction('hustle://autoplan')">🗺 Auto-Plan Strategy</button>
+        <button class="sec" onclick="dispatchAction('hustle://council?topic='+enc('councilQ'))">🧠 Council Debate</button>
+      </div>
+      <div class="mini-list" id="liveAgentsBox">No active agent loops yet.</div>
+    </div>
+
+    <!-- Workflow Chains & Confluence Recipes -->
+    <div class="card hi">
+      <h3>Workflow Chains &amp; Confluence Recipes <span class="tip" data-tip="hustle://chain executes multi-step pipelines from chains.json, asks the LLM to discover new chains, or registers your own custom chain. hustle://confluence runs pre-wired cross-domain recipes." title="Chains &amp; Confluence">ⓘ</span></h3>
+      <p class="help">Run, discover, or compose multi-module <code>hustle://</code> pipelines.</p>
+      <div class="row">
+        <div style="flex:2"><label>Saved Workflow Chain</label><select id="chainName"><option value="curation">curation</option><option value="research_affiliate_social">research_affiliate_social</option></select></div>
+        <div><label>Confluence Recipe</label><select id="confRecipe"><option value="saas_growth">saas_growth</option><option value="dropship_loop">dropship_loop</option><option value="trading_alpha">trading_alpha</option></select></div>
+      </div>
+      <div class="btns">
+        <button onclick="dispatchAction('hustle://chain?name='+$('chainName').value)">▶ Run Chain</button>
+        <button class="sec" onclick="dispatchAction('hustle://chain?action=discover')">✨ LLM Discover Chain</button>
+        <button class="sec" onclick="dispatchAction('hustle://confluence?recipe='+$('confRecipe').value)">⚡ Run Confluence</button>
+      </div>
+      <label>Compose Custom Chain (Name + comma-separated <code>hustle://</code> steps)</label>
+      <div class="row">
+        <div><input id="newChainName" placeholder="alpha_blog"></div>
+        <div style="flex:2"><input id="newChainSteps" placeholder="hustle://research?query=AI,hustle://content?topic=AI&type=blog"></div>
+        <button class="sm sec" onclick="dispatchAction('hustle://chain?action=create&name='+enc('newChainName')+'&steps='+enc('newChainSteps'))">Save Chain</button>
+      </div>
+      <div style="font-size:.7rem;color:var(--dim)" id="chainList">Chains: loading…</div>
+    </div>
+  </div>
+
+  <!-- CONDENSED 11-MODULE AI AGENCY WORKBENCH -->
+  <div class="card">
+    <h3>
+      <span>🏢 AI Agency &amp; Specialized Services Workbench (11 Modules Condensed)</span>
+      <span class="tip" data-tip="All 11 B2B client-delivery &amp; back-office modules organized into one zero-clutter tabbed console. Every button dispatches its real hustle:// handler and streams the generated deliverable into the Output Drawer above." title="11-Module AI Agency Suite">ⓘ</span>
+    </h3>
+    <div class="tabs" id="agencyTabs">
+      <button class="tab-btn active" onclick="switchTab('ag-auto',this)">⚙ Automation</button>
+      <button class="tab-btn" onclick="switchTab('ag-bi',this)">📊 BI Insights</button>
+      <button class="tab-btn" onclick="switchTab('ag-fin',this)">🧾 Finance &amp; Tax</button>
+      <button class="tab-btn" onclick="switchTab('ag-leg',this)">⚖ Legal</button>
+      <button class="tab-btn" onclick="switchTab('ag-des',this)">🎨 Brand Design</button>
+      <button class="tab-btn" onclick="switchTab('ag-dev',this)">💻 Dev Agency</button>
+      <button class="tab-btn" onclick="switchTab('ag-mkt',this)">📣 Marketing ROAS</button>
+      <button class="tab-btn" onclick="switchTab('ag-loc',this)">🌐 Localization</button>
+      <button class="tab-btn" onclick="switchTab('ag-sup',this)">🎧 Support &amp; FAQ</button>
+      <button class="tab-btn" onclick="switchTab('ag-car',this)">💼 Careers</button>
+      <button class="tab-btn" onclick="switchTab('ag-qa',this)">🧪 QA &amp; Tests</button>
+    </div>
+
+    <div class="tab-pane active" id="ag-auto">
+      <p class="help"><code>hustle://automation</code> — Generates structured n8n / Zapier workflow JSON schemas for client automation retainers.</p>
+      <div class="row"><div style="flex:3"><label>Business Process to Automate</label><input id="inAutoProb" value="Enrich inbound Stripe customers with Clearbit, score fit via LLM, and alert Slack + HubSpot"></div>
+      <button onclick="dispatchAction('hustle://automation?problem='+enc('inAutoProb'))">Build n8n/Zapier JSON</button></div>
+    </div>
+
+    <div class="tab-pane" id="ag-bi">
+      <p class="help"><code>hustle://bi</code> — Mines L2 discovery memories across all modules to uncover high-confluence cross-niche revenue opportunities.</p>
+      <button onclick="dispatchAction('hustle://bi')">Generate Cross-Module BI Report</button>
+    </div>
+
+    <div class="tab-pane" id="ag-fin">
+      <p class="help"><code>hustle://finance</code> — Categorizes raw CSV bookkeeping rows and synthesizes a CPA-style tax deduction summary.</p>
+      <label>Raw CSV Transactions (Date, Description, Amount)</label>
+      <textarea id="inFinCsv">2026-11-01,Hetzner Cloud VPS,24.50
+2026-11-05,Cloudflare Registrar,10.44
+2026-11-10,OpenRouter LLM Credits,18.00</textarea>
+      <div class="btns">
+        <button onclick="dispatchAction('hustle://finance?csv='+enc('inFinCsv'))">Categorize Bookkeeping</button>
+        <button class="sec" onclick="dispatchAction('hustle://finance?action=tax&csv='+enc('inFinCsv'))">Generate Tax Deduction Summary</button>
+      </div>
+    </div>
+
+    <div class="tab-pane" id="ag-leg">
+      <p class="help"><code>hustle://legal</code> — Drafts GDPR/CCPA-aware Terms of Service, Privacy Policies, and FTC Affiliate Disclosures.</p>
+      <div class="row">
+        <div><label>Document Type</label><select id="inLegType"><option>Terms of Service &amp; FTC Affiliate Disclosure</option><option>GDPR &amp; CCPA Privacy Policy</option><option>AI Agency Master Services Agreement</option></select></div>
+        <div><label>Business Name</label><input id="inLegBiz" value="AI Money Machine"></div>
+        <button onclick="dispatchAction('hustle://legal?type='+encodeURIComponent($('inLegType').value)+'&business='+enc('inLegBiz'))">Draft Legal Doc</button>
+      </div>
+    </div>
+
+    <div class="tab-pane" id="ag-des">
+      <p class="help"><code>hustle://design</code> — Produces logo concepts, hex color systems, typography pairings, and social visual direction.</p>
+      <div class="row">
+        <div><label>Brand / Project Name</label><input id="inDesName" value="Apex Autonomous Studio"></div>
+        <div><label>Niche</label><input id="inDesNiche" value="B2B AI Workflow Agents"></div>
+        <button onclick="dispatchAction('hustle://design?name='+enc('inDesName')+'&niche='+enc('inDesNiche'))">Generate Brand Bible</button>
+      </div>
+    </div>
+
+    <div class="tab-pane" id="ag-dev">
+      <p class="help"><code>hustle://devagency</code> — Audits local source directories for security/performance wins or writes freelance engineering proposals.</p>
+      <div class="row">
+        <div><label>Repo Directory to Audit</label><input id="inDevPath" value="orchestrator"></div>
+        <div style="flex:2"><label>Or Client Project Brief (for Proposal)</label><input id="inDevProj" value="Build a RAG customer support agent integrated with Zendesk and Postgres"></div>
+      </div>
+      <div class="btns">
+        <button onclick="dispatchAction('hustle://devagency?path='+enc('inDevPath'))">Audit Codebase</button>
+        <button class="sec" onclick="dispatchAction('hustle://devagency?action=propose&project='+enc('inDevProj'))">Write Freelance Proposal</button>
+      </div>
+    </div>
+
+    <div class="tab-pane" id="ag-mkt">
+      <p class="help"><code>hustle://marketing</code> — Evaluates campaign memory entries to compute platform ROAS and budget reallocation advice.</p>
+      <button onclick="dispatchAction('hustle://marketing')">Analyze Multi-Channel ROAS</button>
+    </div>
+
+    <div class="tab-pane" id="ag-loc">
+      <p class="help"><code>hustle://localization</code> — Translates marketing copy or researches native-language high-volume SEO keywords.</p>
+      <div class="row">
+        <div><label>Target Language</label><select id="inLocLang"><option>Spanish</option><option>German</option><option>Portuguese</option><option>Japanese</option><option>French</option></select></div>
+        <div style="flex:2"><label>Copy to Translate / SEO Niche</label><input id="inLocText" value="Automate your business workflows and scale revenue with AI agents."></div>
+      </div>
+      <div class="btns">
+        <button onclick="dispatchAction('hustle://localization?lang='+$('inLocLang').value+'&text='+enc('inLocText'))">Translate Copy</button>
+        <button class="sec" onclick="dispatchAction('hustle://localization?action=seo&lang='+$('inLocLang').value+'&niche='+enc('inLocText'))">Localize SEO Keywords</button>
+      </div>
+    </div>
+
+    <div class="tab-pane" id="ag-sup">
+      <p class="help"><code>hustle://support</code> — Resolves customer tickets using L3 knowledge archive context or distills resolved tickets into L3 FAQs.</p>
+      <div class="row">
+        <div><label>Customer</label><input id="inSupCust" value="Alex"></div>
+        <div style="flex:2"><label>Support Question / Ticket</label><input id="inSupIss" value="How do I connect my WordPress Application Password and Bluesky handle?"></div>
+      </div>
+      <div class="btns">
+        <button onclick="dispatchAction('hustle://support?customer='+enc('inSupCust')+'&issue='+enc('inSupIss'))">Draft Ticket Reply</button>
+        <button class="sec" onclick="dispatchAction('hustle://support?action=faq')">Distill Tickets → L3 FAQ</button>
+      </div>
+    </div>
+
+    <div class="tab-pane" id="ag-car">
+      <p class="help"><code>hustle://careers</code> — Curates high-paying remote AI roles or tailors an operator resume to match a target job description.</p>
+      <div class="row">
+        <div><label>Role Title</label><input id="inCarRole" value="Principal AI Agent Engineer"></div>
+        <div><label>Location</label><input id="inCarLoc" value="Remote"></div>
+      </div>
+      <label>Resume Summary (for Resume Tailoring)</label>
+      <input id="inCarRes" value="Senior Go, Python &amp; Distributed Systems Engineer building autonomous LLM revenue pipelines.">
+      <div class="btns">
+        <button onclick="dispatchAction('hustle://careers?title='+enc('inCarRole')+'&location='+enc('inCarLoc'))">Search Roles</button>
+        <button class="sec" onclick="dispatchAction('hustle://careers?action=tailor&resume='+enc('inCarRes')+'&job='+enc('inCarRole'))">Tailor Resume</button>
+      </div>
+    </div>
+
+    <div class="tab-pane" id="ag-qa">
+      <p class="help"><code>hustle://qa</code> — Runs targeted Go module test suites or triggers a self-healing stability verification pass.</p>
+      <div class="row">
+        <div style="flex:2"><label>Go Package Pattern</label><input id="inQaMod" value="./hustle/affiliate/..."></div>
+        <button onclick="dispatchAction('hustle://qa?module='+enc('inQaMod'))">Run Go Tests</button>
+        <button class="sec" onclick="dispatchAction('hustle://qa?action=stability')">Verify Stability</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================================================================== -->
+<!-- SECTION 6: TIER-6 LEDGER, SCHEDULER, MEMORY/VECTOR, MESH & LIVE LOGS  -->
+<!-- ===================================================================== -->
+<section class="tier" id="system">
+  <div class="sec-head">
+    <h2>🛠 6. Ledger P&amp;L, Task History, Vector Memory, Mesh &amp; Multi-Service Logs <span class="sec-badge">Telemetry &amp; Control</span></h2>
+    <span class="sec-desc">Real-time accounting, SQLite task history, L1/L2/L3 vector memory search, mesh federation, system tray controller &amp; 10-service log viewer.</span>
+  </div>
+
+  <div class="grid-2" style="margin-bottom:12px">
+    <!-- Financial Ledger & Wealth Goal -->
+    <div class="card">
+      <h3>Financial Ledger &amp; Per-Hustle ROI <span class="tip" data-tip="GET /api/ledger — Real-time breakdown of revenue vs expenses by hustle module, Wealth Preservation recommendations, and recent transaction log." title="Ledger P&amp;L">ⓘ</span></h3>
+      <div class="row">
+        <div><label>Collective Wealth Goal (USD)</label><input id="goalAmt" type="number" value="10000"></div>
+        <button onclick="dispatchAction('hustle://swarm?action=set_goal&amount='+enc('goalAmt'))">Update Goal</button>
+      </div>
+      <div style="font-size:.73rem;color:#93c5fd" id="ledgerAnalysis">Loading profitability analysis…</div>
+      <div class="mini-list" id="ledgerByHustle">No ledger transactions recorded yet.</div>
+    </div>
+
+    <!-- Daemon Scheduler & SQLite Task History -->
+    <div class="card">
+      <h3>Daemon Scheduler &amp; SQLite Execution Log <span class="tip" data-tip="GET /api/tasks — Shows staggered daemon timers (next run countdown &amp; total runs) alongside persisted hustle.db SQLite task_history executions." title="Scheduler &amp; Task History">ⓘ</span></h3>
+      <div class="mini-list" id="scheduledTasksBox" style="max-height:95px">Loading daemon schedule…</div>
+      <label>Recent SQLite <code>task_history</code> Dispatches</label>
+      <div class="mini-list" id="taskHistoryBox" style="max-height:125px">Loading SQLite task history…</div>
+    </div>
+  </div>
+
+  <div class="grid-2" style="margin-bottom:12px">
+    <!-- Memory Inspector (L1/L2/L3 + Vector Search) + Prompt Bandit -->
+    <div class="card">
+      <h3>Memory Inspector (L1/L2/L3 + Vector Search) <span class="tip" data-tip="GET /api/memories — Browse L1 (short-term), L2 (discoveries), and L3 (knowledge archive) or run semantic cosine-similarity search against SQLite vector embeddings." title="Memory &amp; Vector Search">ⓘ</span></h3>
+      <div class="row">
+        <div><label>Tier</label><select id="memTier" onchange="loadMemories()"><option value="ALL">All Tiers</option><option value="L1">L1 Working</option><option value="L2">L2 Discoveries</option><option value="L3">L3 Archive</option></select></div>
+        <div><label>Mode</label><select id="memMode" onchange="loadMemories()"><option value="keyword">Keyword</option><option value="vector">SQLite Vector</option></select></div>
+        <div style="flex:2"><label>Query</label><input id="memQuery" placeholder="Search memories, insights, outputs…" onkeydown="if(event.key==='Enter')loadMemories()"></div>
+        <button class="sm" onclick="loadMemories()">Search</button>
+      </div>
+      <div class="mini-list" id="memoriesBox" style="max-height:165px">Loading memory stream…</div>
+      <div style="font-size:.7rem;color:var(--muted)" id="banditBox">Prompt Bandit: loading…</div>
+    </div>
+
+    <!-- Mesh Federation, Healer, Repo Sync & System Tray Guide -->
+    <div class="card">
+      <h3>Mesh Federation, Self-Healer &amp; Tray Control <span class="tip" data-tip="Controls federated peer sync (hustle://swarm), collective alpha broadcasts, self-healer diagnostics, GitHub sync, and documents local bin\aimm-tray.exe + Hetzner systemd server management." title="Mesh &amp; Server Controls">ⓘ</span></h3>
+      <div class="row">
+        <div style="flex:2"><label>Manual Diagnostic / Healer Prompt</label><input id="healIssue" value="Audit memory, disk headroom, and unprofitable hustles"></div>
+        <button onclick="dispatchAction('hustle://healer?issue='+enc('healIssue'))">Run Healer</button>
+      </div>
+      <div class="row">
+        <div><label>Peer Node ID</label><input id="peerId" placeholder="node-2"></div>
+        <div style="flex:2"><label>Peer Base URL</label><input id="peerUrl" placeholder="http://10.0.0.2:8082"></div>
+        <button class="sm sec" onclick="registerPeer()">+ Peer</button>
+      </div>
+      <div class="btns">
+        <button class="sec" onclick="dispatchAction('hustle://swarm?action=sync')">Sync Mesh</button>
+        <button class="sec" onclick="dispatchAction('hustle://swarm?action=aggregate')">Aggregate Profit</button>
+        <button class="sec" onclick="dispatchAction('hustle://swarm?action=broadcast_alpha')">Broadcast Alpha</button>
+        <button class="sec" onclick="dispatchAction('hustle://sync')" title="Runs repository branch reconciliation &amp; git push">Repo Sync</button>
+      </div>
+      <div style="font-size:.71rem;color:var(--muted);background:#070f1f;border:1px solid #1a2a4a;border-radius:8px;padding:8px">
+        <strong style="color:#e2e8f0">🖥 System Tray &amp; Server Lifecycle:</strong> Run <code>bin\aimm-tray.exe</code> on Windows for a live green/red tray icon, <strong>Auto-SSH Tunnel</strong> to Hetzner <code>:8082</code>, 1-click hustle dispatches, <strong>Start/Stop Local Server (BelowNormal)</strong>, and <strong>Quit Servers (Stop Prod)</strong>.<br>
+        <span id="strategyList" style="color:#93c5fd">Collective Alpha: none broadcast yet.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- MULTI-SERVICE LIVE LOG VIEWER -->
+  <div class="card" id="logs">
+    <h3>
+      <span>📜 Multi-Service Live Log Stream &amp; Trade Execution Tape</span>
+      <span class="tip" data-tip="GET /api/service-logs — Inspect live logs across the Go orchestrator (in-memory ring buffer + journalctl) and all companion Python/systemd daemons without opening SSH." title="Multi-Service Logs">ⓘ</span>
+    </h3>
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
+      <div class="tabs" style="border:0;padding:0;margin:0" id="logTabs">
+        <button class="tab-btn active" onclick="selectLogService('orchestrator',this)">orchestrator</button>
+        <button class="tab-btn" onclick="selectLogService('publisher',this)">publisher</button>
+        <button class="tab-btn" onclick="selectLogService('content',this)">content (100K)</button>
+        <button class="tab-btn" onclick="selectLogService('audit',this)">audit</button>
+        <button class="tab-btn" onclick="selectLogService('trader',this)">python-trader</button>
+        <button class="tab-btn" onclick="selectLogService('hustle-gen',this)">hustle-gen</button>
+        <button class="tab-btn" onclick="selectLogService('freellm',this)">freellm</button>
+        <button class="tab-btn" onclick="selectLogService('bluesky',this)">bluesky</button>
+        <button class="tab-btn" onclick="selectLogService('twitter',this)">twitter</button>
+        <button class="tab-btn" onclick="selectLogService('watchdog',this)">watchdog</button>
+      </div>
+      <input id="logFilter" placeholder="Filter log lines…" style="width:210px;margin:0" oninput="renderFilteredLog()">
+    </div>
+    <pre id="logTail">Loading live service logs…</pre>
+
+    <label style="margin-top:8px">Recent Parsed Bot Trade Cycles</label>
+    <div style="overflow-x:auto;max-height:190px">
+      <table>
+        <thead><tr><th>Time / Cycle</th><th>Symbol</th><th>Price</th><th>RSI / Trend</th><th>Position / Signal</th></tr></thead>
+        <tbody id="tradeLog"></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- API TOKEN MODAL -->
+<div class="modal-bg" id="tokenModal" onclick="if(event.target===this)this.style.display='none'">
+  <div class="modal">
+    <h3 style="margin-bottom:6px">🔐 Orchestrator API Token</h3>
+    <p style="font-size:.75rem;color:var(--muted);margin-bottom:10px">When <code>AIMM_API_TOKEN</code> is set on the server, state-changing <code>POST /api/dispatch</code> calls require a matching Bearer token. Stored locally in your browser's <code>localStorage</code>.</p>
+    <label>Bearer Token</label>
+    <input id="tokenInput" type="password" placeholder="Paste AIMM_API_TOKEN…">
+    <div class="btns" style="margin-top:12px">
+      <button onclick="saveToken()">Save Token</button>
+      <button class="sec" onclick="localStorage.removeItem('aimm_api_token');$('tokenInput').value='';$('tokenModal').style.display='none';toast('Cleared saved token');refreshAll()">Clear</button>
+      <button class="sec" onclick="$('tokenModal').style.display='none'">Cancel</button>
+    </div>
+  </div>
 </div>
 
-<h2 id="logs">Logs &amp; recent trades</h2><p class="desc">Parsed from <code>/api/log</code> (orchestrator log tail via the dashboard server). Bot detail is inline here — the old separate <code>/bot</code> page is merged into this section.</p>
-<div style="overflow-x:auto"><table><thead><tr><th>Time</th><th>Bot</th><th>Price</th><th>Decision</th></tr></thead><tbody id="tradeLog"></tbody></table></div>
-<h2>Content expansion</h2><div style="overflow-x:auto"><table><thead><tr><th>Metric</th><th>Value</th></tr></thead><tbody id="contentStats"></tbody></table></div>
-<h2>Orchestrator log (tail)</h2><pre id="logTail">—</pre>
 <div id="toast"></div>
+
 <script>
-const $=id=>document.getElementById(id); const enc=id=>encodeURIComponent($(id).value.trim());
-function toast(m,ok=true){const t=$('toast');t.textContent=m;t.style.background=ok?'#14532d':'#7f1d1d';t.style.display='block';setTimeout(()=>t.style.display='none',5000)}
-async function dispatchAction(uri){toast('Dispatching '+uri+' …');try{const r=await fetch('/api/dispatch',{method:'POST',headers:Object.assign({'Content-Type':'application/json'},(localStorage.getItem('aimm_api_token')?{'Authorization':'Bearer '+localStorage.getItem('aimm_api_token')}:{})),body:JSON.stringify({uri})});const txt=await r.text();if(!r.ok)throw new Error(txt||r.status);toast('✓ '+txt);setTimeout(refresh,800)}catch(e){toast('✗ Dispatch failed (is aimm-orchestrator running?): '+e.message,false)}}
-async function jget(u){try{const r=await fetch(u);if(!r.ok)throw 0;return await r.json()}catch(e){return null}}
-async function tget(u){try{const r=await fetch(u);return await r.text()}catch(e){return''}}
-function parseLog(txt){const bots={BTC:0,ETH:0,SOL:0,DOGE:0,XRP:0,ADA:0,LINK:0},trades=[];for(const line of txt.split('\n')){for(const s of Object.keys(bots)){if(line.includes('Symbol: '+s))bots[s]++;const m=line.match(/(\d{2}:\d{2}:\d{2}).*Symbol: (\w+).*Price: \$?([0-9,.]+).*Decision: (\w+)/);if(m&&m[2]===s)trades.unshift({time:m[1],sym:m[2],price:m[3],decision:m[4]})}}return{bots,trades}}
-async function refresh(){$('lastUpdated').textContent='Refreshing…';
-const st=await jget('/api/status');if(st&&st.status){$('orchStatus').innerHTML='<span class="dot on"></span>'+st.status;$('orchVer').textContent=st.version||'—';$('profit').textContent=(st.profit!==undefined)?'$'+Number(st.profit).toFixed(2):'—';$('memCount').textContent=st.memories??'—';if(st.disk_used_pct!==undefined){const dp=$('diskPct');dp.textContent=st.disk_used_pct+'% used';dp.className='value '+(st.disk_used_pct>=95?'red':st.disk_used_pct>=85?'yellow':'green');$('diskFree').textContent=st.disk_free_gb}$('peerCount').textContent=st.peers??'—'}else{$('orchStatus').innerHTML='<span class="dot off"></span>offline';$('profit').textContent='—'}
-const chains=await jget('/api/chains');if(chains){const names=Object.keys(chains);$('chainList').textContent=names.length?names.join(', '):'none loaded';const sel=$('chainName');names.forEach(n=>{if(![...sel.options].some(o=>o.value===n))sel.add(new Option(n,n))})}
-const agents=await jget('/api/agents');if(agents){const n=Array.isArray(agents)?agents.length:Object.keys(agents).length;$('agentCount').textContent=n;$('agentList').textContent=JSON.stringify(agents).slice(0,120)}
-const content=await jget('/api/content');if(Array.isArray(content)){$('contentCount').textContent=content.length;$('contentList').textContent=content.slice(0,4).join(', ')||'empty'}
-const strat=await jget('/api/strategy');if(Array.isArray(strat))$('strategyList').textContent=strat.length?String(strat[strat.length-1].Content||strat[strat.length-1]).slice(0,160):'none yet';
-const log=await tget('/api/log');const d=parseLog(log);$('botSummary').textContent='Cycles by symbol: '+Object.entries(d.bots).map(([k,v])=>k+' '+v).join(' · ');
-$('tradeLog').innerHTML=d.trades.length?d.trades.slice(0,20).map(t=>`<tr><td>${t.time}</td><td><b>${t.sym}</b></td><td>$${t.price}</td><td class="${t.decision==='BUY'?'green':'red'}"><b>${t.decision}</b></td></tr>`).join(''):'<tr><td colspan="4" style="color:#64748b;text-align:center;padding:16px">No trades yet — waiting for market movement</td></tr>';
-$('logTail').textContent=log?log.split('\n').slice(-60).join('\n'):'(no log — orchestrator not writing orchestrator_live.log)';
-const prog=await jget('/api/progress');const done=(prog&&prog.done||[]).length;
-$('contentStats').innerHTML=`<tr><td>Posts expanded</td><td><b>${done}</b></td></tr><tr><td>Currently expanding</td><td>post #${(prog&&prog.current)||'-'}</td></tr><tr><td>Target size</td><td>100,000 chars each</td></tr>`;
-$('lastUpdated').textContent='Updated: '+new Date().toLocaleTimeString()}
-refresh();setInterval(refresh,10000);
-</script></body></html>
+const $=id=>document.getElementById(id);
+const enc=id=>encodeURIComponent(($(id)?.value||'').trim());
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
+let latestBots=[];
+let selectedBotSym=new URLSearchParams(location.search).get('bot')?.toUpperCase()||'BTC';
+let currentLogService='orchestrator';
+let rawLogCache='';
 
+function toast(msg,ok=true){
+  const t=$('toast');
+  t.textContent=msg;
+  t.style.background=ok?'#052e16':'#450a0a';
+  t.style.borderColor=ok?'#22c55e':'#ef4444';
+  t.style.color=ok?'#dcfce7':'#fecaca';
+  t.style.display='block';
+  clearTimeout(window._toastTimer);
+  window._toastTimer=setTimeout(()=>t.style.display='none',5500);
+}
+
+function authHeaders(extra={}){
+  const tok=localStorage.getItem('aimm_api_token');
+  return Object.assign({},extra,tok?{'Authorization':'Bearer '+tok}:{});
+}
+
+function openTokenModal(){
+  $('tokenInput').value=localStorage.getItem('aimm_api_token')||'';
+  $('tokenModal').style.display='flex';
+}
+function saveToken(){
+  const v=$('tokenInput').value.trim();
+  if(v)localStorage.setItem('aimm_api_token',v);
+  $('tokenModal').style.display='none';
+  toast('Saved API token in browser localStorage');
+  refreshAll();
+}
+
+async function dispatchAction(uri){
+  if(!uri||!uri.startsWith('hustle://')){toast('URI must start with hustle://',false);return;}
+  toast('⏳ Dispatching '+uri+' …');
+  $('customUri').value=uri;
+  try{
+    const r=await fetch('/api/dispatch?format=json',{
+      method:'POST',
+      headers:authHeaders({'Content-Type':'application/json'}),
+      body:JSON.stringify({uri})
+    });
+    const raw=await r.text();
+    if(!r.ok)throw new Error(raw||('HTTP '+r.status));
+    let msg=raw,resTxt='',dur=0;
+    try{
+      const j=JSON.parse(raw);
+      msg=j.message||raw;
+      resTxt=j.result||j.message||raw;
+      dur=j.duration_ms||0;
+    }catch(_){resTxt=raw;}
+    $('lastUriLabel').textContent=uri;
+    $('lastDurPill').textContent=dur+' ms';
+    $('lastResultPre').textContent=resTxt||msg;
+    $('dispatchDrawer').style.display='block';
+    toast('✓ '+msg.split('\n')[0]);
+    setTimeout(refreshAll,650);
+  }catch(e){
+    toast('✗ Dispatch failed: '+e.message,false);
+  }
+}
+
+async function registerPeer(){
+  const id=$('peerId').value.trim(),url=$('peerUrl').value.trim();
+  if(!id||!url){toast('Enter both Peer ID and Peer URL',false);return;}
+  try{
+    const r=await fetch('/register',{method:'POST',headers:authHeaders({'Content-Type':'application/json'}),body:JSON.stringify({id,url})});
+    const txt=await r.text();
+    if(!r.ok)throw new Error(txt);
+    toast('✓ '+txt);
+    refreshAll();
+  }catch(e){toast('✗ Peer registration failed: '+e.message,false);}
+}
+
+function switchTab(id,btn){
+  document.querySelectorAll('#agencyTabs .tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  $(id).classList.add('active');
+}
+
+async function jget(u){try{const r=await fetch(u);if(!r.ok)return null;return await r.json();}catch(_){return null;}}
+async function tget(u){try{const r=await fetch(u);if(!r.ok)return '';return await r.text();}catch(_){return '';}}
+
+function sparkSVG(prices,w=165,h=34){
+  if(!Array.isArray(prices)||prices.length<2)return `<svg width="${w}" height="${h}"></svg>`;
+  const min=Math.min(...prices),max=Math.max(...prices),span=(max-min)||1;
+  const pts=prices.map((p,i)=>`${((i/(prices.length-1))*w).toFixed(1)},${(h-4-((p-min)/span)*(h-8)).toFixed(1)}`).join(' ');
+  const up=prices[prices.length-1]>=prices[0];
+  const col=up?'#22c55e':'#ef4444';
+  return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><polyline fill="none" stroke="${col}" stroke-width="2" points="${pts}"/></svg>`;
+}
+
+function renderInspectorChart(bot){
+  const wrap=$('inspChartWrap');
+  if(!bot||!Array.isArray(bot.recent_prices)||bot.recent_prices.length<2){
+    wrap.innerHTML='<span style="font-size:.75rem;color:var(--dim)">Run 2+ cycles for '+(bot?.symbol||selectedBotSym)+' to plot price &amp; Bollinger curves.</span>';
+    return;
+  }
+  const prices=bot.recent_prices;
+  const w=820,h=150,pad=14;
+  const vals=[...prices];
+  if(bot.bb_upper>0)vals.push(bot.bb_upper);
+  if(bot.bb_lower>0)vals.push(bot.bb_lower);
+  const min=Math.min(...vals),max=Math.max(...vals),span=(max-min)||1;
+  const yOf=v=>(h-pad-((v-min)/span)*(h-pad*2)).toFixed(1);
+  const pts=prices.map((p,i)=>`${(pad+(i/(prices.length-1))*(w-pad*2)).toFixed(1)},${yOf(p)}`).join(' ');
+  const smaLine=bot.sma20>0?`<line x1="${pad}" y1="${yOf(bot.sma20)}" x2="${w-pad}" y2="${yOf(bot.sma20)}" stroke="#f59e0b" stroke-dasharray="4 4" stroke-width="1.2"/>`:'';
+  const bbUp=bot.bb_upper>0?`<line x1="${pad}" y1="${yOf(bot.bb_upper)}" x2="${w-pad}" y2="${yOf(bot.bb_upper)}" stroke="#38bdf8" stroke-dasharray="2 4" stroke-width="1"/>`:'';
+  const bbLo=bot.bb_lower>0?`<line x1="${pad}" y1="${yOf(bot.bb_lower)}" x2="${w-pad}" y2="${yOf(bot.bb_lower)}" stroke="#38bdf8" stroke-dasharray="2 4" stroke-width="1"/>`:'';
+  wrap.innerHTML=`<svg viewBox="0 0 ${w} ${h}" style="width:100%;height:150px">
+    ${bbUp}${bbLo}${smaLine}
+    <polyline fill="none" stroke="#22c55e" stroke-width="2.4" points="${pts}"/>
+    <text x="${pad}" y="12" fill="#94a3b8" font-size="10">High $${max.toFixed(2)} · SMA20 $${(bot.sma20||0).toFixed(2)} (amber) · Bollinger Bands (cyan)</text>
+    <text x="${pad}" y="${h-3}" fill="#64748b" font-size="10">Low $${min.toFixed(2)} · Samples: ${prices.length}</text>
+  </svg>`;
+}
+
+function selectBot(sym){
+  selectedBotSym=sym.toUpperCase();
+  if($('tradeSym'))$('tradeSym').value=selectedBotSym;
+  $('inspSym').textContent=selectedBotSym;
+  const bot=latestBots.find(b=>b.symbol===selectedBotSym);
+  if(bot){
+    $('inspStats').innerHTML=`Last <b>$${Number(bot.last_price||0).toLocaleString(undefined,{maximumFractionDigits:4})}</b> &middot; Position <b class="${bot.in_position?'green':''}">${bot.in_position?'LONG @ $'+bot.entry_price.toFixed(2):'FLAT'}</b> &middot; RSI <b>${(bot.rsi||50).toFixed(1)}</b> &middot; MACD Hist <b>${(bot.macd_hist||0).toFixed(4)}</b> &middot; BB %B <b>${((bot.bb_percent_b||0)*100).toFixed(0)}%</b> &middot; Cycles <b>${bot.samples||0}</b>`;
+  }
+  renderInspectorChart(bot);
+  document.querySelectorAll('.bot-card').forEach(el=>el.classList.toggle('active',el.dataset.sym===selectedBotSym));
+}
+
+function renderBotGrid(bots){
+  const defaults=['BTC','ETH','SOL','DOGE','XRP','ADA','LINK'];
+  const map={};
+  (bots||[]).forEach(b=>{map[b.symbol]=b;if(!defaults.includes(b.symbol))defaults.push(b.symbol);});
+  latestBots=defaults.map(s=>map[s]||{symbol:s,last_price:0,rsi:50,samples:0,in_position:false,recent_prices:[]});
+  $('botCardsGrid').innerHTML=latestBots.map(b=>{
+    const rsiCls=b.rsi<32?'green':b.rsi>68?'red':'';
+    return `<div class="bot-card ${b.symbol===selectedBotSym?'active':''}" data-sym="${esc(b.symbol)}" onclick="selectBot('${esc(b.symbol)}')">
+      <div class="bot-top"><span>${esc(b.symbol)}</span><span class="pill ${b.in_position?'ok':''}" style="padding:1px 7px;font-size:.64rem">${b.in_position?'LONG':'FLAT'}</span></div>
+      <div class="bot-price">${b.last_price>0?'$'+Number(b.last_price).toLocaleString(undefined,{maximumFractionDigits:b.last_price<10?4:2}):'—'}</div>
+      ${sparkSVG(b.recent_prices)}
+      <div class="bot-meta"><span class="${rsiCls}">RSI ${(b.rsi||50).toFixed(0)}</span><span>Cycles ${b.samples||0}</span></div>
+    </div>`;
+  }).join('');
+  selectBot(selectedBotSym);
+}
+
+function parseLogTrades(txt){
+  const trades=[];
+  for(const line of (txt||'').split('\n')){
+    const m=line.match(/(\d{2}:\d{2}:\d{2})?.*Symbol:\s*(\w+).*Price:\s*\$?([0-9,.]+).*Decision:\s*(\w+)/i);
+    if(m)trades.unshift({time:m[1]||'live',sym:m[2],price:m[3],info:'Log cycle',decision:m[4].toUpperCase()});
+  }
+  return trades;
+}
+
+async function selectLogService(svc,btn){
+  currentLogService=svc;
+  document.querySelectorAll('#logTabs .tab-btn').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  rawLogCache=await tget('/api/service-logs?service='+encodeURIComponent(svc));
+  renderFilteredLog();
+}
+
+function renderFilteredLog(){
+  const q=($('logFilter')?.value||'').toLowerCase();
+  const lines=(rawLogCache||'').split('\n').filter(l=>!q||l.toLowerCase().includes(q));
+  $('logTail').textContent=lines.slice(-90).join('\n')||'(no log output for '+currentLogService+')';
+}
+
+async function loadMemories(){
+  const tier=$('memTier').value,mode=$('memMode').value,q=$('memQuery').value.trim();
+  const items=await jget(`/api/memories?tier=${encodeURIComponent(tier)}&mode=${encodeURIComponent(mode)}&q=${encodeURIComponent(q)}&limit=35`);
+  if(!Array.isArray(items)||!items.length){
+    $('memoriesBox').innerHTML='<div style="color:var(--dim)">No matching memory entries.</div>';
+    return;
+  }
+  $('memoriesBox').innerHTML=items.map(m=>`<div class="mini-item"><span style="flex:1">${esc(String(m.Content||m.content||'').slice(0,220))}</span><code style="color:#60a5fa;font-size:.66rem">${esc((m.Tags||m.tags||[])[0]||'mem')}</code></div>`).join('');
+}
+
+async function refreshAll(){
+  $('lastUpdated').textContent='Refreshing…';
+  const st=await jget('/api/status');
+  if(st&&st.status&&st.status!=='offline'){
+    $('orchPill').className='pill ok';
+    $('orchDot').className='dot on';
+    $('orchStatus').textContent=st.status;
+    $('orchVer').textContent=st.version||'2.0.0';
+    const prof=Number(st.profit||0),rev=Number(st.revenue||0),exp=Number(st.expenses||0),goal=Number(st.wealth_goal||10000);
+    $('profit').textContent=(prof>=0?'$':'-$')+Math.abs(prof).toFixed(2);
+    $('profit').className='value '+(prof>0?'green':prof<0?'red':'');
+    $('profitSub').textContent=`Rev $${rev.toFixed(2)} · Exp $${exp.toFixed(2)}`;
+    $('goalText').textContent=`Goal: $${goal.toLocaleString()}`;
+    $('goalBar').style.width=Math.max(0,Math.min(100,goal>0?(prof/goal)*100:0)).toFixed(1)+'%';
+    $('dryRunPill').textContent=st.dry_run?'Mode: Dry-Run':'Mode: Live';
+    $('dryRunPill').className='pill '+(st.dry_run?'warn':'ok');
+    $('priceSourcePill').textContent='Feed: '+(st.price_source||'mock');
+    $('memCount').textContent=`${st.memories_l1??st.memories??0} / ${st.memories_l2??0} / ${st.memories_l3??0}`;
+    $('peerCount').textContent=st.peers??0;
+    const hit=st.cache_stats?st.cache_stats.hit_rate_pct:0;
+    $('cacheSub').innerHTML=`L1/L2/L3 &middot; Cache <b>${hit}%</b> hit &middot; Peers <b id="peerCount">${st.peers??0}</b>`;
+    if(Array.isArray(st.registered_modules))$('modCount').textContent=st.registered_modules.length;
+    if(st.did)$('didShort').textContent=String(st.did).slice(0,22)+'…';
+    if(st.auth_required){
+      const hasTok=!!localStorage.getItem('aimm_api_token');
+      $('tokenBtn').className=hasTok?'sm ok':'sm warn';
+      $('tokenBtn').textContent=hasTok?'🔐 Token Set':'🔐 Token Required';
+    }
+    if(st.disk_used_pct!==undefined){
+      const dp=$('diskPct');
+      dp.textContent=st.disk_used_pct+'% used';
+      dp.className='value '+(st.disk_used_pct>=95?'red':st.disk_used_pct>=85?'yellow':'green');
+      $('diskFree').textContent=st.disk_free_gb??'—';
+    }
+    if(st.integrations){
+      $('integrationChips').innerHTML=Object.entries(st.integrations).sort().map(([k,v])=>`<span class="int-chip ${v?'ready':''}"><span class="dot ${v?'on':'off'}"></span>${esc(k)}</span>`).join('');
+    }
+    if(Array.isArray(st.rss_feeds)){
+      $('rssFeedsBox').innerHTML=st.rss_feeds.map(f=>`<div class="mini-item"><span style="word-break:break-all">${esc(f)}</span><button class="sm sec" onclick="dispatchAction('hustle://rss?action=remove&url='+encodeURIComponent('${esc(f)}'))">✕</button></div>`).join('');
+    }
+    renderBotGrid(st.trading_bots||[]);
+    const totalCycles=(st.trading_bots||[]).reduce((a,b)=>a+(b.samples||0),0);
+    $('activeBotsKpi').textContent=((st.trading_bots||[]).length||7)+' Bots';
+    $('botSummary').textContent=`${totalCycles} recorded indicator samples · feed: ${st.price_source||'mock'}`;
+    if(st.bandit_stats){
+      const keys=Object.keys(st.bandit_stats);
+      $('banditBox').textContent=keys.length?'Prompt Bandit active arms: '+keys.map(k=>`${k} (${st.bandit_stats[k].length} variants)`).join(' · '):'Prompt Bandit ready';
+    }
+  }else{
+    $('orchPill').className='pill err';
+    $('orchDot').className='dot off';
+    $('orchStatus').textContent='Offline';
+    renderBotGrid([]);
+  }
+
+  const [chains,agents,content,strat,prog,ledger,tasks,outputs,hymns]=await Promise.all([
+    jget('/api/chains'),jget('/api/agents'),jget('/api/content'),jget('/api/strategy'),
+    jget('/api/progress'),jget('/api/ledger'),jget('/api/tasks'),jget('/api/outputs'),jget('/api/hymns')
+  ]);
+
+  if(chains){
+    const names=Object.keys(chains);
+    $('chainList').textContent='Loaded ('+names.length+'): '+(names.join(', ')||'none');
+    const sel=$('chainName');
+    names.forEach(n=>{if(![...sel.options].some(o=>o.value===n))sel.add(new Option(n,n));});
+  }
+  if(agents){
+    const arr=Array.isArray(agents)?agents:Object.values(agents);
+    $('agentCount').textContent=arr.length;
+    $('agentList').textContent=arr.length?`${arr.length} loop record(s) tracked`:'Idle — launch an async agent below';
+    $('liveAgentsBox').innerHTML=arr.length?arr.slice(0,10).map(a=>`<div class="mini-item"><span><b>${esc(a.agent_id||a.ID||'agent')}</b> (${esc(a.hustle_type||'loop')})</span><span>${esc(a.status||String(a.Content||'').slice(0,60))}</span></div>`).join(''):'No active agent loops yet.';
+  }
+  if(Array.isArray(content)){
+    $('contentCount').textContent=content.length;
+    $('contentList').textContent=content.slice(0,3).join(', ')||'No local drafts yet';
+    $('contentFilesBox').innerHTML=content.length?content.slice(-15).reverse().map(f=>`<div class="mini-item"><span>${esc(f)}</span><button class="sm sec" onclick="$('pubBody').value='output/content/${esc(f)}';toast('Loaded path into Publisher box')">Use Path</button></div>`).join(''):'output/content is currently empty.';
+  }
+  if(Array.isArray(strat)&&strat.length){
+    const latest=strat[strat.length-1];
+    $('strategyList').textContent='Collective Alpha: '+String(latest.Content||latest).slice(0,150);
+  }
+  if(prog){
+    const done=(prog.done||[]).length;
+    $('expandedCount').textContent=done;
+    $('expansionSummary').innerHTML=`100K Pillar Daemon: <b>${done}</b> WordPress posts expanded &middot; Active post ID: <b>${esc(prog.current||'idle')}</b>`;
+  }
+  if(ledger){
+    $('ledgerAnalysis').textContent=ledger.analysis||'Ledger balanced.';
+    const bh=ledger.by_hustle||{};
+    const entries=Object.entries(bh);
+    $('ledgerByHustle').innerHTML=entries.length?entries.map(([k,v])=>`<div class="mini-item"><span><b>${esc(k)}</b></span><span class="${v>=0?'green':'red'}">${v>=0?'+$':'-$'}${Math.abs(Number(v)).toFixed(2)}</span></div>`).join(''):'No ledger transactions recorded yet.';
+  }
+  if(tasks){
+    const sched=Array.isArray(tasks.scheduled)?tasks.scheduled:[];
+    $('scheduledTasksBox').innerHTML=sched.length?sched.map(t=>`<div class="mini-item"><span><b>${esc(t.name)}</b> (every ${t.interval_sec}s)</span><span>runs: ${t.run_count} · next: ${t.next_in_sec}s</span></div>`).join(''):'Daemon scheduler not active in API-only mode.';
+    const hist=Array.isArray(tasks.history)?tasks.history:[];
+    $('taskHistoryBox').innerHTML=hist.length?hist.slice(0,20).map(h=>`<div class="mini-item"><code>${esc(String(h.TaskName||h.task_name||'').slice(0,48))}</code><span class="${(h.Status||h.status)==='success'?'green':'red'}">${esc(h.Status||h.status)} (${h.DurationMs??h.duration_ms??0}ms)</span></div>`).join(''):'No task executions logged yet.';
+  }
+  if(outputs){
+    const prods=outputs.products||[];
+    $('productManifests').innerHTML=prods.length?prods.map(p=>`<div class="mini-item"><span><b>${esc(p.title||p.slug||'Product')}</b> (${esc(p.type||'guide')})</span><code>${esc(p.listing?.status||'local')}</code></div>`).join(''):'No product manifests generated yet.';
+    const pages=outputs.site_pages||[];
+    $('cmsPagesInfo').textContent=`Static pSEO pages in output/site: ${pages.length}`+(pages.length?` (${pages.slice(0,4).join(', ')})`:'');
+    const cal=Array.isArray(outputs.calendar)?outputs.calendar:(outputs.calendar?.entries||[]);
+    $('calendarEntriesBox').innerHTML=cal.length?cal.slice(-12).reverse().map(c=>`<div class="mini-item"><span>${esc(c.topic||c.title||'Untitled')} → <b>${esc(c.platform||'wp')}</b></span><code>${esc(c.status||'pending')}</code></div>`).join(''):'No scheduled calendar items yet.';
+    const shorts=outputs.shorts||[];
+    const hymnArr=Array.isArray(hymns)?hymns:[];
+    const vidLines=[
+      ...shorts.map(s=>`<div class="mini-item"><span>🎬 Short: <b>${esc(s.topic||s.slug||'short')}</b></span><code>${esc(s.render_status||s.status||'ready')}</code></div>`),
+      ...hymnArr.map(h=>`<div class="mini-item"><span>🎵 Hymn: <b>${esc(h.title)}</b> (${h.size_mb} MB)</span><code>${esc(h.mod_time)}</code></div>`)
+    ];
+    $('videoAssetsBox').innerHTML=vidLines.length?vidLines.join(''):'No rendered Shorts or HymnMania MP4s found on this host.';
+  }
+
+  // Refresh selected service log & trade execution table
+  rawLogCache=await tget('/api/service-logs?service='+encodeURIComponent(currentLogService));
+  renderFilteredLog();
+  const orchLog=currentLogService==='orchestrator'?rawLogCache:await tget('/api/log');
+  const logTrades=parseLogTrades(orchLog);
+  const botRows=(latestBots||[]).filter(b=>b.last_price>0).map(b=>({
+    time:'snapshot',sym:b.symbol,price:Number(b.last_price).toFixed(b.last_price<10?4:2),
+    info:`RSI ${(b.rsi||50).toFixed(1)} · SMA20 ${(b.sma20||0).toFixed(2)}`,
+    decision:b.in_position?'LONG':'WATCH'
+  }));
+  const combined=[...logTrades.slice(0,12),...botRows];
+  $('tradeLog').innerHTML=combined.length?combined.map(t=>`<tr><td>${esc(t.time)}</td><td><b>${esc(t.sym)}</b></td><td>$${esc(t.price)}</td><td>${esc(t.info)}</td><td class="${t.decision==='BUY'||t.decision==='LONG'?'green':t.decision==='SELL'?'red':'cyan'}"><b>${esc(t.decision)}</b></td></tr>`).join(''):'<tr><td colspan="5" style="color:var(--dim);text-align:center;padding:14px">No trade cycles recorded yet — click ⚡ BTC Cycle above to run immediately.</td></tr>';
+
+  await loadMemories();
+  $('lastUpdated').textContent='Updated '+new Date().toLocaleTimeString();
+}
+
+refreshAll();
+setInterval(refreshAll,12000);
+</script>
+</body>
+</html>

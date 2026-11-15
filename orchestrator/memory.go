@@ -315,6 +315,9 @@ type Orchestrator struct {
 	LLM        LLMProvider       `json:"-"`
 	Embedder   EmbeddingProvider `json:"-"`
 	DB         *SQLiteStore      `json:"-"`
+	Identity   *Identity         `json:"-"`
+	Cache      *CachingLLM       `json:"-"`
+	Optimizer  *PromptOptimizer  `json:"-"`
 }
 
 func NewOrchestrator() *Orchestrator {
@@ -326,6 +329,7 @@ func NewOrchestrator() *Orchestrator {
 		Ledger:     Ledger{Transactions: make([]Transaction, 0)},
 		LLM:        &MockLLM{},
 		Embedder:   &MockEmbedder{},
+		Optimizer:  NewPromptOptimizer(),
 	}
 
 	// Attempt to load existing ledger
