@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>AI Hustle Machine — Consolidated Dashboard v2.0.0</title>
+<meta name="robots" content="noindex, nofollow">
+<title>AI Hustle Machine — Consolidated Dashboard v2.0.1</title>
 <style>
 :root{
   --bg:#070d19;--bg-elev:#0f172a;--card:#111c33;--card-alt:#162340;
@@ -104,7 +105,7 @@ pre{background:#040914;border:1px solid #192846;border-radius:9px;padding:10px;f
       <div style="font-size:.73rem;color:var(--muted)">Single-page autonomous revenue command center &middot; all 36 <code>hustle://</code> backend modules wired live &middot; zero subpages</div>
     </div>
     <span class="pill ok" id="orchPill"><span class="dot on" id="orchDot"></span><span id="orchStatus">Connecting…</span></span>
-    <span class="pill" title="Single source of truth from VERSION.md">v<span id="orchVer">2.0.0</span></span>
+    <span class="pill" title="Single source of truth from VERSION.md">v<span id="orchVer">2.0.1</span></span>
     <span class="pill" id="dryRunPill" title="When Dry-Run is ON, external posts/orders/emails simulate safely without spending or mutating live accounts.">Mode: Live</span>
     <span class="pill" id="priceSourcePill" title="Market price feed source used by the Go TradingModule">Feed: —</span>
   </div>
@@ -742,7 +743,7 @@ pre{background:#040914;border:1px solid #192846;border-radius:9px;padding:10px;f
 
     <!-- Mesh Federation, Healer, Repo Sync & System Tray Guide -->
     <div class="card">
-      <h3>Mesh Federation, Self-Healer &amp; Tray Control <span class="tip" data-tip="Controls federated peer sync (hustle://swarm), collective alpha broadcasts, self-healer diagnostics, GitHub sync, and documents local bin\aimm-tray.exe + Hetzner systemd server management." title="Mesh &amp; Server Controls">ⓘ</span></h3>
+      <h3>Mesh Federation, Self-Healer &amp; Live Control <span class="tip" data-tip="Controls federated peer sync (hustle://swarm), collective alpha broadcasts, self-healer diagnostics, GitHub sync, and live Hetzner production server telemetry (zero local servers)." title="Mesh &amp; Hetzner Controls">ⓘ</span></h3>
       <div class="row">
         <div style="flex:2"><label>Manual Diagnostic / Healer Prompt</label><input id="healIssue" value="Audit memory, disk headroom, and unprofitable hustles"></div>
         <button onclick="dispatchAction('hustle://healer?issue='+enc('healIssue'))">Run Healer</button>
@@ -759,7 +760,7 @@ pre{background:#040914;border:1px solid #192846;border-radius:9px;padding:10px;f
         <button class="sec" onclick="dispatchAction('hustle://sync')" title="Runs repository branch reconciliation &amp; git push">Repo Sync</button>
       </div>
       <div style="font-size:.71rem;color:var(--muted);background:#070f1f;border:1px solid #1a2a4a;border-radius:8px;padding:8px">
-        <strong style="color:#e2e8f0">🖥 System Tray &amp; Server Lifecycle:</strong> Run <code>bin\aimm-tray.exe</code> on Windows for a live green/red tray icon, <strong>Auto-SSH Tunnel</strong> to Hetzner <code>:8082</code>, 1-click hustle dispatches, <strong>Start/Stop Local Server (BelowNormal)</strong>, and <strong>Quit Servers (Stop Prod)</strong>.<br>
+        <strong style="color:#e2e8f0">☁ Live Hetzner Deployment Only (Zero Local Server):</strong> Served directly at <code>https://aimoneymachine.site/dashboard</code>. Optional <code>bin\aimm-tray.exe</code> polls <code>https://aimoneymachine.site/api/status</code> over HTTPS and controls Hetzner systemd units remotely via <code>ssh hetzner</code>.<br>
         <span id="strategyList" style="color:#93c5fd">Collective Alpha: none broadcast yet.</span>
       </div>
     </div>
@@ -802,7 +803,7 @@ pre{background:#040914;border:1px solid #192846;border-radius:9px;padding:10px;f
 <div class="modal-bg" id="tokenModal" onclick="if(event.target===this)this.style.display='none'">
   <div class="modal">
     <h3 style="margin-bottom:6px">🔐 Orchestrator API Token</h3>
-    <p style="font-size:.75rem;color:var(--muted);margin-bottom:10px">When <code>AIMM_API_TOKEN</code> is set on the server, state-changing <code>POST /api/dispatch</code> calls require a matching Bearer token. Stored locally in your browser's <code>localStorage</code>.</p>
+    <p style="font-size:.75rem;color:var(--muted);margin-bottom:10px">When <code>AIMM_API_TOKEN</code> is set on Hetzner, state-changing <code>POST /api/dispatch</code> calls and live daemon logs (<code>/api/service-logs</code>) require a matching Bearer token. Stored locally in your browser's <code>localStorage</code>.</p>
     <label>Bearer Token</label>
     <input id="tokenInput" type="password" placeholder="Paste AIMM_API_TOKEN…">
     <div class="btns" style="margin-top:12px">
@@ -887,7 +888,7 @@ async function registerPeer(){
   const id=$('peerId').value.trim(),url=$('peerUrl').value.trim();
   if(!id||!url){toast('Enter both Peer ID and Peer URL',false);return;}
   try{
-    const r=await fetch('/register',{method:'POST',headers:authHeaders({'Content-Type':'application/json'}),body:JSON.stringify({id,url})});
+    const r=await fetch('/api/register',{method:'POST',headers:authHeaders({'Content-Type':'application/json'}),body:JSON.stringify({id,url})});
     const txt=await r.text();
     if(!r.ok)throw new Error(txt);
     toast('✓ '+txt);
@@ -903,7 +904,14 @@ function switchTab(id,btn){
 }
 
 async function jget(u){try{const r=await fetch(u);if(!r.ok)return null;return await r.json();}catch(_){return null;}}
-async function tget(u){try{const r=await fetch(u);if(!r.ok)return '';return await r.text();}catch(_){return '';}}
+async function tget(u,useAuth=false){
+  try{
+    const r=await fetch(u,useAuth?{headers:authHeaders()}:{});
+    if(r.status===401)return '[Auth required] Live daemon logs are protected on public HTTPS — click "🔐 Token Required" in the top-right bar and paste AIMM_API_TOKEN from /opt/aimoneymachine/.env.';
+    if(!r.ok)return '';
+    return await r.text();
+  }catch(_){return '';}
+}
 
 function sparkSVG(prices,w=165,h=34){
   if(!Array.isArray(prices)||prices.length<2)return `<svg width="${w}" height="${h}"></svg>`;
@@ -981,7 +989,7 @@ async function selectLogService(svc,btn){
   currentLogService=svc;
   document.querySelectorAll('#logTabs .tab-btn').forEach(b=>b.classList.remove('active'));
   if(btn)btn.classList.add('active');
-  rawLogCache=await tget('/api/service-logs?service='+encodeURIComponent(svc));
+  rawLogCache=await tget('/api/service-logs?service='+encodeURIComponent(svc),true);
   renderFilteredLog();
 }
 
@@ -1008,7 +1016,7 @@ async function refreshAll(){
     $('orchPill').className='pill ok';
     $('orchDot').className='dot on';
     $('orchStatus').textContent=st.status;
-    $('orchVer').textContent=st.version||'2.0.0';
+    $('orchVer').textContent=st.version||'2.0.1';
     const prof=Number(st.profit||0),rev=Number(st.revenue||0),exp=Number(st.expenses||0),goal=Number(st.wealth_goal||10000);
     $('profit').textContent=(prof>=0?'$':'-$')+Math.abs(prof).toFixed(2);
     $('profit').className='value '+(prof>0?'green':prof<0?'red':'');
@@ -1116,9 +1124,9 @@ async function refreshAll(){
   }
 
   // Refresh selected service log & trade execution table
-  rawLogCache=await tget('/api/service-logs?service='+encodeURIComponent(currentLogService));
+  rawLogCache=await tget('/api/service-logs?service='+encodeURIComponent(currentLogService),true);
   renderFilteredLog();
-  const orchLog=currentLogService==='orchestrator'?rawLogCache:await tget('/api/log');
+  const orchLog=currentLogService==='orchestrator'?rawLogCache:await tget('/api/log',true);
   const logTrades=parseLogTrades(orchLog);
   const botRows=(latestBots||[]).filter(b=>b.last_price>0).map(b=>({
     time:'snapshot',sym:b.symbol,price:Number(b.last_price).toFixed(b.last_price<10?4:2),

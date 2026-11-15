@@ -1,49 +1,29 @@
-# Manage local AI Hustle Machine processes safely on Windows (BelowNormal priority, exact-PID tracking).
-# Usage: .\scripts\manage.ps1 <status|start-local|stop-local|start-tray|stop-tray|smoke>
+# Hetzner-live-only status & optional remote tray helper on Windows (zero local servers).
+# Usage: .\scripts\manage.ps1 <status|smoke|start-tray|stop-tray>
 param(
-    [ValidateSet('status','start-local','stop-local','start-tray','stop-tray','smoke')]
+    [ValidateSet('status','smoke','start-tray','stop-tray')]
     [string]$Action = 'status'
 )
 
 $ErrorActionPreference = 'Stop'
 $repoRoot = Split-Path -Parent $PSScriptRoot
-$localPidFile = Join-Path $repoRoot '.aimm-local.pid'
-$trayPidFile  = Join-Path $repoRoot '.aimm-tray.pid'
+$trayPidFile = Join-Path $repoRoot '.aimm-tray.pid'
+$liveUrl = if ($env:AIMM_API_URL) { $env:AIMM_API_URL.TrimEnd('/') } else { 'https://aimoneymachine.site' }
 
 switch ($Action) {
     'status' {
         try {
-            $resp = Invoke-RestMethod -Uri 'http://localhost:8082/api/status' -TimeoutSec 4
-            Write-Host "Orchestrator :8082 => $($resp.status) v$($resp.version) | Profit: `$$($resp.profit) | Disk: $($resp.disk_used_pct)%"
+            $headers = @{ 'User-Agent' = 'Mozilla/5.0 (compatible; AIMM-Manage/2.0.1; +https://aimoneymachine.site)' }
+            $resp = Invoke-RestMethod -Uri "$liveUrl/api/status" -Headers $headers -TimeoutSec 8
+            Write-Host "Hetzner Live ($liveUrl) => $($resp.status) v$($resp.version) | Profit: `$$($resp.profit) | Disk: $($resp.disk_used_pct)%"
         } catch {
-            Write-Host "Orchestrator :8082 => unreachable ($($_.Exception.Message))"
+            Write-Host "Hetzner Live ($liveUrl) => unreachable ($($_.Exception.Message))"
         }
         $trays = Get-Process -Name 'aimm-tray','tray' -ErrorAction SilentlyContinue
         if ($trays) {
-            Write-Host ("Tray Icon => RUNNING (PID: " + (($trays | Select-Object -ExpandProperty Id) -join ', ') + ")")
+            Write-Host ("Remote Tray Icon => RUNNING (PID: " + (($trays | Select-Object -ExpandProperty Id) -join ', ') + ")")
         } else {
-            Write-Host "Tray Icon => not running"
-        }
-    }
-    'start-local' {
-        $bin = Join-Path $repoRoot 'bin\orchestrator.exe'
-        if (-not (Test-Path $bin)) { throw "Missing $bin - run .\scripts\build-all.ps1 first." }
-        $proc = Start-Process -FilePath $bin -ArgumentList '-api','8082','-daemon','-dry-run' -WorkingDirectory $repoRoot -WindowStyle Hidden -PassThru
-        $proc.PriorityClass = 'BelowNormal'
-        Set-Content -Path $localPidFile -Value $proc.Id
-        Write-Host "Started local orchestrator at BelowNormal priority (PID $($proc.Id)) on http://localhost:8082"
-    }
-    'stop-local' {
-        if (Test-Path $localPidFile) {
-            $targetPid = [int](Get-Content $localPidFile).Trim()
-            $p = Get-Process -Id $targetPid -ErrorAction SilentlyContinue
-            if ($p -and $p.ProcessName -like '*orchestrator*') {
-                Stop-Process -Id $targetPid -Force
-                Write-Host "Stopped local orchestrator PID $targetPid"
-            }
-            Remove-Item $localPidFile -Force -ErrorAction SilentlyContinue
-        } else {
-            Write-Host "No .aimm-local.pid file present."
+            Write-Host "Remote Tray Icon => not running (zero local processes)"
         }
     }
     'start-tray' {
@@ -52,7 +32,7 @@ switch ($Action) {
         $proc = Start-Process -FilePath $bin -WorkingDirectory $repoRoot -PassThru
         try { $proc.PriorityClass = 'BelowNormal' } catch {}
         Set-Content -Path $trayPidFile -Value $proc.Id
-        Write-Host "Started aimm-tray.exe (PID $($proc.Id))"
+        Write-Host "Started remote-only aimm-tray.exe (PID $($proc.Id)) -> $liveUrl/dashboard"
     }
     'stop-tray' {
         if (Test-Path $trayPidFile) {
@@ -66,6 +46,6 @@ switch ($Action) {
         }
     }
     'smoke' {
-        python (Join-Path $PSScriptRoot 'smoke_prod.py') 'http://localhost:8082'
+        python (Join-Path $PSScriptRoot 'smoke_prod.py') $liveUrl
     }
 }

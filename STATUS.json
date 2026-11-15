@@ -1,7 +1,7 @@
 {
-  "version": "2.0.0",
+  "version": "2.0.1",
   "status": "Active",
-  "message": "Consolidated 36-module single-page dashboard, upgraded system tray controller with auto-SSH tunnel, Cloudflare-safe WordPress pipeline",
+  "message": "Hetzner-live-only deployment at https://aimoneymachine.site/dashboard with Nginx reverse proxy, Bearer-hardened API/logs, and zero local servers",
   "revenue": 171.6,
   "expenses": 1005,
   "profit": -833.4

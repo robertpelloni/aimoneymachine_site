@@ -14,7 +14,10 @@ func TestFetchStatusParsesAndFormats(t *testing.T) {
 			http.NotFound(w, r)
 			return
 		}
-		fmt.Fprint(w, `{"status":"Active","version":"2.0.0","profit":12.5,"memories":42,"peers":3,"disk_used_pct":91,"disk_free_gb":7.2}`)
+		if !strings.Contains(r.Header.Get("User-Agent"), "Mozilla/5.0") {
+			t.Errorf("missing Mozilla/5.0 User-Agent for Cloudflare compatibility: %q", r.Header.Get("User-Agent"))
+		}
+		fmt.Fprint(w, `{"status":"Active","version":"2.0.1","profit":12.5,"memories":42,"peers":3,"disk_used_pct":91,"disk_free_gb":7.2}`)
 	}))
 	defer srv.Close()
 
@@ -25,7 +28,7 @@ func TestFetchStatusParsesAndFormats(t *testing.T) {
 	if !st.Healthy() {
 		t.Error("expected healthy")
 	}
-	if got := st.Tooltip(); !strings.Contains(got, "v2.0.0") || !strings.Contains(got, "$12.50") {
+	if got := st.Tooltip(); !strings.Contains(got, "v2.0.1") || !strings.Contains(got, "$12.50") {
 		t.Errorf("tooltip = %q", got)
 	}
 	if got := st.Tooltip(); !strings.Contains(got, "disk 91%") {
@@ -53,7 +56,7 @@ func TestFetchStatusOfflineFormats(t *testing.T) {
 	}
 }
 
-func TestControlAndTunnelCommands(t *testing.T) {
+func TestControlCommands(t *testing.T) {
 	name, args, err := ControlCommand("stop", "")
 	if err != nil {
 		t.Fatalf("stop: %v", err)
@@ -70,10 +73,6 @@ func TestControlAndTunnelCommands(t *testing.T) {
 	if _, args, _ := ControlCommand("status", "myhost"); args[len(args)-2] != "myhost" {
 		t.Errorf("host arg = %q, want myhost", args[len(args)-2])
 	}
-	tBin, tArgs := TunnelCommand("hetzner", "8082")
-	if tBin != "ssh" || !strings.Contains(strings.Join(tArgs, " "), "8082:localhost:8082") {
-		t.Errorf("unexpected tunnel command: %s %v", tBin, tArgs)
-	}
 }
 
 func TestDispatchURI(t *testing.T) {
@@ -81,6 +80,9 @@ func TestDispatchURI(t *testing.T) {
 		if r.URL.Path != "/api/dispatch" || r.Method != http.MethodPost {
 			http.NotFound(w, r)
 			return
+		}
+		if !strings.Contains(r.Header.Get("User-Agent"), "Mozilla/5.0") {
+			t.Errorf("missing Mozilla/5.0 User-Agent: %q", r.Header.Get("User-Agent"))
 		}
 		fmt.Fprint(w, "URI hustle://trading?symbol=BTC dispatched successfully")
 	}))

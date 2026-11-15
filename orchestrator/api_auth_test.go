@@ -37,4 +37,22 @@ func TestRequireToken(t *testing.T) {
 			t.Errorf("%s: status = %d, want %d", name, rec.Code, want)
 		}
 	}
+
+	// Verify /api/service-logs and /api/log are also protected when Token != "".
+	mux := http.NewServeMux()
+	guarded.RegisterRoutes(mux)
+	for _, p := range []string{"/api/log", "/api/service-logs?service=orchestrator"} {
+		unauth := httptest.NewRecorder()
+		mux.ServeHTTP(unauth, httptest.NewRequest(http.MethodGet, p, nil))
+		if unauth.Code != http.StatusUnauthorized {
+			t.Errorf("%s unauth: status = %d, want 401", p, unauth.Code)
+		}
+		authReq := httptest.NewRequest(http.MethodGet, p, nil)
+		authReq.Header.Set("Authorization", "Bearer s3cret")
+		authRec := httptest.NewRecorder()
+		mux.ServeHTTP(authRec, authReq)
+		if authRec.Code != http.StatusOK {
+			t.Errorf("%s auth: status = %d, want 200", p, authRec.Code)
+		}
+	}
 }

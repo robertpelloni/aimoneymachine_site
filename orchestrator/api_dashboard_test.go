@@ -11,11 +11,14 @@ import (
 // valid empty JSON when no progress file exists yet.
 func TestHandleDashboardServesEmbeddedPage(t *testing.T) {
 	api := &API{}
-	for _, path := range []string{"/", "/dashboard"} {
+	for _, path := range []string{"/", "/dashboard", "/dashboard/"} {
 		rec := httptest.NewRecorder()
 		api.handleDashboard(rec, httptest.NewRequest("GET", path, nil))
 		if rec.Code != 200 {
 			t.Fatalf("%s: status = %d, want 200", path, rec.Code)
+		}
+		if got := rec.Header().Get("X-Robots-Tag"); got != "noindex, nofollow" {
+			t.Fatalf("%s: X-Robots-Tag = %q, want noindex, nofollow", path, got)
 		}
 		if !strings.Contains(rec.Body.String(), "Consolidated Dashboard") {
 			t.Fatalf("%s: body is not the dashboard page", path)
@@ -25,6 +28,12 @@ func TestHandleDashboardServesEmbeddedPage(t *testing.T) {
 	api.handleDashboard(rec, httptest.NewRequest("GET", "/nope", nil))
 	if rec.Code != 404 {
 		t.Fatalf("/nope: status = %d, want 404", rec.Code)
+	}
+
+	botRec := httptest.NewRecorder()
+	api.handleBotRedirect(botRec, httptest.NewRequest("GET", "/bot?sym=ETH", nil))
+	if botRec.Code != 302 || botRec.Header().Get("Location") != "/dashboard?bot=ETH#trading" {
+		t.Fatalf("/bot redirect = %d %q", botRec.Code, botRec.Header().Get("Location"))
 	}
 }
 

@@ -1,37 +1,38 @@
-# AI Hustle Machine — Operator & User Manual (`v2.0.0`)
+# AI Hustle Machine — Operator & User Manual (`v2.0.1`)
 
 ## 1. Quick Orientation
 
-The **AI Hustle Machine** (`aimoneymachine_site`) is a Go `1.25` monorepo that runs an autonomous revenue & content engine (`orchestrator`) alongside a Consolidated Single-Page Web Dashboard (`/` on `:8082`) and a Windows System Tray Controller (`bin\aimm-tray.exe`).
+The **AI Hustle Machine** (`aimoneymachine_site`) runs **exclusively live on Hetzner** (`5.161.250.43`, `/opt/aimoneymachine`) — **zero local servers or local port-forwarding tunnels** are needed on your workstation.
 
 - **Public WordPress Site:** https://aimoneymachine.site
+- **Live Consolidated Dashboard (Single Page):** https://aimoneymachine.site/dashboard
+- **Live Telemetry Endpoint:** https://aimoneymachine.site/api/status
 - **Production Server (Hetzner):** `ssh hetzner` (`5.161.250.43`, `/opt/aimoneymachine`)
-- **Consolidated Dashboard URL:** `http://localhost:8082/` (served directly from the Go binary; automatically port-forwarded from Hetzner by `bin\aimm-tray.exe`)
+- **API Token (`AIMM_API_TOKEN`):** Stored in `/opt/aimoneymachine/.env`. Click **🔐 API Token** in the top-right bar of `https://aimoneymachine.site/dashboard` and paste `AIMM_API_TOKEN` once (saved in browser `localStorage`) to unlock `POST /api/dispatch` actions and live multi-service daemon logs.
 
 ---
 
-## 2. System Tray Controller (`bin\aimm-tray.exe`)
+## 2. Optional Remote System Tray (`bin\aimm-tray.exe`)
 
-Launch on Windows with zero console windows:
+`aimm-tray.exe` is a lightweight **remote-only** status indicator (never starts any local server or local port tunnel):
 
 ```powershell
-.\scripts\build-tray.ps1
-.\scripts\manage.ps1 start-tray
+# One-shot CLI check against live https://aimoneymachine.site/api/status:
+.\bin\aimm-tray.exe --status
+.\scripts\manage.ps1 status
 ```
 
-### Menu Controls
-- **Status Indicator:** Green (`Active`), Amber (`Disk >= 85%` or connecting), Red (`Offline`), polling `/api/status` every 15s.
-- **Open Consolidated Dashboard:** Opens `http://localhost:8082/` in your default browser.
-- **Auto SSH Tunnel to Hetzner (`:8082`):** Enabled by default. Whenever `localhost:8082` is closed, `aimm-tray` spawns a hidden `BelowNormal` background `ssh -N -L 8082:localhost:8082 hetzner` tunnel and cleanly terminates **only** its own tunnel PID when unchecked or when quitting the tray.
-- **Start / Stop Local Server (`BelowNormal`):** Launches `bin\orchestrator.exe -api 8082 -daemon -dry-run` locally at `BelowNormal` CPU priority.
-- **Quick Run Dispatches:** 1-click triggers for BTC Trading Cycle, Affiliate Pipeline, SEO Blog Post, and Self-Healer Audit.
-- **Hetzner Prod Controls:** Start, Restart, or Stop (`Quit Prod Servers`) all `aimm-*` systemd units remotely.
+### Menu Controls (When Launched)
+- **Status Indicator:** Green (`Active`), Amber (`Disk >= 85%` or connecting), Red (`Offline`), polling `https://aimoneymachine.site/api/status` every 15s.
+- **Open Live Hetzner Dashboard:** Opens `https://aimoneymachine.site/dashboard` in your default browser.
+- **Quick Run Dispatches:** 1-click triggers for BTC Trading Cycle, Affiliate Pipeline, SEO Blog Post, and Self-Healer Audit on Hetzner (uses `AIMM_API_TOKEN` env var).
+- **Hetzner Prod Controls:** Start, Restart, or Stop all `aimm-*` systemd units remotely via `ssh hetzner`.
 
 ---
 
-## 3. Consolidated Single-Page Dashboard (`http://localhost:8082/`)
+## 3. Consolidated Single-Page Dashboard (`https://aimoneymachine.site/dashboard`)
 
-All **36 `hustle://` backend protocol modules** are wired into one single page (zero subpages; historical `/bot?sym=BTC` URLs redirect to `/?bot=BTC#trading` and open the inline SVG Bot Inspector):
+All **36 `hustle://` backend protocol modules** are wired into one single page (zero subpages; historical `/bot?sym=BTC` URLs redirect to `/dashboard?bot=BTC#trading` and open the inline SVG Bot Inspector):
 
 1. **Tier 1 — Quant Trading & Arbitrage (`#trading`):**
    - `hustle://trading?symbol=BTC|ETH|SOL|DOGE|XRP|ADA|LINK` (`action=watchlist` to add custom tickers)
@@ -64,14 +65,14 @@ All **36 `hustle://` backend protocol modules** are wired into one single page (
 
 ---
 
-## 4. Building & Deploying (`BelowNormal` Priority)
+## 4. Building & Deploying to Hetzner (`BelowNormal` Priority)
 
 ```powershell
-# Build all Windows + Linux binaries without deleting existing artifacts:
+# Cross-compile binaries locally (never starts any local server):
 .\scripts\build-all.ps1
 
-# Run full smoke check against localhost:8082 (local or SSH-tunneled prod):
-python .\scripts\smoke_prod.py http://localhost:8082
+# Run full smoke check against live HTTPS Hetzner deployment:
+python .\scripts\smoke_prod.py https://aimoneymachine.site
 ```
 
 On Linux / Git Bash:

@@ -11,6 +11,8 @@ import (
 	"time"
 )
 
+const trayUserAgent = "Mozilla/5.0 (compatible; AIMM-Tray/2.0.1; +https://aimoneymachine.site)"
+
 // Status mirrors the orchestrator GET /api/status payload.
 type Status struct {
 	Status      string  `json:"status"`
@@ -29,12 +31,18 @@ type Status struct {
 // FetchStatus GETs <base>/api/status, falling back to <base>/status.
 func FetchStatus(client *http.Client, base string) (*Status, error) {
 	if client == nil {
-		client = &http.Client{Timeout: 5 * time.Second}
+		client = &http.Client{Timeout: 8 * time.Second}
 	}
 	base = strings.TrimRight(base, "/")
 	var lastErr error
 	for _, path := range []string{"/api/status", "/status"} {
-		resp, err := client.Get(base + path)
+		req, err := http.NewRequest(http.MethodGet, base+path, nil)
+		if err != nil {
+			lastErr = err
+			continue
+		}
+		req.Header.Set("User-Agent", trayUserAgent)
+		resp, err := client.Do(req)
 		if err != nil {
 			lastErr = err
 			continue
@@ -62,18 +70,19 @@ func FetchStatus(client *http.Client, base string) (*Status, error) {
 	return nil, lastErr
 }
 
-// DispatchURI sends a POST /api/dispatch request for a hustle:// URI.
+// DispatchURI sends a POST /api/dispatch request for a hustle:// URI on Hetzner.
 func DispatchURI(client *http.Client, base, uri string) (string, error) {
 	if client == nil {
 		client = &http.Client{Timeout: 45 * time.Second}
 	}
 	base = strings.TrimRight(base, "/")
 	payload, _ := json.Marshal(map[string]string{"uri": uri})
-	req, err := http.NewRequest("POST", base+"/api/dispatch", bytes.NewReader(payload))
+	req, err := http.NewRequest(http.MethodPost, base+"/api/dispatch", bytes.NewReader(payload))
 	if err != nil {
 		return "", err
 	}
 	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("User-Agent", trayUserAgent)
 	if tok := os.Getenv("AIMM_API_TOKEN"); tok != "" {
 		req.Header.Set("Authorization", "Bearer "+tok)
 	}
@@ -92,7 +101,7 @@ func DispatchURI(client *http.Client, base, uri string) (string, error) {
 // Tooltip is the one-line tray hover text.
 func (s *Status) Tooltip() string {
 	if s == nil || s.Status == "offline" || s.Status == "" {
-		return "AI Hustle Machine: orchestrator offline"
+		return "AI Hustle Machine: Hetzner orchestrator offline"
 	}
 	tip := fmt.Sprintf("AI Hustle Machine v%s: %s, profit $%.2f, %d memories, %d peers",
 		s.Version, s.Status, s.Profit, s.Memories, s.Peers)
@@ -105,7 +114,7 @@ func (s *Status) Tooltip() string {
 // MenuLabel is the (disabled) first menu item text.
 func (s *Status) MenuLabel() string {
 	if s == nil || s.Status == "offline" || s.Status == "" {
-		return "● Offline — auto-tunnel / start local server"
+		return "● Offline — check Hetzner systemd / HTTPS"
 	}
 	mode := ""
 	if s.DryRun {
@@ -119,7 +128,7 @@ func (s *Status) Healthy() bool {
 	return s != nil && s.Status != "" && s.Status != "offline"
 }
 
-// ControlCommand builds the ssh invocation for a prod service action.
+// ControlCommand builds the ssh invocation for a Hetzner prod service action.
 func ControlCommand(action, host string) (name string, args []string, err error) {
 	if host == "" {
 		host = "hetzner"
@@ -138,24 +147,4 @@ func ControlCommand(action, host string) (name string, args []string, err error)
 		return "", nil, fmt.Errorf("unknown action %q", action)
 	}
 	return "ssh", []string{"-o", "BatchMode=yes", "-o", "ConnectTimeout=10", host, remote}, nil
-}
-
-// TunnelCommand returns the background ssh port-forward invocation mapping localPort -> remote localhost:8082.
-func TunnelCommand(host, localPort string) (string, []string) {
-	if host == "" {
-		host = "hetzner"
-	}
-	if localPort == "" {
-		localPort = "8082"
-	}
-	return "ssh", []string{
-		"-N",
-		"-o", "BatchMode=yes",
-		"-o", "ExitOnForwardFailure=yes",
-		"-o", "ServerAliveInterval=30",
-		"-o", "ServerAliveCountMax=3",
-		"-o", "ConnectTimeout=10",
-		"-L", localPort + ":localhost:8082",
-		host,
-	}
 }

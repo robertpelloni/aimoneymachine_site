@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.0.1] - 2026-11-14
+
+### Changed
+- **Hetzner-Live-Only Architecture (Zero Local Servers / Tunnels)**: Removed all local `orchestrator.exe` spawning (`startLocalServer`/`stopLocalServer`/`start-local`/`stop-local`) and local `:8082` SSH port-forwarding tunnels from `tray/main.go`, `tray/status.go`, and `scripts/manage.ps1`. Everything runs exclusively on live Hetzner production (`https://aimoneymachine.site/dashboard` and `https://aimoneymachine.site/api/*`).
+- **Live HTTPS Dashboard & API Proxy on Hetzner Nginx (`/dashboard`, `/bot`, `/api/*`)**: Configured Nginx on `aimoneymachine.site` to reverse-proxy `/dashboard`, `/dashboard/`, `/bot`, and `/api/` directly to `127.0.0.1:8082` (`aimm-orchestrator`), replacing the obsolete broken WordPress `/dashboard` placeholder page while preserving `/` and all WordPress posts untouched.
+- **Public HTTPS Security & SEO Hardening (`orchestrator/api.go`, `orchestrator/dashboard.html`)**: Provisioned `AIMM_API_TOKEN` on Hetzner, enforced `requireToken` on `/api/log` and `/api/service-logs` in addition to all write endpoints, added `/api/register` + `/api/message` + `/api/sync` + `/api/healer` routes, added `X-Robots-Tag: noindex, nofollow` + `<meta name="robots" content="noindex, nofollow">` on `/dashboard`, updated `/bot` redirects to `/dashboard?bot=<SYM>#trading`, and added Cloudflare-compatible `Mozilla/5.0` `User-Agent` headers to `tray/status.go` and `scripts/smoke_prod.py`.
+
 ## [2.0.0] - 2026-11-14
 
 ### Added

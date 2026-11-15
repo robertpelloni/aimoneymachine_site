@@ -88,3 +88,18 @@ There is none, anywhere in the repo. Prod control = systemctl stop/start/restart
 3. **Inbound Mail (`admin@aimoneymachine.site`)**: Postfix (`master`) listens on `0.0.0.0:25` on Hetzner, so inbound SMTP timeouts from Gmail stem from external port-25 filtering / Cloudflare DNS proxy; enable **Cloudflare Email Routing** for `aimoneymachine.site` (free forwarding of `admin@aimoneymachine.site` without exposing port 25) or open inbound TCP `25` in Hetzner Cloud Firewall + UFW with an unproxied `mail.aimoneymachine.site` MX record.
 4. **Optional Storefront / Media Keys**: Populate `GUMROAD_ACCESS_TOKEN`, `SHOPIFY_SHOP_DOMAIN` + `SHOPIFY_ACCESS_TOKEN`, `ELEVENLABS_API_KEY`, `YOUTUBE_*` OAuth, and `SMTP_HOST`/`SMTP_USER`/`SMTP_PASS` in `/opt/aimoneymachine/.env` to switch those modules from honest local/dry-run artifact generation to live external publishing.
 5. **Security Cleanup**: Move plaintext provider keys out of `/etc/systemd/system/aimm-freellm.service` into a `0600` `EnvironmentFile` and rotate any stale keys when convenient.
+
+---
+
+## Update 2026-11-14 (`v2.0.1`) — [Gemini in Antigravity in c:\Users\hyper\workspace\aimoneymachine_site on laptop]
+
+### 1. Hetzner-Live-Only Migration (`v2.0.1` — Zero Local Servers)
+- **Eliminated All Local Servers & Local Tunnels**:
+  - Stopped the local Windows tray/SSH-tunnel daemon (`task-1159`) and verified zero local `orchestrator.exe`, `aimm-tray.exe`, or `:8082` listeners remain on the Windows workstation.
+  - Stripped `startLocalServer`, `stopLocalServer`, `findLocalOrchestratorBinary`, `startTunnel`, `stopTunnel`, `TunnelCommand`, and `start-local`/`stop-local` from `tray/main.go`, `tray/status.go`, and `scripts/manage.ps1`.
+  - Pointed `tray/` and `scripts/manage.ps1` / `scripts/smoke_prod.py` directly at the live Hetzner HTTPS deployment (`https://aimoneymachine.site/dashboard` and `https://aimoneymachine.site/api/status`) with Cloudflare-compatible `Mozilla/5.0` `User-Agent` headers.
+- **Live HTTPS Exposure on Hetzner Nginx + Bearer Hardening**:
+  - Provisioned `AIMM_API_TOKEN` in `/opt/aimoneymachine/.env` (`0600`, backed up first).
+  - Hardened `orchestrator/api.go` so `/api/log` and `/api/service-logs` also enforce `requireToken` when `AIMM_API_TOKEN` is set (preventing anonymous scraping of `journalctl`/`freellm.log`), added `/api/register`, `/api/message`, `/api/sync`, and `/api/healer` routes, added `X-Robots-Tag: noindex, nofollow` + `<meta name="robots" content="noindex, nofollow">` on `/dashboard`, and updated `/bot` redirects to `/dashboard?bot=<SYM>#trading`.
+  - Configured `/etc/nginx/sites-available/aimoneymachine` on Hetzner (backed up first) to reverse-proxy `/dashboard`, `/dashboard/`, `/bot`, and `/api/` to `http://127.0.0.1:8082`, replacing the stale broken WordPress `/dashboard` placeholder page while leaving `/` (WordPress homepage) and all 398 blog posts untouched.
+  - Verified both internal (`python3 /opt/aimoneymachine/smoke_prod.py` with `.env` Bearer token) and external (`python scripts\smoke_prod.py https://aimoneymachine.site`) smoke suites pass `100% SMOKE OK`!

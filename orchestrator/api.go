@@ -89,17 +89,22 @@ func (a *API) RegisterRoutes(mux *http.ServeMux) {
 	// Consolidated single-page dashboard + legacy /bot redirect
 	mux.HandleFunc("/", a.handleDashboard)
 	mux.HandleFunc("/dashboard", a.handleDashboard)
+	mux.HandleFunc("/dashboard/", a.handleDashboard)
 	mux.HandleFunc("/bot", a.handleBotRedirect)
 
-	// /api/* surface used by the Consolidated Dashboard
+	// /api/* surface used by the Consolidated Dashboard (both direct :8082 and live HTTPS Nginx proxy)
 	mux.HandleFunc("/api/dispatch", a.requireToken(a.handleDispatch))
+	mux.HandleFunc("/api/message", a.requireToken(a.handleMessage))
+	mux.HandleFunc("/api/register", a.requireToken(a.handleRegister))
+	mux.HandleFunc("/api/sync", a.requireToken(a.handleSync))
+	mux.HandleFunc("/api/healer", a.requireToken(a.handleHealer))
 	mux.HandleFunc("/api/status", a.handleStatus)
 	mux.HandleFunc("/api/chains", a.handleChains)
 	mux.HandleFunc("/api/agents", a.handleAgents)
 	mux.HandleFunc("/api/content", a.handleContent)
 	mux.HandleFunc("/api/strategy", a.handleStrategy)
-	mux.HandleFunc("/api/log", a.handleLog)
-	mux.HandleFunc("/api/service-logs", a.handleServiceLogs)
+	mux.HandleFunc("/api/log", a.requireToken(a.handleLog))
+	mux.HandleFunc("/api/service-logs", a.requireToken(a.handleServiceLogs))
 	mux.HandleFunc("/api/progress", a.handleProgress)
 	mux.HandleFunc("/api/ledger", a.handleLedger)
 	mux.HandleFunc("/api/tasks", a.handleTasks)
@@ -111,31 +116,33 @@ func (a *API) RegisterRoutes(mux *http.ServeMux) {
 func (a *API) Start(port string) error {
 	mux := http.NewServeMux()
 	a.RegisterRoutes(mux)
-	fmt.Printf("[API] Orchestrator listening on port %s (dashboard: /)\n", port)
+	fmt.Printf("[API] Orchestrator listening on port %s (dashboard: /dashboard)\n", port)
 	return http.ListenAndServe(":"+port, mux)
 }
 
 func (a *API) handleDashboard(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path != "/" && r.URL.Path != "/dashboard" {
+	if r.URL.Path != "/" && r.URL.Path != "/dashboard" && r.URL.Path != "/dashboard/" {
 		http.NotFound(w, r)
 		return
 	}
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.Header().Set("X-Robots-Tag", "noindex, nofollow")
 	_, _ = w.Write(dashboardHTML)
 }
 
 // handleBotRedirect folds historical /bot?sym=BTC links into the single-page
-// dashboard's inline Bot Inspector so zero subpages exist.
+// dashboard's inline Bot Inspector so zero subpages exist (works on both
+// https://aimoneymachine.site/dashboard and direct :8082).
 func (a *API) handleBotRedirect(w http.ResponseWriter, r *http.Request) {
 	sym := r.URL.Query().Get("sym")
 	if sym == "" {
 		sym = r.URL.Query().Get("symbol")
 	}
 	if sym != "" {
-		http.Redirect(w, r, "/?bot="+sym+"#trading", http.StatusFound)
+		http.Redirect(w, r, "/dashboard?bot="+sym+"#trading", http.StatusFound)
 		return
 	}
-	http.Redirect(w, r, "/#trading", http.StatusFound)
+	http.Redirect(w, r, "/dashboard#trading", http.StatusFound)
 }
 
 func firstExisting(names ...string) string {

@@ -87,8 +87,8 @@ func main() {
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
 
 	orch := orchestrator.NewOrchestrator()
-	orch.Version = version
 	_ = orch.Load("memory.json")
+	orch.Version = version
 	orch.DryRun = *dryRun
 
 	// Load or generate persistent Ed25519 node identity (node.key is gitignored).

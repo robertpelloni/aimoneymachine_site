@@ -1,46 +1,42 @@
-# Deployment & Operations Guide (`v2.0.0`)
+# Deployment & Operations Guide (`v2.0.1`)
+
+> **Operating Policy:** **Hetzner live deployment only (`https://aimoneymachine.site/dashboard`)** — no local server or local port-forwarding daemon runs on operator workstations.
 
 ## Prerequisites
 
 - **Go 1.25+** (`go.work` workspace with 33 modules — pure-Go `modernc.org/sqlite`, **no CGO / gcc required** on Windows or Linux)
 - **Python 3.10+** (stdlib-only smoke tests & companion WordPress/trading daemons)
-- **OpenAI-Compatible LLM Endpoint:** Local `LM Studio` (`:1234`), `Ollama` (`:11434`), or Hetzner `FreeLLM` (`:4000`) / `LiteLLM` (`:4001`)
+- **Hetzner Production Host:** `ssh hetzner` (`root@5.161.250.43`, `/opt/aimoneymachine`)
 
 ---
 
-## 1. Local Build (`BelowNormal` CPU Priority)
+## 1. Build Binaries (`BelowNormal` CPU Priority, No Local Server Started)
 
-Never delete compiled binaries. Build everything at `BelowNormal` priority so desktop responsiveness is unaffected:
+Never delete compiled binaries. Build cross-platform artifacts at `BelowNormal` priority:
 
 ```powershell
-# Windows PowerShell — builds bin\orchestrator.exe, bin\aimm-tray.exe, 7 CLI tools, and Linux orchestrator_linux_new:
+# Windows PowerShell — builds Linux orchestrator_linux_new + CLI/remote-tray binaries:
 .\scripts\build-all.ps1
-
-# Or build only the Windows system tray icon:
-.\scripts\build-tray.ps1
 ```
 
 On Linux / macOS / Git Bash:
 ```bash
-./build.sh          # native binaries into bin/
 ./build.sh linux    # cross-compile orchestrator_linux_new for Hetzner amd64
 ```
 
 ---
 
-## 2. Windows System Tray & Local Management
+## 2. Live Hetzner Access & Optional Remote Tray
+
+- **Live Consolidated Dashboard:** https://aimoneymachine.site/dashboard
+- **Live Telemetry Endpoint:** https://aimoneymachine.site/api/status
+- **API Token (`AIMM_API_TOKEN`):** Stored in `/opt/aimoneymachine/.env` on Hetzner (`ssh hetzner "grep ^AIMM_API_TOKEN /opt/aimoneymachine/.env"`). Paste into the **🔐 API Token** modal in the top-right bar of `https://aimoneymachine.site/dashboard` to unlock `POST /api/dispatch` actions and live multi-service daemon logs.
 
 ```powershell
-# Launch the system tray icon (auto-opens hidden SSH tunnel localhost:8082 -> hetzner:8082):
-.\scripts\manage.ps1 start-tray
-
-# Check live status from CLI:
-.\bin\aimm-tray.exe --status
+# Query live Hetzner status or run external HTTPS smoke checks (zero local servers):
 .\scripts\manage.ps1 status
-
-# Optional: run a local dry-run orchestrator at BelowNormal priority instead of SSH tunnel:
-.\scripts\manage.ps1 start-local
-.\scripts\manage.ps1 stop-local
+.\scripts\manage.ps1 smoke
+.\bin\aimm-tray.exe --status
 ```
 
 ---
@@ -48,8 +44,11 @@ On Linux / macOS / Git Bash:
 ## 3. Hetzner Production (`aimoneymachine.site` / `5.161.250.43`)
 
 - **SSH Alias:** `ssh hetzner` (`root@5.161.250.43`, app root `/opt/aimoneymachine`, scripts `/opt/aimoneymachine/bin`, WordPress `/var/www/aimoneymachine`).
+- **Nginx Reverse Proxy (`/etc/nginx/sites-available/aimoneymachine`):**
+  - `/` and all WordPress posts/pages/REST API continue serving WordPress (`/var/www/aimoneymachine`).
+  - `/dashboard`, `/dashboard/`, `/bot`, and `/api/` reverse-proxy directly to `http://127.0.0.1:8082` (`aimm-orchestrator`), guarded by `AIMM_API_TOKEN` for all state-changing dispatches and raw service logs.
 - **Systemd Units:**
-  - `aimm-orchestrator.service` — Go v2.0.0 daemon (`-daemon -real-prices -api 8082`), serving both the embedded Consolidated Dashboard (`/`) and `/api/*` on `127.0.0.1:8082` (firewalled from public internet).
+  - `aimm-orchestrator.service` — Go `v2.0.1` daemon (`-daemon -real-prices -api 8082`), serving the embedded Consolidated Dashboard (`/dashboard`) and `/api/*` on `127.0.0.1:8082`.
   - `aimm-freellm.service` (`:4000`) & `aimm-litellm.service` (`:4001`) — Free/fallback OpenAI-compatible LLM routers.
   - `aimm-content.service` (`expand.py` — 100K pillar expansion), `aimm-publisher.service` (`batch_publisher.py`), `aimm-audit.service` (`content_audit.py`), `aimm-hustle-gen.service` (`hustle_generator.py`), `aimm-python-trader.service` (`trader.py`), `aimm-watchdog.service` (`watchdog.sh`).
   - Timers: `aimm-bluesky.timer`, `aimm-twitter.timer` (`Persistent=true`, `OnUnitInactiveSec=6h`), `aimm-healthcheck.timer`.
@@ -67,7 +66,7 @@ This builds `orchestrator_linux_new` at low CPU priority, creates timestamped `.
 | Variable | Purpose |
 |---|---|
 | `LLM_BASE_URL` / `LLM_FALLBACK_BASE_URL` | Primary & waterfall OpenAI-compatible LLM endpoints |
-| `AIMM_API_TOKEN` | Optional Bearer token guarding state-changing `POST` API endpoints |
+| `AIMM_API_TOKEN` | Bearer token guarding state-changing `POST` API endpoints & `/api/service-logs` |
 | `TRADING_PRICE_SOURCE` | `coingecko` (default), `binance`, `kraken`, or `coinbase` |
 | `WORDPRESS_URL`, `WORDPRESS_USER`, `WORDPRESS_PASSWORD` | WordPress REST API Application Password for `aimoneymachine.site` |
 | `BLUESKY_HANDLE`, `BLUESKY_APP_PASSWORD` | Live Bluesky ATProto social publishing |

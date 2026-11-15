@@ -1,15 +1,12 @@
-// aimm-tray v2.0.0: system-tray / menubar controller for the AI Hustle Machine.
+// aimm-tray v2.0.1: Hetzner-live-only system-tray / menubar controller for the AI Hustle Machine.
 //
-// Features:
-//   - Live green/amber/red status icon + tooltip + menu telemetry (polled every 15s)
-//   - Auto-managed background SSH tunnel (`localhost:8082 -> hetzner:8082`) when `:8082` is closed,
-//     cleanly tracking ONLY its own spawned child PID (never killing unrelated ssh/go processes)
-//   - Start / Stop a local BelowNormal-priority `orchestrator.exe` daemon for offline/local testing
+// Zero local server & zero local port-forwarding tunnel:
+//   - Polls live Hetzner HTTPS telemetry (`https://aimoneymachine.site/api/status`) every 15s
+//   - Opens the live Consolidated Dashboard (`https://aimoneymachine.site/dashboard`) in the default browser
 //   - 1-click Quick Hustle Dispatches (BTC Trading Cycle, Affiliate Pipeline, SEO Blog, Self-Healer)
-//   - Start / Restart / Stop Hetzner production systemd services via `ssh hetzner`
-//   - Hidden child console windows on Windows (`SysProcAttr{HideWindow: true}`) + `tray.log` telemetry
+//   - Start / Restart / Stop Hetzner production systemd services remotely via `ssh hetzner`
 //
-// Headless check: `aimm-tray --status` prints one status line and exits.
+// Headless check: `aimm-tray --status` prints one live Hetzner status line and exits.
 package main
 
 import (
@@ -20,26 +17,16 @@ import (
 	"image"
 	"image/color"
 	"image/png"
-	"net"
 	"net/http"
-	"net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"runtime"
-	"sync"
+	"strings"
 	"time"
 
 	"fyne.io/systray"
 )
-
-type childManager struct {
-	mu        sync.Mutex
-	tunnelCmd *exec.Cmd
-	localCmd  *exec.Cmd
-}
-
-var children = &childManager{}
 
 func trayLog(format string, args ...interface{}) {
 	line := fmt.Sprintf("[%s] %s\n", time.Now().Format("2006-01-02 15:04:05"), fmt.Sprintf(format, args...))
@@ -62,159 +49,25 @@ func trayLogPath() string {
 }
 
 func apiBase() string {
-	if v := os.Getenv("AIMM_API_URL"); v != "" {
-		return v
+	if v := strings.TrimSpace(os.Getenv("AIMM_API_URL")); v != "" {
+		return strings.TrimRight(v, "/")
 	}
-	return "http://localhost:8082"
+	return "https://aimoneymachine.site"
+}
+
+func dashboardURL() string {
+	return apiBase() + "/dashboard"
 }
 
 func sshHost() string {
-	if v := os.Getenv("AIMM_SSH_HOST"); v != "" {
+	if v := strings.TrimSpace(os.Getenv("AIMM_SSH_HOST")); v != "" {
 		return v
 	}
 	return "hetzner"
 }
 
-func localPortFromAPI() string {
-	u, err := url.Parse(apiBase())
-	if err != nil {
-		return "8082"
-	}
-	if p := u.Port(); p != "" {
-		return p
-	}
-	return "8082"
-}
-
-func portOpen(port string) bool {
-	conn, err := net.DialTimeout("tcp", "127.0.0.1:"+port, 900*time.Millisecond)
-	if err != nil {
-		return false
-	}
-	_ = conn.Close()
-	return true
-}
-
-func (m *childManager) startTunnel(host, port string) error {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-	if m.tunnelCmd != nil && m.tunnelCmd.Process != nil {
-		return nil
-	}
-	if portOpen(port) {
-		return nil
-	}
-	bin, args := TunnelCommand(host, port)
-	cmd := exec.Command(bin, args...)
-	configureHiddenProcess(cmd, true)
-	if err := cmd.Start(); err != nil {
-		trayLog("SSH tunnel start failed (%s:%s): %v", host, port, err)
-		return err
-	}
-	pid := cmd.Process.Pid
-	m.tunnelCmd = cmd
-	trayLog("Started background SSH tunnel (PID %d): localhost:%s -> %s:8082", pid, port, host)
-	go func(c *exec.Cmd, p int) {
-		err := c.Wait()
-		m.mu.Lock()
-		if m.tunnelCmd == c {
-			m.tunnelCmd = nil
-		}
-		m.mu.Unlock()
-		trayLog("SSH tunnel PID %d exited (%v)", p, err)
-	}(cmd, pid)
-	return nil
-}
-
-func (m *childManager) stopTunnel() {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-	if m.tunnelCmd != nil && m.tunnelCmd.Process != nil {
-		pid := m.tunnelCmd.Process.Pid
-		_ = m.tunnelCmd.Process.Kill()
-		m.tunnelCmd = nil
-		trayLog("Stopped tray-managed SSH tunnel PID %d", pid)
-	}
-}
-
-func (m *childManager) tunnelActive() bool {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-	return m.tunnelCmd != nil && m.tunnelCmd.Process != nil
-}
-
-func findLocalOrchestratorBinary() (string, string) {
-	if exe, err := os.Executable(); err == nil {
-		dir := filepath.Dir(exe)
-		candidates := []string{
-			filepath.Join(dir, "orchestrator.exe"),
-			filepath.Join(dir, "..", "bin", "orchestrator.exe"),
-			filepath.Join(dir, "..", "orchestrator_windows.exe"),
-		}
-		for _, c := range candidates {
-			if abs, aerr := filepath.Abs(c); aerr == nil {
-				if _, serr := os.Stat(abs); serr == nil {
-					workDir := filepath.Dir(abs)
-					if filepath.Base(workDir) == "bin" {
-						workDir = filepath.Dir(workDir)
-					}
-					return abs, workDir
-				}
-			}
-		}
-	}
-	return filepath.Join("bin", "orchestrator.exe"), "."
-}
-
-func (m *childManager) startLocalServer(port string) error {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-	if m.localCmd != nil && m.localCmd.Process != nil {
-		return nil
-	}
-	bin, workDir := findLocalOrchestratorBinary()
-	cmd := exec.Command(bin, "-api", port, "-daemon", "-dry-run")
-	cmd.Dir = workDir
-	configureHiddenProcess(cmd, true) // BelowNormal + HideWindow
-	if err := cmd.Start(); err != nil {
-		trayLog("Local orchestrator start failed: %v", err)
-		return err
-	}
-	pid := cmd.Process.Pid
-	m.localCmd = cmd
-	trayLog("Started local BelowNormal orchestrator (PID %d) on :%s", pid, port)
-	go func(c *exec.Cmd, p int) {
-		err := c.Wait()
-		m.mu.Lock()
-		if m.localCmd == c {
-			m.localCmd = nil
-		}
-		m.mu.Unlock()
-		trayLog("Local orchestrator PID %d exited (%v)", p, err)
-	}(cmd, pid)
-	return nil
-}
-
-func (m *childManager) stopLocalServer() {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-	if m.localCmd != nil && m.localCmd.Process != nil {
-		pid := m.localCmd.Process.Pid
-		_ = m.localCmd.Process.Kill()
-		m.localCmd = nil
-		trayLog("Stopped tray-managed local orchestrator PID %d", pid)
-	}
-}
-
-func (m *childManager) localActive() bool {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-	return m.localCmd != nil && m.localCmd.Process != nil
-}
-
 func main() {
-	once := flag.Bool("status", false, "print orchestrator status once and exit (no tray)")
-	noAutoTunnel := flag.Bool("no-tunnel", false, "disable automatic SSH tunnel to Hetzner :8082")
+	once := flag.Bool("status", false, "print live Hetzner orchestrator status once and exit (no tray)")
 	flag.Parse()
 
 	if *once {
@@ -235,69 +88,45 @@ func main() {
 	}
 	defer release()
 
-	autoTunnelDefault := !*noAutoTunnel && os.Getenv("AIMM_AUTO_TUNNEL") != "0"
-	trayLog("aimm-tray v2.0.0 starting (api=%s, ssh=%s, autoTunnel=%v)", apiBase(), sshHost(), autoTunnelDefault)
+	trayLog("aimm-tray v2.0.1 starting (live=%s, ssh=%s)", apiBase(), sshHost())
 
-	// Proactively establish the SSH tunnel before systray.Run so localhost:8082 is
-	// reachable immediately even if Windows Explorer defers Shell_NotifyIcon / onReady.
-	if autoTunnelDefault {
-		_ = children.startTunnel(sshHost(), localPortFromAPI())
-	}
-
-	systray.Run(func() { onReady(autoTunnelDefault) }, func() {
-		children.stopTunnel()
-		children.stopLocalServer()
+	systray.Run(onReady, func() {
 		trayLog("aimm-tray exited cleanly")
 	})
 }
 
-func onReady(autoTunnelInit bool) {
+func onReady() {
 	systray.SetTitle("AIMM")
-	systray.SetTooltip("AI Hustle Machine: connecting…")
+	systray.SetTooltip("AI Hustle Machine: connecting to Hetzner…")
 	systray.SetIcon(iconFor("starting"))
 
-	mStatus := systray.AddMenuItem("● Connecting…", "Live orchestrator telemetry (polled every 15s)")
+	mStatus := systray.AddMenuItem("● Connecting to Hetzner…", "Live Hetzner HTTPS orchestrator telemetry (polled every 15s)")
 	mStatus.Disable()
-	mOpen := systray.AddMenuItem("🌐 Open Consolidated Dashboard", "Open http://localhost:8082/ in your default browser")
-	mRefresh := systray.AddMenuItem("↻ Refresh Status Now", "Poll /api/status immediately")
+	mOpen := systray.AddMenuItem("🌐 Open Live Hetzner Dashboard", "Open "+dashboardURL()+" in your default browser")
+	mRefresh := systray.AddMenuItem("↻ Refresh Status Now", "Poll /api/status on Hetzner immediately")
 
 	systray.AddSeparator()
-	mTunnel := systray.AddMenuItemCheckbox("🔌 Auto SSH Tunnel to Hetzner (:8082)", "Maintain a background SSH port-forward localhost:8082 -> hetzner:8082 when port 8082 is closed", autoTunnelInit)
-	mLocal := systray.AddMenuItem("▶ Start Local Server (BelowNormal)", "Launch bin\\orchestrator.exe locally at BelowNormal CPU priority (Dry-Run)")
-
-	systray.AddSeparator()
-	mQuickTrade := systray.AddMenuItem("⚡ Quick Run: BTC Trading Cycle", "Dispatch hustle://trading?symbol=BTC")
-	mQuickAff := systray.AddMenuItem("💰 Quick Run: Affiliate Pipeline", "Dispatch hustle://affiliate?action=run&niche=AI+productivity+tools")
-	mQuickBlog := systray.AddMenuItem("✍ Quick Run: SEO Blog Post", "Dispatch hustle://content?topic=Autonomous+AI+Workflows&type=seo")
-	mQuickHeal := systray.AddMenuItem("🩺 Quick Run: Self-Healer Audit", "Dispatch hustle://healer?issue=Tray+health+audit")
+	mQuickTrade := systray.AddMenuItem("⚡ Quick Run: BTC Trading Cycle", "Dispatch hustle://trading?symbol=BTC on Hetzner")
+	mQuickAff := systray.AddMenuItem("💰 Quick Run: Affiliate Pipeline", "Dispatch hustle://affiliate?action=run&niche=AI+productivity+tools on Hetzner")
+	mQuickBlog := systray.AddMenuItem("✍ Quick Run: SEO Blog Post", "Dispatch hustle://content?topic=Autonomous+AI+Workflows&type=seo on Hetzner")
+	mQuickHeal := systray.AddMenuItem("🩺 Quick Run: Self-Healer Audit", "Dispatch hustle://healer?issue=Tray+health+audit on Hetzner")
 
 	systray.AddSeparator()
 	mStartProd := systray.AddMenuItem("☁ Start Hetzner Prod Services", "ssh hetzner: start all aimm-* systemd units")
 	mRestartProd := systray.AddMenuItem("♻ Restart Hetzner Orchestrator", "ssh hetzner: systemctl restart aimm-orchestrator")
-	mStopProd := systray.AddMenuItem("⏹ Quit Prod Servers (Stop Hetzner)", "ssh hetzner: stop all aimm-* systemd units")
+	mStopProd := systray.AddMenuItem("⏹ Stop Hetzner Prod Services", "ssh hetzner: stop all aimm-* systemd units")
 
 	systray.AddSeparator()
 	mAutostart := systray.AddMenuItemCheckbox("Start Tray at Windows Login", "Launch aimm-tray automatically when you sign in", autostartEnabled())
 	if !autostartSupported() {
 		mAutostart.Disable()
 	}
-	mQuit := systray.AddMenuItem("✕ Quit Tray", "Close this tray icon and any tunnel/local server it started")
+	mQuit := systray.AddMenuItem("✕ Quit Tray", "Close this tray icon")
 
-	client := &http.Client{Timeout: 5 * time.Second}
-	port := localPortFromAPI()
+	client := &http.Client{Timeout: 8 * time.Second}
 
 	refresh := func() {
 		st, err := FetchStatus(client, apiBase())
-		if err != nil && mTunnel.Checked() && !children.localActive() {
-			_ = children.startTunnel(sshHost(), port)
-			time.Sleep(1400 * time.Millisecond)
-			st, err = FetchStatus(client, apiBase())
-		}
-		if children.localActive() {
-			mLocal.SetTitle("⏹ Stop Local Server (Running)")
-		} else {
-			mLocal.SetTitle("▶ Start Local Server (BelowNormal)")
-		}
 		if err != nil {
 			systray.SetIcon(iconFor("offline"))
 			systray.SetTooltip((&Status{}).Tooltip())
@@ -311,7 +140,7 @@ func onReady(autoTunnelInit bool) {
 		systray.SetIcon(iconFor(state))
 		systray.SetTooltip(st.Tooltip())
 		mStatus.SetTitle(st.MenuLabel())
-		trayLog("Status OK: v%s profit=$%.2f disk=%.1f%% tunnel=%v local=%v", st.Version, st.Profit, st.DiskUsedPct, children.tunnelActive(), children.localActive())
+		trayLog("Status OK: v%s profit=$%.2f disk=%.1f%%", st.Version, st.Profit, st.DiskUsedPct)
 	}
 
 	go func() {
@@ -346,7 +175,7 @@ func onReady(autoTunnelInit bool) {
 		out, err := DispatchURI(nil, apiBase(), uri)
 		if err != nil {
 			trayLog("Dispatch %s failed: %v", uri, err)
-			mStatus.SetTitle("⚠ Dispatch failed — check API / token")
+			mStatus.SetTitle("⚠ Dispatch failed — set AIMM_API_TOKEN")
 			return
 		}
 		trayLog("Dispatch %s OK: %s", uri, firstLine(out))
@@ -356,29 +185,8 @@ func onReady(autoTunnelInit bool) {
 	for {
 		select {
 		case <-mOpen.ClickedCh:
-			openBrowser(apiBase() + "/")
+			openBrowser(dashboardURL())
 		case <-mRefresh.ClickedCh:
-			go refresh()
-		case <-mTunnel.ClickedCh:
-			if mTunnel.Checked() {
-				mTunnel.Uncheck()
-				children.stopTunnel()
-			} else {
-				mTunnel.Check()
-				_ = children.startTunnel(sshHost(), port)
-			}
-			go refresh()
-		case <-mLocal.ClickedCh:
-			if children.localActive() {
-				children.stopLocalServer()
-			} else {
-				children.stopTunnel()
-				mTunnel.Uncheck()
-				if err := children.startLocalServer(port); err != nil {
-					mStatus.SetTitle(fmt.Sprintf("⚠ local start failed: %v", err))
-				}
-				time.Sleep(1000 * time.Millisecond)
-			}
 			go refresh()
 		case <-mQuickTrade.ClickedCh:
 			go quickDispatch("BTC Cycle", "hustle://trading?symbol=BTC")
@@ -469,17 +277,17 @@ func iconFor(state string) []byte {
 	}
 	// Windows LoadImageW(IMAGE_ICON) requires a valid 22-byte ICO header wrapping the PNG payload.
 	var ico bytes.Buffer
-	_ = binary.Write(&ico, binary.LittleEndian, uint16(0))                // Reserved
-	_ = binary.Write(&ico, binary.LittleEndian, uint16(1))                // Type: 1 = ICON
-	_ = binary.Write(&ico, binary.LittleEndian, uint16(1))                // Image count = 1
-	ico.WriteByte(byte(n))                                                // Width (32)
-	ico.WriteByte(byte(n))                                                // Height (32)
-	ico.WriteByte(0)                                                      // Palette colors
-	ico.WriteByte(0)                                                      // Reserved
-	_ = binary.Write(&ico, binary.LittleEndian, uint16(1))                // Color planes
-	_ = binary.Write(&ico, binary.LittleEndian, uint16(32))               // Bits per pixel
-	_ = binary.Write(&ico, binary.LittleEndian, uint32(len(pngBytes)))    // Size of PNG data
-	_ = binary.Write(&ico, binary.LittleEndian, uint32(6+16))             // Offset to PNG data (22)
+	_ = binary.Write(&ico, binary.LittleEndian, uint16(0))             // Reserved
+	_ = binary.Write(&ico, binary.LittleEndian, uint16(1))             // Type: 1 = ICON
+	_ = binary.Write(&ico, binary.LittleEndian, uint16(1))             // Image count = 1
+	ico.WriteByte(byte(n))                                             // Width (32)
+	ico.WriteByte(byte(n))                                             // Height (32)
+	ico.WriteByte(0)                                                   // Palette colors
+	ico.WriteByte(0)                                                   // Reserved
+	_ = binary.Write(&ico, binary.LittleEndian, uint16(1))             // Color planes
+	_ = binary.Write(&ico, binary.LittleEndian, uint16(32))            // Bits per pixel
+	_ = binary.Write(&ico, binary.LittleEndian, uint32(len(pngBytes))) // Size of PNG data
+	_ = binary.Write(&ico, binary.LittleEndian, uint32(6+16))          // Offset to PNG data (22)
 	ico.Write(pngBytes)
 	return ico.Bytes()
 }
