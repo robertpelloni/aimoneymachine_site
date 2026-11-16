@@ -4,6 +4,11 @@
 ### Fixed
 - Content calendar entry IDs used second-resolution timestamps, so batch adds (schedule_week) collided on the same ID (prod carried 5-7 duplicates of three IDs). Now UnixNano. Also dropped 15 content-less pending entries from the prod calendar (backup kept) that failed every CalendarProcess cycle with 'no content to publish'.
 
+## [2.0.5] - 2026-11-16
+
+### Added
+- Persisted LinkedIn tokens: a successful refresh now writes the new access token (and rotated refresh token, when LinkedIn issues one) atomically at 0600 to LINKEDIN_TOKEN_FILE (default .linkedin_token.json in the working directory), and provider construction prefers the persisted pair over the stale env values. Restarts no longer pay a 401 -> refresh cycle, and refresh-token rotation can no longer strand the daemon. Test: TestLinkedInTokenPersistenceAcrossRestart.
+
 ## [2.0.4] - 2026-11-16
 
 ### Fixed

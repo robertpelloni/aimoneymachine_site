@@ -141,6 +141,12 @@ type LinkedInProvider struct {
 	ClientID     string
 	ClientSecret string
 	TokenURL     string
+	// TokenFile, when set, persists refreshed tokens (0600, atomic) so
+	// a daemon restart starts from the fresh token instead of paying
+	// a 401 → refresh cycle, and survives LinkedIn rotating the
+	// refresh token itself. Env: LINKEDIN_TOKEN_FILE (default
+	// .linkedin_token.json in the working directory).
+	TokenFile string
 }
 
 func (p *LinkedInProvider) SetDryRun(enabled bool) {
@@ -263,14 +269,63 @@ func (p *LinkedInProvider) refreshAccessToken(client *http.Client) error {
 		return fmt.Errorf("token endpoint status %d", resp.StatusCode)
 	}
 	var parsed struct {
-		AccessToken string `json:"access_token"`
+		AccessToken  string `json:"access_token"`
+		RefreshToken string `json:"refresh_token"`
 	}
 	if err := json.Unmarshal(body, &parsed); err != nil || parsed.AccessToken == "" {
 		return fmt.Errorf("token endpoint returned %d without a usable access_token", resp.StatusCode)
 	}
 	p.AccessToken = parsed.AccessToken
+	// LinkedIn may rotate the refresh token; adopt the new one or the
+	// next refresh (after a restart) would use a dead token.
+	if parsed.RefreshToken != "" {
+		p.RefreshToken = parsed.RefreshToken
+	}
 	fmt.Println("[LinkedIn] Access token refreshed")
+	p.persistTokens()
 	return nil
+}
+
+// storedTokens is the on-disk shape of the persisted LinkedIn tokens.
+type storedTokens struct {
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
+}
+
+// persistTokens writes the current tokens to TokenFile (0600, atomic).
+// Best-effort: a failed write is logged, never fatal to the post.
+func (p *LinkedInProvider) persistTokens() {
+	if p.TokenFile == "" {
+		return
+	}
+	data, err := json.Marshal(storedTokens{AccessToken: p.AccessToken, RefreshToken: p.RefreshToken})
+	if err != nil {
+		return
+	}
+	if err := orchestrator.WriteFileAtomic(p.TokenFile, data, 0600); err != nil {
+		fmt.Printf("[LinkedIn] Could not persist refreshed tokens: %v\n", err)
+	}
+}
+
+// loadStoredTokens reads TokenFile into the provider when present.
+// Returns true when a stored access token was adopted.
+func (p *LinkedInProvider) loadStoredTokens() bool {
+	if p.TokenFile == "" {
+		return false
+	}
+	data, err := os.ReadFile(p.TokenFile)
+	if err != nil {
+		return false
+	}
+	var stored storedTokens
+	if err := json.Unmarshal(data, &stored); err != nil || stored.AccessToken == "" {
+		return false
+	}
+	p.AccessToken = stored.AccessToken
+	if stored.RefreshToken != "" {
+		p.RefreshToken = stored.RefreshToken
+	}
+	return true
 }
 
 func NewLinkedInProvider(accessToken, authorURN string) *LinkedInProvider {
@@ -285,7 +340,11 @@ func NewLinkedInProvider(accessToken, authorURN string) *LinkedInProvider {
 			urn = os.Getenv("LINKEDIN_MEMBER_ID")
 		}
 	}
-	return &LinkedInProvider{
+	tokenFile := os.Getenv("LINKEDIN_TOKEN_FILE")
+	if tokenFile == "" {
+		tokenFile = ".linkedin_token.json"
+	}
+	p := &LinkedInProvider{
 		AccessToken:  token,
 		AuthorURN:    urn,
 		HTTPClient:   &http.Client{Timeout: 10 * time.Second},
@@ -293,7 +352,14 @@ func NewLinkedInProvider(accessToken, authorURN string) *LinkedInProvider {
 		RefreshToken: os.Getenv("LINKEDIN_REFRESH_TOKEN"),
 		ClientID:     os.Getenv("LINKEDIN_CLIENT_ID"),
 		ClientSecret: os.Getenv("LINKEDIN_CLIENT_SECRET"),
+		TokenFile:    tokenFile,
 	}
+	// A previously refreshed (and persisted) token beats the env one:
+	// the env access token is expired by the time this matters.
+	if p.loadStoredTokens() {
+		fmt.Println("[LinkedIn] Loaded persisted refreshed token")
+	}
+	return p
 }
 
 // metaSentencePrefixes mark model scaffolding, not post copy: thinking

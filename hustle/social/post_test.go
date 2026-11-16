@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -269,6 +271,52 @@ func TestLinkedInRefreshParsesLongTokenResponse(t *testing.T) {
 	}
 	if p.AccessToken != longToken {
 		t.Errorf("adopted token length = %d, want %d", len(p.AccessToken), len(longToken))
+	}
+}
+
+// Refreshed tokens (including a rotated refresh token) must persist
+// so a daemon restart starts fresh instead of paying another 401.
+func TestLinkedInTokenPersistenceAcrossRestart(t *testing.T) {
+	tokenFile := filepath.Join(t.TempDir(), "li_tokens.json")
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/ugc":
+			if r.Header.Get("Authorization") == "Bearer fresh-token" {
+				w.WriteHeader(http.StatusCreated)
+				return
+			}
+			w.WriteHeader(http.StatusUnauthorized)
+		case "/token":
+			fmt.Fprint(w, `{"access_token":"fresh-token","refresh_token":"rotated-rt"}`)
+		}
+	}))
+	defer ts.Close()
+
+	p1 := &LinkedInProvider{
+		AccessToken: "expired", AuthorURN: "urn:li:person:1",
+		APIURL: ts.URL + "/ugc", TokenURL: ts.URL + "/token",
+		RefreshToken: "old-rt", ClientID: "cid", ClientSecret: "sec",
+		HTTPClient: ts.Client(), TokenFile: tokenFile,
+	}
+	if err := p1.Post(orchestrator.NewOrchestrator(), "LinkedIn", "hello"); err != nil {
+		t.Fatalf("Post: %v", err)
+	}
+	if _, err := os.Stat(tokenFile); err != nil {
+		t.Fatalf("token file not persisted: %v", err)
+	}
+
+	// Simulated restart: env still holds the expired pair.
+	p2 := &LinkedInProvider{
+		AccessToken: "expired", RefreshToken: "old-rt", TokenFile: tokenFile,
+	}
+	if !p2.loadStoredTokens() {
+		t.Fatal("stored tokens not loaded")
+	}
+	if p2.AccessToken != "fresh-token" {
+		t.Errorf("access token = %q, want fresh-token", p2.AccessToken)
+	}
+	if p2.RefreshToken != "rotated-rt" {
+		t.Errorf("refresh token = %q, want rotated-rt (rotation adopted)", p2.RefreshToken)
 	}
 }
 
