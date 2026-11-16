@@ -1,6 +1,7 @@
 package affiliate
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -55,7 +56,9 @@ func (m *AffiliateModule) Run(niche string) error {
 	provider := social.NewProvider(platform)
 	socialReview := social.FormatForPlatform(sanitizeSocialReview(review, topProduct.URL), platform)
 
-	if err := provider.Post(m.Orch, platform, socialReview); err != nil {
+	if err := provider.Post(m.Orch, platform, socialReview); errors.Is(err, social.ErrDuplicatePost) {
+		fmt.Printf("[Affiliate] Review already posted to %s (duplicate suppressed)\n", platform)
+	} else if err != nil {
 		// Visible, not fatal: the review itself is the product; record
 		// the distribution failure so dashboards/memory show it.
 		fmt.Printf("[Affiliate] Failed to auto-post to %s: %v\n", platform, err)

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -214,6 +215,10 @@ func (p *LinkedInProvider) Post(orch *orchestrator.Orchestrator, platform, conte
 		}
 	}
 
+	if status == http.StatusUnprocessableEntity && strings.Contains(body, "DUPLICATE_POST") {
+		fmt.Printf("[LinkedIn] Duplicate of an already-published post; treating as success\n")
+		return ErrDuplicatePost
+	}
 	if status != http.StatusCreated && status != http.StatusOK {
 		return fmt.Errorf("linkedin api returned status %d: %s", status, body)
 	}
@@ -221,6 +226,13 @@ func (p *LinkedInProvider) Post(orch *orchestrator.Orchestrator, platform, conte
 	fmt.Printf("[LinkedIn] Successfully posted to %s: %s\n", platform, content)
 	return nil
 }
+
+// ErrDuplicatePost means LinkedIn rejected the post as a duplicate of
+// one already published (422 DUPLICATE_POST). The distribution goal is
+// already met, so callers treat this as success, not failure —
+// identical generated text for a repeated topic otherwise kills chains
+// at their final step (observed live 2026-11-16).
+var ErrDuplicatePost = errors.New("linkedin: duplicate post (already published)")
 
 // doPost performs one UGC post attempt and returns (status, body, err).
 func (p *LinkedInProvider) doPost(client *http.Client, apiURL string, payloadBytes []byte) (int, string, error) {
@@ -526,7 +538,17 @@ func SchedulePost(orch *orchestrator.Orchestrator, provider Provider, platform, 
 	fmt.Printf("Scheduling post for %s: %s\n", platform, content)
 
 	err := provider.Post(orch, platform, content)
-	if err == nil {
+	if errors.Is(err, ErrDuplicatePost) {
+		// Already live from an earlier identical generation: goal met,
+		// no new ledger charge (the original post was charged then).
+		fmt.Printf("[Social] Already posted to %s (duplicate suppressed)\n", platform)
+		orch.L1.Add(orchestrator.MemoryEntry{
+			ID:        fmt.Sprintf("social-%s-dup-%d", platform, time.Now().Unix()),
+			Content:   fmt.Sprintf("Duplicate post suppressed on %s: %s", platform, content),
+			Timestamp: time.Now(),
+			Tags:      []string{"social", platform, "duplicate"},
+		})
+	} else if err == nil {
 		fmt.Printf("[Social] ✅ Successfully posted to %s\n", platform)
 		orch.L1.Add(orchestrator.MemoryEntry{
 			ID:        fmt.Sprintf("social-%s-%d", platform, time.Now().Unix()),

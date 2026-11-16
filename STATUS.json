@@ -1,7 +1,7 @@
 {
-  "version": "2.0.5",
+  "version": "2.0.6",
   "status": "Active",
-  "message": "Persisted LinkedIn token refresh",
+  "message": "LinkedIn duplicate-post treated as success",
   "revenue": 171.6,
   "expenses": 1005,
   "profit": -833.4

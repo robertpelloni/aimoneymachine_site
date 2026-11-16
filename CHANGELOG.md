@@ -4,6 +4,11 @@
 ### Fixed
 - Content calendar entry IDs used second-resolution timestamps, so batch adds (schedule_week) collided on the same ID (prod carried 5-7 duplicates of three IDs). Now UnixNano. Also dropped 15 content-less pending entries from the prod calendar (backup kept) that failed every CalendarProcess cycle with 'no content to publish'.
 
+## [2.0.6] - 2026-11-16
+
+### Fixed
+- LinkedIn duplicate posts (422 DUPLICATE_POST, hit when generation repeats identical text for a topic) no longer fail chains at their final step: ErrDuplicatePost sentinel is treated as distribution-achieved by SchedulePost, the social handler (no optimizer loss, no double ledger charge), and the affiliate pipeline. Test: TestLinkedInDuplicatePostSentinel.
+
 ## [2.0.5] - 2026-11-16
 
 ### Added

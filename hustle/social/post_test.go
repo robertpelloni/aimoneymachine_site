@@ -2,6 +2,7 @@ package social
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -317,6 +318,25 @@ func TestLinkedInTokenPersistenceAcrossRestart(t *testing.T) {
 	}
 	if p2.RefreshToken != "rotated-rt" {
 		t.Errorf("refresh token = %q, want rotated-rt (rotation adopted)", p2.RefreshToken)
+	}
+}
+
+// A 422 DUPLICATE_POST means the content is already live: Post must
+// return the ErrDuplicatePost sentinel (not a generic failure) so
+// callers can treat distribution as achieved.
+func TestLinkedInDuplicatePostSentinel(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusUnprocessableEntity)
+		fmt.Fprint(w, `{"message":"com.linkedin.content.common.exception.BadRequestResponseException: Content is a duplicate","errorDetails":{"code":"DUPLICATE_POST"},"status":422}`)
+	}))
+	defer ts.Close()
+	p := &LinkedInProvider{
+		AccessToken: "tok", AuthorURN: "urn:li:person:1",
+		APIURL: ts.URL, HTTPClient: ts.Client(),
+	}
+	err := p.Post(orchestrator.NewOrchestrator(), "LinkedIn", "same text as before")
+	if !errors.Is(err, ErrDuplicatePost) {
+		t.Fatalf("err = %v, want ErrDuplicatePost", err)
 	}
 }
 

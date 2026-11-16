@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"net/http"
@@ -304,7 +305,10 @@ func main() {
 			provider.SetDryRun(true)
 		}
 		if contentStr != "" {
-			return provider.Post(orch, platform, contentStr)
+			if err := provider.Post(orch, platform, contentStr); err != nil && !errors.Is(err, social.ErrDuplicatePost) {
+				return err
+			}
+			return nil
 		}
 
 		_, varIdx, _ := orch.Optimizer.GetPrompt("social")
@@ -314,7 +318,12 @@ func main() {
 		generatedContent = social.FormatForPlatform(generatedContent, platform)
 
 		err := provider.Post(orch, platform, generatedContent)
-		if err == nil {
+		dup := errors.Is(err, social.ErrDuplicatePost)
+		if dup {
+			fmt.Printf("[Social] Already posted to %s (duplicate suppressed)\n", platform)
+			err = nil
+		}
+		if err == nil && !dup {
 			orch.Optimizer.RecordWin("social", varIdx)
 			orch.L1.Add(orchestrator.MemoryEntry{
 				ID:        fmt.Sprintf("social-%s-%d", platform, time.Now().Unix()),
@@ -328,7 +337,7 @@ func main() {
 				Hustle: "SocialMedia",
 				Note:   fmt.Sprintf("API post to %s", platform),
 			})
-		} else {
+		} else if !dup {
 			orch.Optimizer.RecordLoss("social", varIdx)
 		}
 		return err
