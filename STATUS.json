@@ -1,7 +1,7 @@
 {
-  "version": "2.0.1",
+  "version": "2.0.3",
   "status": "Active",
-  "message": "Hetzner-live-only deployment at https://aimoneymachine.site/dashboard with Nginx reverse proxy, Bearer-hardened API/logs, and zero local servers",
+  "message": "LinkedIn refresh-on-401 self-healing",
   "revenue": 171.6,
   "expenses": 1005,
   "profit": -833.4
