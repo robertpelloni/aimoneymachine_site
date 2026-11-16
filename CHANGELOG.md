@@ -1,5 +1,9 @@
 # Changelog
 
+## [2.0.2] - 2026-11-16
+### Fixed
+- Content calendar entry IDs used second-resolution timestamps, so batch adds (schedule_week) collided on the same ID (prod carried 5-7 duplicates of three IDs). Now UnixNano. Also dropped 15 content-less pending entries from the prod calendar (backup kept) that failed every CalendarProcess cycle with 'no content to publish'.
+
 ## [2.0.1] - 2026-11-14
 
 ### Changed
@@ -485,6 +489,3 @@
 ### Fixed
 - Blog/newsletter/SEO generation accepted whatever length the LLM returned (prod agent run produced a 98-word blog against the 800-word target). Generate now makes ONE expansion pass when a long-form draft lands under half its target, keeps it only if actually longer, and logs the decision; social threads are exempt. Test: TestGenerateExpandsShortDraftOnce (call counts, title from expanded body, thread exemption).
 
-## [2.0.2] - 2026-11-16
-### Fixed
-- Content calendar entry IDs used second-resolution timestamps, so batch adds (schedule_week) collided on the same ID (prod carried 5-7 duplicates of three IDs). Now UnixNano. Also dropped 15 content-less pending entries from the prod calendar (backup kept) that failed every CalendarProcess cycle with 'no content to publish'.
