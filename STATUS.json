@@ -1,7 +1,7 @@
 {
-  "version": "2.0.6",
+  "version": "2.0.7",
   "status": "Active",
-  "message": "LinkedIn duplicate-post treated as success",
+  "message": "Calendar schedule alias + discovery empty-steps retry",
   "revenue": 171.6,
   "expenses": 1005,
   "profit": -833.4

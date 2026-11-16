@@ -779,7 +779,8 @@ func main() {
 				Tags:      []string{"calendar", platform},
 			})
 			return nil
-		case "schedule_week":
+		case "schedule_week", "schedule": // "schedule" is the name LLMs invent; alias it
+
 			weekly := publisher.GenerateWeeklySchedule()
 			for _, item := range weekly {
 				contentCalendar.AddEntry(item["topic"], item["type"], item["platform"], time.Now())

@@ -256,6 +256,13 @@ func (c *ContentCalendar) ProcessPending() (int, error) {
 	for i := range c.Entries {
 		e := &c.Entries[i]
 		if (e.Status == "ready" || e.Status == "pending") && !e.ScheduledAt.After(now) {
+			// Content-less entries are planned shells (schedule_week
+			// creates them topic-only). They are not failures — skip
+			// silently instead of failing every process cycle on
+			// "no content to publish" (observed repeatedly on prod).
+			if strings.TrimSpace(e.Content) == "" {
+				continue
+			}
 			attempted++
 			if err := c.PublishEntry(e); err != nil && firstErr == nil {
 				firstErr = err

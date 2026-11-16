@@ -73,6 +73,12 @@ func (d *ChainDiscoverer) Discover() (*DiscoveredChain, error) {
 	// narrate ("The user wants me to act as...") with no JSON at all;
 	// retry once through GenerateJSON, which re-asks for strict JSON.
 	discovered, err := parseDiscoveredChain(response)
+	if err == nil && len(discovered.Steps) == 0 {
+		// Well-formed JSON with no steps (observed live: the model
+		// returned a named chain with an empty workflow) is just as
+		// unusable — give it the same strict-JSON retry.
+		err = fmt.Errorf("chain %q has no steps", discovered.Name)
+	}
 	if err != nil {
 		fmt.Printf("[ChainDiscoverer] First response unusable (%v); retrying with strict JSON\n", err)
 		var retry DiscoveredChain

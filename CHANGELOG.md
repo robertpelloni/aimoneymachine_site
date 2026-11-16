@@ -4,6 +4,11 @@
 ### Fixed
 - Content calendar entry IDs used second-resolution timestamps, so batch adds (schedule_week) collided on the same ID (prod carried 5-7 duplicates of three IDs). Now UnixNano. Also dropped 15 content-less pending entries from the prod calendar (backup kept) that failed every CalendarProcess cycle with 'no content to publish'.
 
+## [2.0.7] - 2026-11-16
+
+### Fixed
+- Discovered chains invent calendar action names: calendar now aliases action=schedule to schedule_week. ProcessPending skips content-less planned shells silently instead of failing every cycle with no content to publish (the recurring failure behind repeated prod calendar cleanups). Chain discovery also retries via strict JSON when a well-formed response has zero steps. Tests: TestProcessPendingSkipsContentlessShells, TestDiscoverRetriesWhenStepsEmpty.
+
 ## [2.0.6] - 2026-11-16
 
 ### Fixed

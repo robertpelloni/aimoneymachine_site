@@ -76,6 +76,28 @@ func TestDiscoverRetriesWithStrictJSON(t *testing.T) {
 	}
 }
 
+// A well-formed chain JSON with zero steps must also get the strict
+// retry (observed live: "Evergreen Content Distribution" with no steps).
+func TestDiscoverRetriesWhenStepsEmpty(t *testing.T) {
+	t.Chdir(t.TempDir())
+	orch := NewOrchestrator()
+	orch.LLM = &MockLLM{GenerateFunc: func(prompt string) (string, error) {
+		if strings.Contains(prompt, "Respond ONLY with valid JSON") {
+			return `{"name":"retry_chain","description":"x","steps":["hustle://research?query=AI"],"interval_minutes":30}`, nil
+		}
+		return `{"name":"empty_chain","description":"x","steps":[],"interval_minutes":30}`, nil
+	}}
+	mgr := NewChainManager(orch, testProtocol())
+	d := NewChainDiscoverer(orch, mgr)
+	got, err := d.Discover()
+	if err != nil {
+		t.Fatalf("Discover with empty-steps retry: %v", err)
+	}
+	if got.Name != "retry_chain" {
+		t.Fatalf("name = %q, want retry_chain", got.Name)
+	}
+}
+
 func TestDiscoverRegistersValidChain(t *testing.T) {
 	t.Chdir(t.TempDir()) // Register saves chains.json in cwd
 	orch := NewOrchestrator()
