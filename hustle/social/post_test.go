@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"strings"
 	"testing"
 
@@ -188,6 +189,86 @@ func TestGenerateContentSanitizesEchoAndReasoning(t *testing.T) {
 	}}
 	if got := GenerateContent(orch, "AI automation"); !strings.Contains(got, "Revolutionary insights on AI automation!") {
 		t.Errorf("echo-only output should fall back, got %q", got)
+	}
+}
+
+// LinkedIn tokens expire under a long-lived daemon; a 401 with refresh
+// material present must refresh once and retry with the new token.
+func TestLinkedInRefreshOn401ThenSucceeds(t *testing.T) {
+	var apiCalls int
+	var secondAuth string
+	var tokenForm url.Values
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/ugc":
+			apiCalls++
+			if apiCalls == 1 {
+				w.WriteHeader(http.StatusUnauthorized)
+				fmt.Fprint(w, `{"message":"expired"}`)
+				return
+			}
+			secondAuth = r.Header.Get("Authorization")
+			w.WriteHeader(http.StatusCreated)
+		case "/token":
+			_ = r.ParseForm()
+			tokenForm = r.PostForm
+			fmt.Fprint(w, `{"access_token":"new-token"}`)
+		default:
+			http.NotFound(w, r)
+		}
+	}))
+	defer ts.Close()
+
+	p := &LinkedInProvider{
+		AccessToken: "old-token", AuthorURN: "urn:li:person:1",
+		APIURL: ts.URL + "/ugc", TokenURL: ts.URL + "/token",
+		RefreshToken: "rt-1", ClientID: "cid", ClientSecret: "sec",
+		HTTPClient: ts.Client(),
+	}
+	if err := p.Post(orchestrator.NewOrchestrator(), "LinkedIn", "hello"); err != nil {
+		t.Fatalf("Post after refresh: %v", err)
+	}
+	if apiCalls != 2 {
+		t.Errorf("API calls = %d, want 2 (401 + retry)", apiCalls)
+	}
+	if secondAuth != "Bearer new-token" {
+		t.Errorf("retry auth = %q, want Bearer new-token", secondAuth)
+	}
+	if tokenForm.Get("grant_type") != "refresh_token" || tokenForm.Get("refresh_token") != "rt-1" {
+		t.Errorf("token form wrong: %v", tokenForm)
+	}
+}
+
+// Without refresh material a 401 must surface as an error naming the
+// status (and body), not hang or silently pass.
+func TestLinkedIn401WithoutRefreshFailsClearly(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusUnauthorized)
+		fmt.Fprint(w, `{"message":"bad token"}`)
+	}))
+	defer ts.Close()
+	p := &LinkedInProvider{
+		AccessToken: "old-token", AuthorURN: "urn:li:person:1",
+		APIURL: ts.URL, HTTPClient: ts.Client(),
+	}
+	err := p.Post(orchestrator.NewOrchestrator(), "LinkedIn", "hello")
+	if err == nil || !strings.Contains(err.Error(), "401") {
+		t.Fatalf("err = %v, want 401 surfaced", err)
+	}
+}
+
+// The constructor computed env fallbacks into locals but returned the
+// raw (empty) params — any caller passing "" got a broken provider.
+func TestNewLinkedInProviderEnvFallback(t *testing.T) {
+	t.Setenv("LINKEDIN_ACCESS_TOKEN", "env-token")
+	t.Setenv("LINKEDIN_AUTHOR_URN", "urn:li:person:env")
+	t.Setenv("LINKEDIN_REFRESH_TOKEN", "env-rt")
+	p := NewLinkedInProvider("", "")
+	if p.AccessToken != "env-token" || p.AuthorURN != "urn:li:person:env" {
+		t.Errorf("env fallback lost: token=%q urn=%q", p.AccessToken, p.AuthorURN)
+	}
+	if p.RefreshToken != "env-rt" {
+		t.Errorf("refresh token = %q, want env-rt", p.RefreshToken)
 	}
 }
 

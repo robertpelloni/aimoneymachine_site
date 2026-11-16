@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
 	"strings"
 	"time"
@@ -132,6 +133,14 @@ type LinkedInProvider struct {
 	AuthorURN   string
 	HTTPClient  *http.Client
 	APIURL      string
+	// Refresh material for the OAuth2 refresh flow. LinkedIn access
+	// tokens expire (~60 days); the daemon outlives them, which showed
+	// up as recurring 401s killing discovered chains at their last
+	// step. On a 401, Post exchanges the refresh token once and retries.
+	RefreshToken string
+	ClientID     string
+	ClientSecret string
+	TokenURL     string
 }
 
 func (p *LinkedInProvider) SetDryRun(enabled bool) {
@@ -179,26 +188,84 @@ func (p *LinkedInProvider) Post(orch *orchestrator.Orchestrator, platform, conte
 		return fmt.Errorf("failed to marshal linkedin payload: %w", err)
 	}
 
-	req, err := http.NewRequest("POST", apiURL, bytes.NewBuffer(payloadBytes))
+	status, body, err := p.doPost(client, apiURL, payloadBytes)
 	if err != nil {
-		return fmt.Errorf("failed to create linkedin request: %w", err)
+		return err
 	}
 
+	// Expired access token: one refresh + one retry, in-process. The
+	// daemon is long-lived and LinkedIn tokens live ~60 days, so
+	// without this every chain ending in a LinkedIn step dies at 401
+	// until a human rotates the token by hand.
+	if status == http.StatusUnauthorized && p.RefreshToken != "" && p.ClientID != "" && p.ClientSecret != "" {
+		fmt.Println("[LinkedIn] 401 received; refreshing access token")
+		if rerr := p.refreshAccessToken(client); rerr != nil {
+			return fmt.Errorf("linkedin token refresh failed: %w (original: status %d: %s)", rerr, status, body)
+		}
+		status, body, err = p.doPost(client, apiURL, payloadBytes)
+		if err != nil {
+			return err
+		}
+	}
+
+	if status != http.StatusCreated && status != http.StatusOK {
+		return fmt.Errorf("linkedin api returned status %d: %s", status, body)
+	}
+
+	fmt.Printf("[LinkedIn] Successfully posted to %s: %s\n", platform, content)
+	return nil
+}
+
+// doPost performs one UGC post attempt and returns (status, body, err).
+func (p *LinkedInProvider) doPost(client *http.Client, apiURL string, payloadBytes []byte) (int, string, error) {
+	req, err := http.NewRequest("POST", apiURL, bytes.NewBuffer(payloadBytes))
+	if err != nil {
+		return 0, "", fmt.Errorf("failed to create linkedin request: %w", err)
+	}
 	req.Header.Set("Authorization", "Bearer "+p.AccessToken)
 	req.Header.Set("X-Restli-Protocol-Version", "2.0.0")
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := client.Do(req)
 	if err != nil {
-		return fmt.Errorf("linkedin api request failed: %w", err)
+		return 0, "", fmt.Errorf("linkedin api request failed: %w", err)
 	}
 	defer resp.Body.Close()
+	respBody, _ := io.ReadAll(io.LimitReader(resp.Body, 500))
+	return resp.StatusCode, strings.TrimSpace(string(respBody)), nil
+}
 
-	if resp.StatusCode != http.StatusCreated && resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("linkedin api returned status %d", resp.StatusCode)
+// refreshAccessToken exchanges LINKEDIN_REFRESH_TOKEN for a new access
+// token and adopts it for this process. (Persisting it back to the env
+// file is deliberately not done from inside the daemon.)
+func (p *LinkedInProvider) refreshAccessToken(client *http.Client) error {
+	tokenURL := p.TokenURL
+	if tokenURL == "" {
+		tokenURL = "https://www.linkedin.com/oauth/v2/accessToken"
 	}
-
-	fmt.Printf("[LinkedIn] Successfully posted to %s: %s\n", platform, content)
+	form := url.Values{
+		"grant_type":    {"refresh_token"},
+		"refresh_token": {p.RefreshToken},
+		"client_id":     {p.ClientID},
+		"client_secret": {p.ClientSecret},
+	}
+	resp, err := client.PostForm(tokenURL, form)
+	if err != nil {
+		return fmt.Errorf("token endpoint request: %w", err)
+	}
+	defer resp.Body.Close()
+	body, _ := io.ReadAll(io.LimitReader(resp.Body, 500))
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("token endpoint status %d: %s", resp.StatusCode, strings.TrimSpace(string(body)))
+	}
+	var parsed struct {
+		AccessToken string `json:"access_token"`
+	}
+	if err := json.Unmarshal(body, &parsed); err != nil || parsed.AccessToken == "" {
+		return fmt.Errorf("token endpoint response unusable: %s", strings.TrimSpace(string(body)))
+	}
+	p.AccessToken = parsed.AccessToken
+	fmt.Println("[LinkedIn] Access token refreshed")
 	return nil
 }
 
@@ -215,10 +282,13 @@ func NewLinkedInProvider(accessToken, authorURN string) *LinkedInProvider {
 		}
 	}
 	return &LinkedInProvider{
-		AccessToken: accessToken,
-		AuthorURN:   authorURN,
-		HTTPClient:  &http.Client{Timeout: 10 * time.Second},
-		APIURL:      linkedInAPIEndpoint,
+		AccessToken:  token,
+		AuthorURN:    urn,
+		HTTPClient:   &http.Client{Timeout: 10 * time.Second},
+		APIURL:       linkedInAPIEndpoint,
+		RefreshToken: os.Getenv("LINKEDIN_REFRESH_TOKEN"),
+		ClientID:     os.Getenv("LINKEDIN_CLIENT_ID"),
+		ClientSecret: os.Getenv("LINKEDIN_CLIENT_SECRET"),
 	}
 }
 

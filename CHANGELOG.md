@@ -4,6 +4,11 @@
 ### Fixed
 - Content calendar entry IDs used second-resolution timestamps, so batch adds (schedule_week) collided on the same ID (prod carried 5-7 duplicates of three IDs). Now UnixNano. Also dropped 15 content-less pending entries from the prod calendar (backup kept) that failed every CalendarProcess cycle with 'no content to publish'.
 
+## [2.0.3] - 2026-11-16
+
+### Fixed
+- LinkedIn 401 self-healing: access tokens expire (~60d) under the long-lived daemon, killing every discovered chain whose last step posts to LinkedIn. Post now exchanges LINKEDIN_REFRESH_TOKEN once on a 401 and retries with the new token (in-process). Errors also surface the response body. Additionally fixed NewLinkedInProvider discarding its own env-fallback locals (it returned the raw empty params). Tests: refresh-then-succeed, 401-without-material, env-fallback regression.
+
 ## [2.0.1] - 2026-11-14
 
 ### Changed
@@ -488,4 +493,5 @@
 ## [1.9.19] - 2026-11-14
 ### Fixed
 - Blog/newsletter/SEO generation accepted whatever length the LLM returned (prod agent run produced a 98-word blog against the 800-word target). Generate now makes ONE expansion pass when a long-form draft lands under half its target, keeps it only if actually longer, and logs the decision; social threads are exempt. Test: TestGenerateExpandsShortDraftOnce (call counts, title from expanded body, thread exemption).
+
 
