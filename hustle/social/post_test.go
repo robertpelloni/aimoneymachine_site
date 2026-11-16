@@ -239,6 +239,39 @@ func TestLinkedInRefreshOn401ThenSucceeds(t *testing.T) {
 	}
 }
 
+// Regression: LinkedIn token responses exceed 500 bytes. The first
+// prod refresh actually succeeded but the 500-byte read truncated the
+// JSON and the parse rejected it. A >500-byte response must parse.
+func TestLinkedInRefreshParsesLongTokenResponse(t *testing.T) {
+	longToken := strings.Repeat("A", 400)
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/ugc":
+			if r.Header.Get("Authorization") == "Bearer "+longToken {
+				w.WriteHeader(http.StatusCreated)
+				return
+			}
+			w.WriteHeader(http.StatusUnauthorized)
+		case "/token":
+			fmt.Fprintf(w, `{"access_token":%q,"expires_in":5183999,"refresh_token":%q}`,
+				longToken, strings.Repeat("R", 300))
+		}
+	}))
+	defer ts.Close()
+	p := &LinkedInProvider{
+		AccessToken: "old", AuthorURN: "urn:li:person:1",
+		APIURL: ts.URL + "/ugc", TokenURL: ts.URL + "/token",
+		RefreshToken: "rt", ClientID: "cid", ClientSecret: "sec",
+		HTTPClient: ts.Client(),
+	}
+	if err := p.Post(orchestrator.NewOrchestrator(), "LinkedIn", "hello"); err != nil {
+		t.Fatalf("Post with long token response: %v", err)
+	}
+	if p.AccessToken != longToken {
+		t.Errorf("adopted token length = %d, want %d", len(p.AccessToken), len(longToken))
+	}
+}
+
 // Without refresh material a 401 must surface as an error naming the
 // status (and body), not hang or silently pass.
 func TestLinkedIn401WithoutRefreshFailsClearly(t *testing.T) {

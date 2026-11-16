@@ -254,15 +254,19 @@ func (p *LinkedInProvider) refreshAccessToken(client *http.Client) error {
 		return fmt.Errorf("token endpoint request: %w", err)
 	}
 	defer resp.Body.Close()
-	body, _ := io.ReadAll(io.LimitReader(resp.Body, 500))
+	// Token responses run ~700 bytes (two long tokens + expiry): the
+	// original 500-byte cap truncated the JSON mid-token and the parse
+	// then "failed" on a perfectly good refresh. Never echo this body
+	// into errors/logs — it IS credential material.
+	body, _ := io.ReadAll(io.LimitReader(resp.Body, 8192))
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("token endpoint status %d: %s", resp.StatusCode, strings.TrimSpace(string(body)))
+		return fmt.Errorf("token endpoint status %d", resp.StatusCode)
 	}
 	var parsed struct {
 		AccessToken string `json:"access_token"`
 	}
 	if err := json.Unmarshal(body, &parsed); err != nil || parsed.AccessToken == "" {
-		return fmt.Errorf("token endpoint response unusable: %s", strings.TrimSpace(string(body)))
+		return fmt.Errorf("token endpoint returned %d without a usable access_token", resp.StatusCode)
 	}
 	p.AccessToken = parsed.AccessToken
 	fmt.Println("[LinkedIn] Access token refreshed")

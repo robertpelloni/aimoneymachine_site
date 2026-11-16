@@ -1,7 +1,7 @@
 {
-  "version": "2.0.3",
+  "version": "2.0.4",
   "status": "Active",
-  "message": "LinkedIn refresh-on-401 self-healing",
+  "message": "LinkedIn token response size fix",
   "revenue": 171.6,
   "expenses": 1005,
   "profit": -833.4

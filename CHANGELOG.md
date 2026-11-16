@@ -4,6 +4,11 @@
 ### Fixed
 - Content calendar entry IDs used second-resolution timestamps, so batch adds (schedule_week) collided on the same ID (prod carried 5-7 duplicates of three IDs). Now UnixNano. Also dropped 15 content-less pending entries from the prod calendar (backup kept) that failed every CalendarProcess cycle with 'no content to publish'.
 
+## [2.0.4] - 2026-11-16
+
+### Fixed
+- LinkedIn refresh actually succeeded on first prod use but was rejected locally: the token endpoint response (~700B, two long tokens) exceeded the 500-byte read cap, truncating the JSON mid-token. Cap raised to 8192, and token-endpoint errors no longer echo the response body (it is credential material). Regression test with a >500-byte token response.
+
 ## [2.0.3] - 2026-11-16
 
 ### Fixed
