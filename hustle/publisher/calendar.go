@@ -70,7 +70,10 @@ func (c *ContentCalendar) SaveCalendar() error {
 // AddEntry adds a new entry to the calendar
 func (c *ContentCalendar) AddEntry(topic, contentType, platform string, scheduledAt time.Time) CalendarEntry {
 	entry := CalendarEntry{
-		ID:          fmt.Sprintf("content-%d", time.Now().Unix()),
+		// UnixNano: second-resolution IDs collided when schedule_week
+		// added 7 entries in the same second (prod calendar carried
+		// 5-7 duplicates of three IDs, all content-less).
+		ID:          fmt.Sprintf("content-%d", time.Now().UnixNano()),
 		Topic:       topic,
 		Type:        contentType,
 		Status:      "pending",
