@@ -1,7 +1,7 @@
 {
-  "version": "2.0.7",
+  "version": "2.0.8",
   "status": "Active",
-  "message": "Calendar schedule alias + discovery empty-steps retry",
+  "message": "Unsupported social platform guard",
   "revenue": 171.6,
   "expenses": 1005,
   "profit": -833.4

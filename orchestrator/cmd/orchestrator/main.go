@@ -284,6 +284,9 @@ func main() {
 
 	protocol.Register("social", func(p url.Values) error {
 		platform := defVal(p.Get("platform"), social.DefaultPlatform())
+		if err := social.ValidatePlatform(platform); err != nil {
+			return err
+		}
 		topic := defVal(p.Get("topic"), "AI")
 		contentStr := p.Get("content")
 

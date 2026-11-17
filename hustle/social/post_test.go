@@ -373,6 +373,22 @@ func TestNewLinkedInProviderEnvFallback(t *testing.T) {
 	}
 }
 
+// Invented platforms (Pinterest, from a discovered chain) must be
+// rejected explicitly — they used to fall through to Twitter and die
+// on X's 402, blaming the wrong service entirely.
+func TestValidatePlatform(t *testing.T) {
+	for _, ok := range []string{"Twitter", "twitter", "LinkedIn", "Bluesky", "BLUESKY"} {
+		if err := ValidatePlatform(ok); err != nil {
+			t.Errorf("ValidatePlatform(%q) = %v, want nil", ok, err)
+		}
+	}
+	for _, bad := range []string{"Pinterest", "Instagram", "", "myspace"} {
+		if err := ValidatePlatform(bad); err == nil {
+			t.Errorf("ValidatePlatform(%q) = nil, want rejection", bad)
+		}
+	}
+}
+
 func TestDefaultPlatformAndProviderSelection(t *testing.T) {
 	t.Setenv("SOCIAL_DEFAULT_PLATFORM", "")
 	if got := DefaultPlatform(); got != "Twitter" {

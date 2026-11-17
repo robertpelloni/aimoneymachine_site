@@ -482,6 +482,19 @@ func GenerateContent(orch *orchestrator.Orchestrator, topic string) string {
 	return content
 }
 
+// ValidatePlatform rejects platform names with no provider. Discovered
+// chains invent platforms (observed live: platform=Pinterest), and the
+// handler's switch silently routed every unknown name to Twitter —
+// where the post died on X's 402 instead of failing where it belonged.
+func ValidatePlatform(platform string) error {
+	switch strings.ToLower(platform) {
+	case "twitter", "linkedin", "bluesky":
+		return nil
+	default:
+		return fmt.Errorf("unsupported social platform %q (supported: Twitter, LinkedIn, Bluesky)", platform)
+	}
+}
+
 // DefaultPlatform is the social platform used by pipelines that post on
 // the user's behalf (affiliate, synergy lead-gen). SOCIAL_DEFAULT_PLATFORM
 // overrides it; default Twitter for historical compatibility. Prod sets

@@ -4,6 +4,11 @@
 ### Fixed
 - Content calendar entry IDs used second-resolution timestamps, so batch adds (schedule_week) collided on the same ID (prod carried 5-7 duplicates of three IDs). Now UnixNano. Also dropped 15 content-less pending entries from the prod calendar (backup kept) that failed every CalendarProcess cycle with 'no content to publish'.
 
+## [2.0.8] - 2026-11-17
+
+### Fixed
+- Social handler silently routed unknown platforms to Twitter: a discovered chain invented platform=Pinterest, the switch defaulted to TwitterProvider, and the step died on X 402 blaming the wrong service. ValidatePlatform now rejects unsupported platforms explicitly at dispatch. Test: TestValidatePlatform.
+
 ## [2.0.7] - 2026-11-16
 
 ### Fixed
