@@ -303,6 +303,12 @@ func (m *L3Memory) Checksum() string {
 
 // Orchestrator handles tiered memory orchestration, financial tracking, and LLM access
 type Orchestrator struct {
+	// integrationHealth records the last observed posting outcome per
+	// platform ("ok" / "auth_failed") so /api/status can stop showing
+	// a green dot for a configured-but-rejecting integration (the
+	// Twitter dot stayed green through weeks of X 402 responses).
+	integrationHealth map[string]string
+	integrationMu     sync.RWMutex
 	Version    string            `json:"version"`
 	DryRun     bool              `json:"dry_run"`
 	RSSFeeds   []string          `json:"rss_feeds"`
@@ -318,6 +324,26 @@ type Orchestrator struct {
 	Identity   *Identity         `json:"-"`
 	Cache      *CachingLLM       `json:"-"`
 	Optimizer  *PromptOptimizer  `json:"-"`
+}
+
+
+// SetIntegrationHealth records the latest observed outcome for a
+// platform ("ok" after a successful post, "auth_failed" after a
+// 401/402-class rejection).
+func (o *Orchestrator) SetIntegrationHealth(platform, state string) {
+	o.integrationMu.Lock()
+	defer o.integrationMu.Unlock()
+	if o.integrationHealth == nil {
+		o.integrationHealth = make(map[string]string)
+	}
+	o.integrationHealth[strings.ToLower(platform)] = state
+}
+
+// IntegrationHealth returns the last recorded outcome ("" if none).
+func (o *Orchestrator) IntegrationHealth(platform string) string {
+	o.integrationMu.RLock()
+	defer o.integrationMu.RUnlock()
+	return o.integrationHealth[strings.ToLower(platform)]
 }
 
 func NewOrchestrator() *Orchestrator {

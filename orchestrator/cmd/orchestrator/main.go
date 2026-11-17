@@ -308,8 +308,14 @@ func main() {
 			provider.SetDryRun(true)
 		}
 		if contentStr != "" {
-			if err := provider.Post(orch, platform, contentStr); err != nil && !errors.Is(err, social.ErrDuplicatePost) {
-				return err
+			perr := provider.Post(orch, platform, contentStr)
+			if perr == nil {
+				orch.SetIntegrationHealth(platform, "ok")
+			} else if strings.Contains(perr.Error(), "401") || strings.Contains(perr.Error(), "402") {
+				orch.SetIntegrationHealth(platform, "auth_failed")
+			}
+			if perr != nil && !errors.Is(perr, social.ErrDuplicatePost) {
+				return perr
 			}
 			return nil
 		}
@@ -321,6 +327,11 @@ func main() {
 		generatedContent = social.FormatForPlatform(generatedContent, platform)
 
 		err := provider.Post(orch, platform, generatedContent)
+		if err == nil {
+			orch.SetIntegrationHealth(platform, "ok")
+		} else if strings.Contains(err.Error(), "401") || strings.Contains(err.Error(), "402") {
+			orch.SetIntegrationHealth(platform, "auth_failed")
+		}
 		dup := errors.Is(err, social.ErrDuplicatePost)
 		if dup {
 			fmt.Printf("[Social] Already posted to %s (duplicate suppressed)\n", platform)

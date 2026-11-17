@@ -381,6 +381,13 @@ func (a *API) handleRegister(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Peer %s registered successfully", req.ID)
 }
 
+
+// integrationOK combines credential presence with the last observed
+// outcome: configured-but-rejecting (401/402) must not render green.
+func integrationOK(configured bool, health string) bool {
+	return configured && health != "auth_failed"
+}
+
 func (a *API) handleStatus(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	if a.Orchestrator == nil {
@@ -432,9 +439,9 @@ func (a *API) handleStatus(w http.ResponseWriter, r *http.Request) {
 			"newsletter": os.Getenv("BUTTONDOWN_API_KEY") != "" || os.Getenv("SUBSTACK_API_KEY") != "" || os.Getenv("CONVERTKIT_API_SECRET") != "",
 			"shopify":    os.Getenv("SHOPIFY_ACCESS_TOKEN") != "" && os.Getenv("SHOPIFY_SHOP_NAME") != "",
 			"gumroad":    os.Getenv("GUMROAD_ACCESS_TOKEN") != "",
-			"bluesky":    os.Getenv("BLUESKY_HANDLE") != "" && os.Getenv("BLUESKY_APP_PASSWORD") != "",
-			"twitter":    os.Getenv("TWITTER_API_KEY") != "" && os.Getenv("TWITTER_ACCESS_TOKEN") != "",
-			"linkedin":   os.Getenv("LINKEDIN_ACCESS_TOKEN") != "" && os.Getenv("LINKEDIN_AUTHOR_URN") != "",
+			"bluesky":    integrationOK(os.Getenv("BLUESKY_HANDLE") != "" && os.Getenv("BLUESKY_APP_PASSWORD") != "", a.Orchestrator.IntegrationHealth("bluesky")),
+			"twitter":    integrationOK(os.Getenv("TWITTER_API_KEY") != "" && os.Getenv("TWITTER_ACCESS_TOKEN") != "", a.Orchestrator.IntegrationHealth("twitter")),
+			"linkedin":   integrationOK(os.Getenv("LINKEDIN_ACCESS_TOKEN") != "" && os.Getenv("LINKEDIN_AUTHOR_URN") != "", a.Orchestrator.IntegrationHealth("linkedin")),
 			"smtp":       os.Getenv("SMTP_HOST") != "",
 			"alpaca":     os.Getenv("ALPACA_API_KEY") != "" && os.Getenv("ALPACA_API_SECRET") != "",
 			"binance":    os.Getenv("BINANCE_API_KEY") != "",

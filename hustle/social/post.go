@@ -545,12 +545,29 @@ func FormatForPlatform(content, platform string) string {
 	return content
 }
 
+
+// recordIntegrationHealth feeds the /api/status integration dots:
+// success marks the platform ok; a 401/402-class rejection marks it
+// auth_failed so a configured-but-dead integration stops showing
+// green (Twitter did, through weeks of X 402 responses).
+func recordIntegrationHealth(orch *orchestrator.Orchestrator, platform string, err error) {
+	if err == nil {
+		orch.SetIntegrationHealth(platform, "ok")
+		return
+	}
+	s := err.Error()
+	if strings.Contains(s, "401") || strings.Contains(s, "402") {
+		orch.SetIntegrationHealth(platform, "auth_failed")
+	}
+}
+
 func SchedulePost(orch *orchestrator.Orchestrator, provider Provider, platform, topic string) {
 	content := GenerateContent(orch, topic)
 	content = FormatForPlatform(content, platform)
 	fmt.Printf("Scheduling post for %s: %s\n", platform, content)
 
 	err := provider.Post(orch, platform, content)
+	recordIntegrationHealth(orch, platform, err)
 	if errors.Is(err, ErrDuplicatePost) {
 		// Already live from an earlier identical generation: goal met,
 		// no new ledger charge (the original post was charged then).

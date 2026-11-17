@@ -4,6 +4,12 @@
 ### Fixed
 - Content calendar entry IDs used second-resolution timestamps, so batch adds (schedule_week) collided on the same ID (prod carried 5-7 duplicates of three IDs). Now UnixNano. Also dropped 15 content-less pending entries from the prod calendar (backup kept) that failed every CalendarProcess cycle with 'no content to publish'.
 
+## [2.0.9] - 2026-11-17
+
+### Fixed
+- Dashboard bot cards showed Cycles 0, BB %B 0% and Last \ on live data: BotSnapshot emitted points/price/bb_pct_b/sparkline while the v2 dashboard reads samples/last_price/bb_percent_b/recent_prices. SnapshotAll now populates additive aliases for both contracts (in_position stays honestly false - no portfolio engine). Test: TestSnapshotAllDashboardAliases.
+- Integration dots lied: /api/status integrations were pure env-presence booleans, so Twitter rendered green through weeks of X 402 responses. Post outcomes are now recorded (ok / auth_failed on 401-402) from SchedulePost and the social handler, and the boolean flips red on a recorded auth failure. Test: TestIntegrationOK.
+
 ## [2.0.8] - 2026-11-17
 
 ### Fixed

@@ -438,6 +438,19 @@ type BotSnapshot struct {
 	Decision   string    `json:"decision"`
 	Points     int       `json:"points"`
 	Sparkline  []float64 `json:"sparkline"`
+	// Dashboard aliases: the v2 dashboard JS reads these key names
+	// (samples / last_price / bb_percent_b / recent_prices /
+	// in_position). The canonical Go-side names above were never
+	// reconciled with it, so the UI rendered Cycles 0, BB %B 0% and
+	// Last $0 despite live data. Aliases keep both contracts working.
+	Samples      int       `json:"samples"`
+	LastPrice    float64   `json:"last_price"`
+	BBPercentB   float64   `json:"bb_percent_b"`
+	RecentPrices []float64 `json:"recent_prices"`
+	// InPosition is always false: TradingModule issues paper decisions
+	// and holds no portfolio. (The UI's Position LONG display keys off
+	// this; emitting anything else would fabricate a position.)
+	InPosition bool `json:"in_position"`
 }
 
 // SnapshotAll computes thread-safe technical indicator snapshots across all tracked symbols.
@@ -523,6 +536,10 @@ func (t *TradingModule) SnapshotAll() []BotSnapshot {
 			snap.Divergence = div
 			snap.Decision = decision
 			snap.Sparkline = sparkCopy
+			snap.Samples = snap.Points
+			snap.LastPrice = price
+			snap.BBPercentB = bbPct
+			snap.RecentPrices = sparkCopy
 		}
 		out = append(out, snap)
 	}
