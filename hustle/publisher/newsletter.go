@@ -26,10 +26,11 @@ type ButtondownPublisher struct {
 }
 
 type buttondownEmail struct {
-	Subject    string   `json:"subject"`
-	Body       string   `json:"body"`
-	Tags       []string `json:"tags,omitempty"`
-	PublishDate string  `json:"publish_date,omitempty"`
+	Subject string `json:"subject"`
+	Body    string `json:"body"`
+	// No tags/publish_date: Buttondown's POST /v1/emails rejects unknown
+	// fields with 422 extra_forbidden (prod failure on tags, 2026-11-17).
+	// Tags only exist on the subscriber endpoints, not email creation.
 }
 
 type buttondownResponse struct {
@@ -106,10 +107,12 @@ func (b *ButtondownPublisher) Publish(subject, body string, tags []string) error
 		return fmt.Errorf("BUTTONDOWN_API_KEY not set")
 	}
 
+	// The tags parameter is kept for parity with Substack; Buttondown
+	// email creation forbids the field (see buttondownEmail), so it is
+	// intentionally not sent.
 	reqBody := buttondownEmail{
 		Subject: subject,
 		Body:    body,
-		Tags:    tags,
 	}
 
 	bodyBytes, _ := json.Marshal(reqBody)

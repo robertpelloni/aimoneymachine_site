@@ -1,5 +1,10 @@
 # Changelog
 
+## [2.0.13] - 2026-11-17
+
+### Fixed
+- Newsletter publishing failed against Buttondown with 422 extra_forbidden: POST /v1/emails does not accept a `tags` field (tags live on subscriber endpoints). The create payload now sends only subject/body. Verified live after the v2.0.12 calendar drain produced its first newsletter entry. Test: TestButtondownPublishOmitsTags (captures the real request body via a fake transport).
+
 ## [2.0.12] - 2026-11-17
 
 ### Fixed
