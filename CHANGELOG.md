@@ -1,5 +1,10 @@
 # Changelog
 
+## [2.0.15] - 2026-11-17
+
+### Fixed
+- Calendar Twitter entries were marked published without posting anything: publishToTwitter printed the thread to the log (TODO stub) and returned nil, so the drain's final entry ("Crypto trading with AI agents") showed as a real X post that never happened. It now returns an explicit not-wired error, landing the entry in failed with the reason recorded (real posting lives in hustle/social; X returns 402 regardless). The prod record was corrected to match. Test: TestProcessPendingTwitterEntryFailsHonestly.
+
 ## [2.0.14] - 2026-11-17
 
 ### Added

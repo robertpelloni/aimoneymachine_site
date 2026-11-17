@@ -175,15 +175,18 @@ func (c *ContentCalendar) publishToTwitter(entry *CalendarEntry, content string)
 		return nil
 	}
 
-	// For Twitter, we post a thread
-	// Split content into tweet-sized chunks
+	// Preview the thread in the log, then fail honestly: this path is
+	// NOT wired to the X API (real posting lives in hustle/social), and
+	// returning nil would mark the entry published — a post that never
+	// happened, reported as real by the dashboard. The entry lands in
+	// failed with this reason until the calendar is wired to the social
+	// poster (X currently returns 402 credits-depleted regardless).
 	tweets := splitIntoTweets(content, entry.Title)
 	for i, tweet := range tweets {
 		fmt.Printf("[Calendar] Tweet %d/%d: %s\n", i+1, len(tweets), truncate(tweet, 50))
-		// TODO: Actually post via Twitter API
 	}
 
-	return nil
+	return fmt.Errorf("calendar twitter posting is not wired to the X API (preview only); post via hustle://social?platform=Twitter")
 }
 
 func (c *ContentCalendar) publishToNewsletter(entry *CalendarEntry, content string) error {

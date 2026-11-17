@@ -33,6 +33,34 @@ func TestProcessPendingSkipsContentlessShells(t *testing.T) {
 	}
 }
 
+// The calendar's Twitter path only prints the thread (it is not wired to
+// the X API), so a twitter entry must land in failed with that reason —
+// never in published, which the dashboard and status counts would report
+// as a real post that never happened.
+func TestProcessPendingTwitterEntryFailsHonestly(t *testing.T) {
+	t.Chdir(t.TempDir())
+	cal := NewContentCalendar()
+	cal.ScheduleFile = filepath.Join(t.TempDir(), "cal.json")
+	cal.Twitter = &TwitterPoster{BearerToken: "token-present"}
+	past := time.Now().Add(-time.Hour)
+	cal.Entries = []CalendarEntry{
+		{ID: "tw", Topic: "t", Status: "ready", Platform: "twitter", ScheduledAt: past, Content: "thread body", Title: "T"},
+	}
+	n, err := cal.ProcessPending()
+	if err == nil {
+		t.Fatal("ProcessPending error = nil, want the unwired-twitter error")
+	}
+	if n != 1 {
+		t.Fatalf("attempted = %d, want 1", n)
+	}
+	if cal.Entries[0].Status != "failed" {
+		t.Errorf("twitter entry status = %q, want failed (not fake-published)", cal.Entries[0].Status)
+	}
+	if cal.Entries[0].Error == "" {
+		t.Error("twitter entry Error empty, want the not-wired reason recorded")
+	}
+}
+
 // ProcessPending must publish due entries in place: looping over the copies
 // from GetPendingEntries would discard the published status before
 // SaveCalendar persists it. WordPress is unconfigured in tests, so a
