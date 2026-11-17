@@ -1,5 +1,10 @@
 # Changelog
 
+## [2.0.19] - 2026-11-17
+
+### Fixed
+- Long-form content generation now rejects bracketed placeholder text too: ContentModule.Generate returns an error when the body carries fill-ins, so WordPress-bound blogs fail honestly (calendar shells stay pending, chain steps fail visibly) instead of publishing templates. Reuses social.ContainsPlaceholder. Test: TestContentModule/GenerateRejectsPlaceholders.
+
 ## [2.0.18] - 2026-11-17
 
 ### Fixed

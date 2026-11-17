@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/robertpelloni/hustle/hustle/social"
 	"github.com/robertpelloni/hustle/orchestrator"
 )
 
@@ -103,6 +104,14 @@ func (c *ContentModule) Generate(req ContentRequest) (*ContentResult, error) {
 		return nil, fmt.Errorf("LLM content generation failed: %v", err)
 	}
 	body = c.expandIfShort(req, body)
+
+	// Never save or publish bracketed fill-in text ("[Insert your ...]"):
+	// template-style output shipped verbatim to LinkedIn via the social
+	// pipeline (2026-11-17). Rejecting here fails honestly in every
+	// caller — calendar shells stay pending, chain steps fail visibly.
+	if social.ContainsPlaceholder(body) {
+		return nil, fmt.Errorf("generated %s for %q contains placeholder text", req.Type, req.Topic)
+	}
 
 	// Extract title from the first heading if present
 	title := req.Topic
