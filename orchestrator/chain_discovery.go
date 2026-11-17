@@ -24,6 +24,18 @@ func ValidateChainSteps(steps []string, p *HustleProtocol) error {
 		if p != nil && !p.Has(u.Host) {
 			return fmt.Errorf("invalid chain step %q: unknown module %q", s, u.Host)
 		}
+		// LLMs also invent parameter values, not just modules
+		// (observed live: social?platform=YouTube+Shorts, which can
+		// never post — Shorts belong to the media module).
+		if strings.EqualFold(u.Host, "social") {
+			if platform := u.Query().Get("platform"); platform != "" {
+				switch strings.ToLower(platform) {
+				case "twitter", "linkedin", "bluesky":
+				default:
+					return fmt.Errorf("invalid chain step %q: unsupported social platform %q", s, platform)
+				}
+			}
+		}
 	}
 	return nil
 }
@@ -62,7 +74,7 @@ func (d *ChainDiscoverer) Discover() (*DiscoveredChain, error) {
 	}
 
 	// 3. Construct Prompt for LLM
-	prompt := fmt.Sprintf("As the Swarm Evolution Engine, analyze the following system state and propose a NEW sequential workflow (Chain) of protocol URIs. Focus on LUXURY HUSTLES: high-ROI, low-maintenance, and passive income generation.\nFinancial Context: %s\nRecent Successes:\n%s\n\nExisting Protocol Modules (use ONLY these, with real query parameters): research (query), curation (topic), social (platform, topic), trading (symbol), stocks (symbol), content (topic, type, action), affiliate (action, niche), products (type, topic), ecommerce (action, niche), saas (action, niche), domains (action, domain), kdp (action, niche), pod (action, niche), retail (buy, sell, category), realestate (rent, rate, location), media (action, topic), calendar (action, topic, platform), publisher (action), leadgen (niche), outreach (action, platform, niche), crm (action, email, status), confluence (recipe), council (topic), automation (problem), bi (action), finance (action), legal (type, business), design (name, niche), devagency (action), marketing (action), localization (lang, text), support (action), careers (action, title), qa (action), chain (name), swarm (action), synergy_leadgen (topic, niche), healer (issue)\n\nOutput a JSON object for the NEW Chain including a suggested execution interval in minutes. Every step MUST be a real hustle:// URI for one of the modules above — never invent placeholder steps:\n{\n  \"name\": \"short_snake_case_name\",\n  \"description\": \"brief luxury-focused description\",\n  \"steps\": [\"hustle://research?query=trending+AI+products\", \"hustle://affiliate?action=run&niche=AI+products\", \"hustle://social?platform=Twitter&topic=AI+products\"],\n  \"interval_minutes\": 60\n}", profitAnalysis, successContext)
+	prompt := fmt.Sprintf("As the Swarm Evolution Engine, analyze the following system state and propose a NEW sequential workflow (Chain) of protocol URIs. Focus on LUXURY HUSTLES: high-ROI, low-maintenance, and passive income generation.\nFinancial Context: %s\nRecent Successes:\n%s\n\nExisting Protocol Modules (use ONLY these, with real query parameters): research (query), curation (topic), social (platform: Twitter|LinkedIn|Bluesky ONLY, topic), trading (symbol), stocks (symbol), content (topic, type, action), affiliate (action, niche), products (type, topic), ecommerce (action, niche), saas (action, niche), domains (action, domain), kdp (action, niche), pod (action, niche), retail (buy, sell, category), realestate (rent, rate, location), media (action, topic), calendar (action, topic, platform), publisher (action), leadgen (niche), outreach (action, platform, niche), crm (action, email, status), confluence (recipe), council (topic), automation (problem), bi (action), finance (action), legal (type, business), design (name, niche), devagency (action), marketing (action), localization (lang, text), support (action), careers (action, title), qa (action), chain (name), swarm (action), synergy_leadgen (topic, niche), healer (issue)\n\nOutput a JSON object for the NEW Chain including a suggested execution interval in minutes. Every step MUST be a real hustle:// URI for one of the modules above — never invent placeholder steps:\n{\n  \"name\": \"short_snake_case_name\",\n  \"description\": \"brief luxury-focused description\",\n  \"steps\": [\"hustle://research?query=trending+AI+products\", \"hustle://affiliate?action=run&niche=AI+products\", \"hustle://social?platform=Twitter&topic=AI+products\"],\n  \"interval_minutes\": 60\n}", profitAnalysis, successContext)
 
 	response, err := d.Orchestrator.LLM.Generate(prompt)
 	if err != nil {

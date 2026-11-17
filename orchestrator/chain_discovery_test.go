@@ -13,6 +13,22 @@ func testProtocol() *HustleProtocol {
 	return p
 }
 
+// LLMs invent parameter values too (platform=YouTube+Shorts observed
+// live): social steps must name a real platform or never register.
+func TestValidateChainStepsRejectsInventedPlatform(t *testing.T) {
+	p := testProtocol()
+	p.Register("social", func(url.Values) error { return nil })
+	if err := ValidateChainSteps([]string{"hustle://social?platform=YouTube+Shorts&topic=x"}, p); err == nil {
+		t.Error("invented platform YouTube+Shorts accepted")
+	}
+	if err := ValidateChainSteps([]string{"hustle://social?platform=Bluesky&topic=x"}, p); err != nil {
+		t.Errorf("Bluesky rejected: %v", err)
+	}
+	if err := ValidateChainSteps([]string{"hustle://social?topic=x"}, p); err != nil {
+		t.Errorf("platform-less social step rejected: %v", err)
+	}
+}
+
 func TestValidateChainSteps(t *testing.T) {
 	p := testProtocol()
 	if err := ValidateChainSteps([]string{"hustle://research?query=x", "hustle://content?topic=y&type=blog"}, p); err != nil {

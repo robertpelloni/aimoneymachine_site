@@ -4,6 +4,11 @@
 ### Fixed
 - Content calendar entry IDs used second-resolution timestamps, so batch adds (schedule_week) collided on the same ID (prod carried 5-7 duplicates of three IDs). Now UnixNano. Also dropped 15 content-less pending entries from the prod calendar (backup kept) that failed every CalendarProcess cycle with 'no content to publish'.
 
+## [2.0.10] - 2026-11-17
+
+### Fixed
+- Chain validation now rejects invented parameter values, not just modules: a discovered chain with social?platform=YouTube+Shorts registered fine and then failed every run (now caught by the 2.0.8 handler guard). ValidateChainSteps rejects unsupported social platforms at discovery, and the discovery prompt enumerates Twitter|LinkedIn|Bluesky. The doomed prod chain was removed from chains.json (backup kept); its scheduler task is dropped as an orphan on restart. Test: TestValidateChainStepsRejectsInventedPlatform.
+
 ## [2.0.9] - 2026-11-17
 
 ### Fixed
