@@ -11,6 +11,11 @@ STAMP=$(date +%Y%m%d-%H%M%S)
 echo "== Build linux binary (low CPU priority) =="
 renice -n 10 $$ >/dev/null 2>&1 || true
 GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -buildvcs=false -o orchestrator_linux_new ./orchestrator/cmd/orchestrator
+# Local sha256 of the fresh binary; verified against the remote copy BEFORE the
+# swap below. A truncated scp once shipped a 2.2 MB binary over the real one and
+# segfault-looped the service — never swap an unverified upload again.
+LOCAL_SHA=$(python3 -c "import hashlib; print(hashlib.sha256(open('orchestrator_linux_new','rb').read()).hexdigest())")
+echo "local sha256: $LOCAL_SHA"
 
 echo "== Backup + upload =="
 ssh $HOST "cp $APP/orchestrator $APP/orchestrator.bak-$STAMP 2>/dev/null || true; \
@@ -29,6 +34,14 @@ scp fixes/twitter_poster.py $HOST:$BIN/twitter_poster.py
 scp scripts/watchdog.sh $HOST:$BIN/watchdog.sh
 scp VERSION.md STATUS.json chains.json $HOST:$APP/
 scp scripts/smoke_prod.py $HOST:$APP/smoke_prod.py
+
+# Abort BEFORE the swap if the uploaded binary does not match the local build.
+REMOTE_SHA=$(ssh $HOST "sha256sum $APP/orchestrator.new | cut -d' ' -f1")
+if [ "$REMOTE_SHA" != "$LOCAL_SHA" ]; then
+  echo "FATAL: uploaded binary checksum mismatch (local $LOCAL_SHA remote $REMOTE_SHA); refusing to swap" >&2
+  exit 1
+fi
+echo "checksum verified: $REMOTE_SHA"
 
 ssh $HOST "chmod +x $APP/orchestrator.new $BIN/watchdog.sh $BIN/expand.py $BIN/batch_publisher.py $BIN/content_audit.py $BIN/twitter_poster.py && mv $APP/orchestrator.new $APP/orchestrator"
 
