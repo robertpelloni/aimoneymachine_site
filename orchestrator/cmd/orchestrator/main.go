@@ -1439,6 +1439,10 @@ func main() {
 			if err != nil {
 				return err
 			}
+			if discovered == nil {
+				// Benign no-op (duplicate of an existing chain).
+				return nil
+			}
 			scheduler.Register("DiscoveredChain:"+discovered.Name, time.Duration(discovered.IntervalMinutes)*time.Minute, func(o *orchestrator.Orchestrator) error {
 				return protocol.HandleURI(fmt.Sprintf("hustle://chain?name=%s", discovered.Name))
 			})

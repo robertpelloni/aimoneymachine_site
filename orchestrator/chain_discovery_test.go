@@ -164,6 +164,37 @@ func TestDiscoverRetriesWhenStepsEmpty(t *testing.T) {
 	}
 }
 
+// Prod (2026-11-17): discovery re-proposed the existing static chain
+// "luxury_passive_income_engine" and the run was logged as a task failure
+// ("chain ... already exists"). A duplicate name must be a benign no-op,
+// and the prompt must tell the model which names are taken so it does not
+// burn an 18-minute LLM cycle re-proposing one.
+func TestDiscoverDuplicateNameIsBenign(t *testing.T) {
+	t.Chdir(t.TempDir())
+	orch := NewOrchestrator()
+	var gotPrompt string
+	orch.LLM = &MockLLM{GenerateFunc: func(prompt string) (string, error) {
+		gotPrompt = prompt
+		return `{"name":"luxury_passive_income_engine","description":"x","steps":["hustle://research?query=AI"],"interval_minutes":30}`, nil
+	}}
+	mgr := NewChainManager(orch, testProtocol())
+	mgr.Register(&Chain{Name: "luxury_passive_income_engine"})
+	d := NewChainDiscoverer(orch, mgr)
+	got, err := d.Discover()
+	if err != nil {
+		t.Fatalf("Discover duplicate err = %v, want nil (benign no-op)", err)
+	}
+	if got != nil {
+		t.Fatalf("Discover duplicate = %+v, want nil chain", got)
+	}
+	if !strings.Contains(gotPrompt, "luxury_passive_income_engine") {
+		t.Error("discovery prompt does not list existing chain names")
+	}
+	if len(mgr.Chains) != 1 {
+		t.Fatalf("chains = %d, want 1 (duplicate not re-registered)", len(mgr.Chains))
+	}
+}
+
 func TestDiscoverRegistersValidChain(t *testing.T) {
 	t.Chdir(t.TempDir()) // Register saves chains.json in cwd
 	orch := NewOrchestrator()

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
+	"sort"
 	"strings"
 	"time"
 )
@@ -103,8 +104,18 @@ func (d *ChainDiscoverer) Discover() (*DiscoveredChain, error) {
 		successContext += fmt.Sprintf("- %s (Tags: %v)\n", e.Content, e.Tags)
 	}
 
+	// Existing chain names go in the prompt: without them the model
+	// re-proposes a chain that already exists (observed live: it named
+	// the static luxury_passive_income_engine), burning the whole
+	// discovery cycle on a duplicate.
+	existingNames := make([]string, 0, len(d.Manager.Chains))
+	for name := range d.Manager.Chains {
+		existingNames = append(existingNames, name)
+	}
+	sort.Strings(existingNames)
+
 	// 3. Construct Prompt for LLM
-	prompt := fmt.Sprintf("As the Swarm Evolution Engine, analyze the following system state and propose a NEW sequential workflow (Chain) of protocol URIs. Focus on LUXURY HUSTLES: high-ROI, low-maintenance, and passive income generation.\nFinancial Context: %s\nRecent Successes:\n%s\n\nExisting Protocol Modules (use ONLY these, with real query parameters): research (query), curation (topic), social (platform: Twitter|LinkedIn|Bluesky ONLY, topic), trading (symbol), stocks (symbol), content (topic, type, action), affiliate (action, niche), products (type, topic), ecommerce (action, niche), saas (action, niche), domains (action, domain), kdp (action, niche), pod (action, niche), retail (buy, sell, category), realestate (rent, rate, location), media (action, topic), calendar (action, topic, platform), publisher (action), leadgen (niche), outreach (action, platform, niche), crm (action, email, status), confluence (recipe), council (topic), automation (problem), bi (action), finance (action), legal (type, business), design (name, niche), devagency (action), marketing (action), localization (lang, text), support (action), careers (action, title), qa (action), chain (name), swarm (action), synergy_leadgen (topic, niche), healer (issue)\n\nOutput a JSON object for the NEW Chain including a suggested execution interval in minutes. Every step MUST be a real hustle:// URI for one of the modules above — never invent placeholder steps:\n{\n  \"name\": \"short_snake_case_name\",\n  \"description\": \"brief luxury-focused description\",\n  \"steps\": [\"hustle://research?query=trending+AI+products\", \"hustle://affiliate?action=run&niche=AI+products\", \"hustle://social?platform=Twitter&topic=AI+products\"],\n  \"interval_minutes\": 60\n}", profitAnalysis, successContext)
+	prompt := fmt.Sprintf("As the Swarm Evolution Engine, analyze the following system state and propose a NEW sequential workflow (Chain) of protocol URIs. Focus on LUXURY HUSTLES: high-ROI, low-maintenance, and passive income generation.\nFinancial Context: %s\nRecent Successes:\n%s\nExisting chains (do NOT reuse these names): %s\n\nExisting Protocol Modules (use ONLY these, with real query parameters): research (query), curation (topic), social (platform: Twitter|LinkedIn|Bluesky ONLY, topic), trading (symbol), stocks (symbol), content (topic, type, action), affiliate (action, niche), products (type, topic), ecommerce (action, niche), saas (action, niche), domains (action, domain), kdp (action, niche), pod (action, niche), retail (buy, sell, category), realestate (rent, rate, location), media (action, topic), calendar (action, topic, platform), publisher (action), leadgen (niche), outreach (action, platform, niche), crm (action, email, status), confluence (recipe), council (topic), automation (problem), bi (action), finance (action), legal (type, business), design (name, niche), devagency (action), marketing (action), localization (lang, text), support (action), careers (action, title), qa (action), chain (name), swarm (action), synergy_leadgen (topic, niche), healer (issue)\n\nOutput a JSON object for the NEW Chain including a suggested execution interval in minutes. Every step MUST be a real hustle:// URI for one of the modules above — never invent placeholder steps:\n{\n  \"name\": \"short_snake_case_name\",\n  \"description\": \"brief luxury-focused description\",\n  \"steps\": [\"hustle://research?query=trending+AI+products\", \"hustle://affiliate?action=run&niche=AI+products\", \"hustle://social?platform=Twitter&topic=AI+products\"],\n  \"interval_minutes\": 60\n}", profitAnalysis, successContext, strings.Join(existingNames, ", "))
 
 	response, err := d.Orchestrator.LLM.Generate(prompt)
 	if err != nil {
@@ -146,10 +157,14 @@ func (d *ChainDiscoverer) Discover() (*DiscoveredChain, error) {
 		}
 	}
 
-	// 6. Register the discovery (skip if already exists)
+	// 6. Register the discovery (skip if already exists). A duplicate
+	// name is a benign no-op, not an error: the model proposed a chain
+	// we already run, and the scheduler must not log a task failure
+	// (or dereference a nil chain) for it. Callers treat (nil, nil)
+	// as "nothing new this cycle".
 	if d.Manager.Has(discovered.Name) {
 		fmt.Printf("[ChainDiscoverer] Chain '%s' already exists, skipping duplicate\n", discovered.Name)
-		return nil, fmt.Errorf("chain '%s' already exists", discovered.Name)
+		return nil, nil
 	}
 	d.Manager.Register(&discovered.Chain)
 

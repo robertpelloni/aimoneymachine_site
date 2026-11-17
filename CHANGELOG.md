@@ -1,5 +1,10 @@
 # Changelog
 
+## [2.0.16] - 2026-11-17
+
+### Fixed
+- WorkflowDiscovery burned an 18-minute LLM cycle re-proposing the existing static chain `luxury_passive_income_engine`, then logged a task failure ("chain already exists"). The discovery prompt now lists existing chain names (do-not-reuse), and a duplicate proposal returns (nil, nil) as a benign no-op; the scheduler handler nil-guards before registering. Test: TestDiscoverDuplicateNameIsBenign (also asserts the prompt carries existing names).
+
 ## [2.0.15] - 2026-11-17
 
 ### Fixed
