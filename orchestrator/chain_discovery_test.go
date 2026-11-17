@@ -53,9 +53,12 @@ func TestValidateChainStepsRejectsInventedActions(t *testing.T) {
 		"hustle://calendar?action=schedule_week",
 		"hustle://publisher?action=wordpress",
 		"hustle://publisher?action=distribute",
+		"hustle://publisher?action=shopify",
 		"hustle://affiliate?action=batch_insert",
+		"hustle://affiliate?action=discover",
 		"hustle://swarm?action=set_goal",
 		"hustle://media?action=shorts",
+		"hustle://media?action=plan",
 	}
 	for _, s := range good {
 		if err := ValidateChainSteps([]string{s}, p); err != nil {
@@ -192,6 +195,31 @@ func TestDiscoverDuplicateNameIsBenign(t *testing.T) {
 	}
 	if len(mgr.Chains) != 1 {
 		t.Fatalf("chains = %d, want 1 (duplicate not re-registered)", len(mgr.Chains))
+	}
+}
+
+// The prompt must enumerate the closed action sets from the same source
+// validation enforces: without it the model invents verbs like
+// media?action=produce (rejected on prod 2026-11-17, wasting the cycle),
+// and allowlist drift once hid real verbs (media plan, affiliate
+// discover, publisher shopify) from discovery entirely.
+func TestDiscoverPromptEnumeratesClosedActions(t *testing.T) {
+	t.Chdir(t.TempDir())
+	orch := NewOrchestrator()
+	var gotPrompt string
+	orch.LLM = &MockLLM{GenerateFunc: func(prompt string) (string, error) {
+		gotPrompt = prompt
+		return `{"name":"prompt_probe_chain","description":"x","steps":["hustle://research?query=AI"],"interval_minutes":30}`, nil
+	}}
+	mgr := NewChainManager(orch, testProtocol())
+	d := NewChainDiscoverer(orch, mgr)
+	if _, err := d.Discover(); err != nil {
+		t.Fatalf("Discover: %v", err)
+	}
+	for _, want := range []string{"distribute", "shopify", "batch_insert", "discover", "set_goal", "plan"} {
+		if !strings.Contains(gotPrompt, want) {
+			t.Errorf("discovery prompt missing closed-action verb %q", want)
+		}
 	}
 }
 

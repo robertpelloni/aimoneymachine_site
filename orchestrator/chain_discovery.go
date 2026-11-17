@@ -41,25 +41,42 @@ func ValidateChainSteps(steps []string, p *HustleProtocol) error {
 		// Free-text modules (research, content, curation...) accept
 		// anything and are deliberately not policed here.
 		if action := u.Query().Get("action"); action != "" {
-			var allowed []string
-			switch strings.ToLower(u.Host) {
-			case "calendar":
-				allowed = []string{"status", "process", "fill", "add", "schedule_week", "schedule"}
-			case "publisher":
-				allowed = []string{"status", "wordpress", "wordpress_markdown", "newsletter", "distribute"}
-			case "affiliate":
-				allowed = []string{"run", "batch_insert"}
-			case "swarm":
-				allowed = []string{"sync", "aggregate", "set_goal"}
-			case "media":
-				allowed = []string{"shorts"}
-			}
-			if allowed != nil && !containsFold(allowed, action) {
+			if allowed, ok := closedActionSets[strings.ToLower(u.Host)]; ok && !containsFold(allowed, action) {
 				return fmt.Errorf("invalid chain step %q: unsupported %s action %q", s, u.Host, action)
 			}
 		}
 	}
 	return nil
+}
+
+// closedActionSets is the single source of truth for the action verbs
+// chain steps may use on modules whose handlers reject unknown actions.
+// It must mirror the handlers in cmd/orchestrator/main.go — drift once
+// hid real verbs (media plan, affiliate discover, publisher shopify)
+// from discovery while invented ones (media produce) wasted cycles.
+// The discovery prompt enumerates these same sets (closedActionsPrompt),
+// so what the model is told and what validation enforces cannot diverge.
+var closedActionSets = map[string][]string{
+	"calendar":  {"status", "process", "fill", "add", "schedule_week", "schedule"},
+	"publisher": {"status", "wordpress", "wordpress_markdown", "newsletter", "distribute", "shopify"},
+	"affiliate": {"run", "discover", "batch_insert"},
+	"swarm":     {"sync", "aggregate", "set_goal"},
+	"media":     {"shorts", "plan"},
+}
+
+// closedActionsPrompt renders the closed sets for the discovery prompt,
+// deterministically ordered by module name.
+func closedActionsPrompt() string {
+	modules := make([]string, 0, len(closedActionSets))
+	for m := range closedActionSets {
+		modules = append(modules, m)
+	}
+	sort.Strings(modules)
+	parts := make([]string, 0, len(modules))
+	for _, m := range modules {
+		parts = append(parts, fmt.Sprintf("%s: %s", m, strings.Join(closedActionSets[m], "|")))
+	}
+	return strings.Join(parts, "; ")
 }
 
 func containsFold(list []string, v string) bool {
@@ -115,7 +132,7 @@ func (d *ChainDiscoverer) Discover() (*DiscoveredChain, error) {
 	sort.Strings(existingNames)
 
 	// 3. Construct Prompt for LLM
-	prompt := fmt.Sprintf("As the Swarm Evolution Engine, analyze the following system state and propose a NEW sequential workflow (Chain) of protocol URIs. Focus on LUXURY HUSTLES: high-ROI, low-maintenance, and passive income generation.\nFinancial Context: %s\nRecent Successes:\n%s\nExisting chains (do NOT reuse these names): %s\n\nExisting Protocol Modules (use ONLY these, with real query parameters): research (query), curation (topic), social (platform: Twitter|LinkedIn|Bluesky ONLY, topic), trading (symbol), stocks (symbol), content (topic, type, action), affiliate (action, niche), products (type, topic), ecommerce (action, niche), saas (action, niche), domains (action, domain), kdp (action, niche), pod (action, niche), retail (buy, sell, category), realestate (rent, rate, location), media (action, topic), calendar (action, topic, platform), publisher (action), leadgen (niche), outreach (action, platform, niche), crm (action, email, status), confluence (recipe), council (topic), automation (problem), bi (action), finance (action), legal (type, business), design (name, niche), devagency (action), marketing (action), localization (lang, text), support (action), careers (action, title), qa (action), chain (name), swarm (action), synergy_leadgen (topic, niche), healer (issue)\n\nOutput a JSON object for the NEW Chain including a suggested execution interval in minutes. Every step MUST be a real hustle:// URI for one of the modules above — never invent placeholder steps:\n{\n  \"name\": \"short_snake_case_name\",\n  \"description\": \"brief luxury-focused description\",\n  \"steps\": [\"hustle://research?query=trending+AI+products\", \"hustle://affiliate?action=run&niche=AI+products\", \"hustle://social?platform=Twitter&topic=AI+products\"],\n  \"interval_minutes\": 60\n}", profitAnalysis, successContext, strings.Join(existingNames, ", "))
+	prompt := fmt.Sprintf("As the Swarm Evolution Engine, analyze the following system state and propose a NEW sequential workflow (Chain) of protocol URIs. Focus on LUXURY HUSTLES: high-ROI, low-maintenance, and passive income generation.\nFinancial Context: %s\nRecent Successes:\n%s\nExisting chains (do NOT reuse these names): %s\n\nExisting Protocol Modules (use ONLY these, with real query parameters): research (query), curation (topic), social (platform: Twitter|LinkedIn|Bluesky ONLY, topic), trading (symbol), stocks (symbol), content (topic, type, action), affiliate (action, niche), products (type, topic), ecommerce (action, niche), saas (action, niche), domains (action, domain), kdp (action, niche), pod (action, niche), retail (buy, sell, category), realestate (rent, rate, location), media (action, topic), calendar (action, topic, platform), publisher (action), leadgen (niche), outreach (action, platform, niche), crm (action, email, status), confluence (recipe), council (topic), automation (problem), bi (action), finance (action), legal (type, business), design (name, niche), devagency (action), marketing (action), localization (lang, text), support (action), careers (action, title), qa (action), chain (name), swarm (action), synergy_leadgen (topic, niche), healer (issue)\nFor these modules use ONLY these action values: %s.\n\nOutput a JSON object for the NEW Chain including a suggested execution interval in minutes. Every step MUST be a real hustle:// URI for one of the modules above — never invent placeholder steps:\n{\n  \"name\": \"short_snake_case_name\",\n  \"description\": \"brief luxury-focused description\",\n  \"steps\": [\"hustle://research?query=trending+AI+products\", \"hustle://affiliate?action=run&niche=AI+products\", \"hustle://social?platform=Twitter&topic=AI+products\"],\n  \"interval_minutes\": 60\n}", profitAnalysis, successContext, strings.Join(existingNames, ", "), closedActionsPrompt())
 
 	response, err := d.Orchestrator.LLM.Generate(prompt)
 	if err != nil {

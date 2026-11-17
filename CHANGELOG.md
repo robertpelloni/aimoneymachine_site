@@ -1,5 +1,10 @@
 # Changelog
 
+## [2.0.17] - 2026-11-17
+
+### Fixed
+- Closed action sets had drifted from the handlers and the discovery prompt never enumerated them: the model invented media?action=produce (chain rejected, cycle wasted), while real verbs media?action=plan, affiliate?action=discover, and publisher?action=shopify were rejected by validation despite working handlers. The sets now live in one registry (closedActionSets) that both ValidateChainSteps and the discovery prompt render from, so told-vs-enforced cannot diverge. Tests: extended TestValidateChainStepsRejectsInventedActions good-list, new TestDiscoverPromptEnumeratesClosedActions.
+
 ## [2.0.16] - 2026-11-17
 
 ### Fixed
