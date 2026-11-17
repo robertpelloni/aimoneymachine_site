@@ -4,6 +4,11 @@
 ### Fixed
 - Content calendar entry IDs used second-resolution timestamps, so batch adds (schedule_week) collided on the same ID (prod carried 5-7 duplicates of three IDs). Now UnixNano. Also dropped 15 content-less pending entries from the prod calendar (backup kept) that failed every CalendarProcess cycle with 'no content to publish'.
 
+## [2.0.11] - 2026-11-17
+
+### Fixed
+- Discovery validation completed for closed action sets (calendar/publisher/affiliate/swarm/media) and dangling chain references: ValidateChainSteps rejects invented actions, and Discover rejects steps naming nonexistent chains. Free-text modules deliberately unpoliced. Tests: TestValidateChainStepsRejectsInventedActions, TestDiscoverRejectsDanglingChainReference.
+
 ## [2.0.10] - 2026-11-17
 
 ### Fixed

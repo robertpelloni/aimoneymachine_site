@@ -36,8 +36,38 @@ func ValidateChainSteps(steps []string, p *HustleProtocol) error {
 				}
 			}
 		}
+		// Closed action sets for the other handlers a chain can drive.
+		// Free-text modules (research, content, curation...) accept
+		// anything and are deliberately not policed here.
+		if action := u.Query().Get("action"); action != "" {
+			var allowed []string
+			switch strings.ToLower(u.Host) {
+			case "calendar":
+				allowed = []string{"status", "process", "add", "schedule_week", "schedule"}
+			case "publisher":
+				allowed = []string{"status", "wordpress", "wordpress_markdown", "newsletter"}
+			case "affiliate":
+				allowed = []string{"run", "batch_insert"}
+			case "swarm":
+				allowed = []string{"sync", "aggregate", "set_goal"}
+			case "media":
+				allowed = []string{"shorts"}
+			}
+			if allowed != nil && !containsFold(allowed, action) {
+				return fmt.Errorf("invalid chain step %q: unsupported %s action %q", s, u.Host, action)
+			}
+		}
 	}
 	return nil
+}
+
+func containsFold(list []string, v string) bool {
+	for _, item := range list {
+		if strings.EqualFold(item, v) {
+			return true
+		}
+	}
+	return false
 }
 
 // DiscoveredChain includes scheduling information
@@ -104,6 +134,16 @@ func (d *ChainDiscoverer) Discover() (*DiscoveredChain, error) {
 	// a chain that can only fail at execution time must never register.
 	if err := ValidateChainSteps(discovered.Steps, d.Manager.Protocol); err != nil {
 		return nil, fmt.Errorf("discovered chain %q rejected: %w", discovered.Name, err)
+	}
+	// Steps referencing other chains by name must point at chains that
+	// already exist (this needs the manager, so it lives here rather
+	// than in ValidateChainSteps).
+	for _, step := range discovered.Steps {
+		if u, err := url.Parse(step); err == nil && strings.EqualFold(u.Host, "chain") {
+			if name := u.Query().Get("name"); name != "" && !d.Manager.Has(name) {
+				return nil, fmt.Errorf("discovered chain %q rejected: step %q references unknown chain %q", discovered.Name, step, name)
+			}
+		}
 	}
 
 	// 6. Register the discovery (skip if already exists)

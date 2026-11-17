@@ -1,7 +1,7 @@
 {
-  "version": "2.0.10",
+  "version": "2.0.11",
   "status": "Active",
-  "message": "Discovery validates social platform values",
+  "message": "Discovery validates action values + chain references",
   "revenue": 171.6,
   "expenses": 1005,
   "profit": -833.4

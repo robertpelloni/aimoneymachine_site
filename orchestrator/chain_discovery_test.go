@@ -29,6 +29,55 @@ func TestValidateChainStepsRejectsInventedPlatform(t *testing.T) {
 	}
 }
 
+// Closed action sets get the same invented-value treatment, and a
+// chain step naming a nonexistent chain must be rejected in Discover.
+func TestValidateChainStepsRejectsInventedActions(t *testing.T) {
+	p := testProtocol()
+	for _, m := range []string{"calendar", "publisher", "affiliate", "swarm", "media", "chain"} {
+		p.Register(m, func(url.Values) error { return nil })
+	}
+	bad := []string{
+		"hustle://calendar?action=publish",
+		"hustle://publisher?action=post",
+		"hustle://affiliate?action=sell",
+		"hustle://swarm?action=explode",
+		"hustle://media?action=movie",
+	}
+	for _, s := range bad {
+		if err := ValidateChainSteps([]string{s}, p); err == nil {
+			t.Errorf("invented action accepted: %s", s)
+		}
+	}
+	good := []string{
+		"hustle://calendar?action=schedule",
+		"hustle://calendar?action=schedule_week",
+		"hustle://publisher?action=wordpress",
+		"hustle://affiliate?action=batch_insert",
+		"hustle://swarm?action=set_goal",
+		"hustle://media?action=shorts",
+	}
+	for _, s := range good {
+		if err := ValidateChainSteps([]string{s}, p); err != nil {
+			t.Errorf("valid step rejected: %s (%v)", s, err)
+		}
+	}
+}
+
+func TestDiscoverRejectsDanglingChainReference(t *testing.T) {
+	t.Chdir(t.TempDir())
+	orch := NewOrchestrator()
+	orch.LLM = &MockLLM{GenerateFunc: func(string) (string, error) {
+		return `{"name":"ref_chain","description":"x","steps":["hustle://chain?name=does_not_exist"],"interval_minutes":30}`, nil
+	}}
+	p := testProtocol()
+	p.Register("chain", func(url.Values) error { return nil })
+	mgr := NewChainManager(orch, p)
+	d := NewChainDiscoverer(orch, mgr)
+	if _, err := d.Discover(); err == nil || !strings.Contains(err.Error(), "unknown chain") {
+		t.Fatalf("Discover err = %v, want unknown-chain rejection", err)
+	}
+}
+
 func TestValidateChainSteps(t *testing.T) {
 	p := testProtocol()
 	if err := ValidateChainSteps([]string{"hustle://research?query=x", "hustle://content?topic=y&type=blog"}, p); err != nil {
