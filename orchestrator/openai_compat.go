@@ -84,9 +84,18 @@ func llmHTTPClient() *http.Client { return &http.Client{Timeout: llmTimeout()} }
 // NewOpenAICompatProviderWithBaseURL is NewOpenAICompatProvider pointed
 // at an explicit base URL (used for the waterfall fallback provider,
 // e.g. a direct Ollama at http://localhost:11434/v1).
+// loopbackURL rewrites a "localhost" host to 127.0.0.1. Ollama binds
+// the IPv4 loopback only; Go may resolve localhost to [::1] first and
+// some request paths surface the refused dial as fatal (observed:
+// CurationChain's fallback DetectModel failing on [::1]:11434 while
+// 127.0.0.1 answered fine).
+func loopbackURL(raw string) string {
+	return strings.Replace(raw, "://localhost", "://127.0.0.1", 1)
+}
+
 func NewOpenAICompatProviderWithBaseURL(baseURL string) *OpenAICompatProvider {
 	p := NewOpenAICompatProvider()
-	p.BaseURL = baseURL
+	p.BaseURL = loopbackURL(baseURL)
 	// Model names are per-server: inheriting the primary's model (e.g.
 	// gpt-4o from LLM_MODEL) makes the fallback ask Ollama for a model
 	// it does not have. Clearing it forces DetectModel against the
@@ -120,7 +129,7 @@ func NewOpenAICompatProvider() *OpenAICompatProvider {
 // NewOllamaProvider creates a provider configured for Ollama's OpenAI compat endpoint
 func NewOllamaProvider(model string) *OpenAICompatProvider {
 	return &OpenAICompatProvider{
-		BaseURL:   "http://localhost:11434/v1",
+		BaseURL:   loopbackURL("http://localhost:11434/v1"),
 		APIKey:    os.Getenv("OLLAMA_API_KEY"), // typically empty for local Ollama
 		Model:     model,
 		MaxTokens: 2048,

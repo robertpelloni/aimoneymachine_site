@@ -48,3 +48,17 @@ func TestWithBaseURLClearsModelAndRedetects(t *testing.T) {
 		t.Errorf("asked model = %q, want gemma-test:latest (non-embedding)", askedModel)
 	}
 }
+
+// Ollama binds the IPv4 loopback only; a "localhost" fallback URL can
+// resolve to [::1] first and the refused dial surfaced as a fatal
+// DetectModel failure on prod (CurationChain, 2026-11-17) while
+// 127.0.0.1 answered fine. The fallback constructor normalizes the
+// host; non-loopback URLs pass through untouched.
+func TestWithBaseURLNormalizesLoopback(t *testing.T) {
+	if got := NewOpenAICompatProviderWithBaseURL("http://localhost:11434/v1").BaseURL; got != "http://127.0.0.1:11434/v1" {
+		t.Errorf("BaseURL = %q, want http://127.0.0.1:11434/v1", got)
+	}
+	if got := NewOpenAICompatProviderWithBaseURL("http://example.com:11434/v1").BaseURL; got != "http://example.com:11434/v1" {
+		t.Errorf("BaseURL = %q, want non-loopback untouched", got)
+	}
+}

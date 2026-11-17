@@ -1,5 +1,10 @@
 # Changelog
 
+## [2.0.20] - 2026-11-17
+
+### Fixed
+- Intermittent total LLM failure in CurationChain: the Ollama fallback URL used "localhost", which can resolve to [::1] first; Ollama binds IPv4 only, and the refused dial surfaced as a fatal DetectModel error. The fallback constructor (and NewOllamaProvider) now normalize localhost to 127.0.0.1. Test: TestWithBaseURLNormalizesLoopback.
+
 ## [2.0.19] - 2026-11-17
 
 ### Fixed
