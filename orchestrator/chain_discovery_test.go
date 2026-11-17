@@ -52,6 +52,7 @@ func TestValidateChainStepsRejectsInventedActions(t *testing.T) {
 		"hustle://calendar?action=schedule",
 		"hustle://calendar?action=schedule_week",
 		"hustle://publisher?action=wordpress",
+		"hustle://publisher?action=distribute",
 		"hustle://affiliate?action=batch_insert",
 		"hustle://swarm?action=set_goal",
 		"hustle://media?action=shorts",

@@ -48,7 +48,7 @@ All **36 `hustle://` backend protocol modules** are wired into one single page (
    - `hustle://kdp` (`action=keywords`) & `hustle://pod` (`action=listing`)
 3. **Tier 3 — Content, 100K Pillar Expander, Static CMS & Calendar (`#content`):**
    - `hustle://content?topic=...&type=blog|seo|newsletter|thread` (`action=brainstorm|expand|cms`)
-   - `hustle://publisher?action=status|wordpress|wordpress_markdown|newsletter|shopify`
+   - `hustle://publisher?action=status|wordpress|wordpress_markdown|newsletter|shopify|distribute` (`distribute` fans title+content out to WordPress + newsletter; without content it drains the calendar's due ready entries)
    - `hustle://calendar?action=status|add|schedule_week|process|fill` (`fill` generates content for due topic-only shells, capped via `limit`, duplicates marked superseded; the 90-minute CalendarProcess job runs fill then process automatically)
 4. **Tier 4 — Audience, Video & B2B LeadGen/CRM (`#growth`):**
    - `hustle://research?query=...`, `hustle://curation?topic=...`, `hustle://rss?action=add|remove|list`

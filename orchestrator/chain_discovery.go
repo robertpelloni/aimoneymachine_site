@@ -45,7 +45,7 @@ func ValidateChainSteps(steps []string, p *HustleProtocol) error {
 			case "calendar":
 				allowed = []string{"status", "process", "fill", "add", "schedule_week", "schedule"}
 			case "publisher":
-				allowed = []string{"status", "wordpress", "wordpress_markdown", "newsletter"}
+				allowed = []string{"status", "wordpress", "wordpress_markdown", "newsletter", "distribute"}
 			case "affiliate":
 				allowed = []string{"run", "batch_insert"}
 			case "swarm":

@@ -1,5 +1,10 @@
 # Changelog
 
+## [2.0.14] - 2026-11-17
+
+### Added
+- `publisher?action=distribute`: fan one piece out to WordPress + newsletter (succeeds when at least one channel delivers; partial failures logged, not chain-fatal). Called without title/content — the only form a chain step can take, since chains pass no data between steps — it drains the calendar's due ready entries. A stored LLM-discovered chain had been failing at this invented action every run; it is now a real action, added to the discovery allowlist (TestValidateChainStepsRejectsInventedActions good-list) and to the dashboard Publisher card as "Distribute (WP + Newsletter)".
+
 ## [2.0.13] - 2026-11-17
 
 ### Fixed

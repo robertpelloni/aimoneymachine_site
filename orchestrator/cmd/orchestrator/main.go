@@ -888,6 +888,57 @@ func main() {
 				return fmt.Errorf("publisher newsletter requires subject and content")
 			}
 			return publisher.NewNewsletterPublisher().PublishNewsletter(subject, body, []string{"ai", "automation"})
+		case "distribute":
+			// Fan one piece out to every configured channel. LLM-built
+			// chains keep inventing this action (a stored chain failed at
+			// it every run), and chains cannot pass generated text between
+			// steps — so with no title/content it means "publish what is
+			// queued": drain the calendar's due ready entries. Succeeds
+			// when at least one channel delivers (same semantics as the
+			// LinkedIn duplicate rule: distribution achieved beats a
+			// chain-failing retry that would double-post).
+			title := p.Get("title")
+			body := p.Get("content")
+			if title == "" || body == "" {
+				n, err := contentCalendar.ProcessPending()
+				fmt.Printf("[Publisher] Distribute drained %d queued entries\n", n)
+				return err
+			}
+			delivered := 0
+			var errs []string
+			wp := publisher.NewWordPressPublisher()
+			wp.DryRun = orch.DryRun
+			if wp.IsConfigured() || orch.DryRun {
+				if _, err := wp.PublishPost(title, body, defVal(p.Get("status"), "publish"), nil, nil); err != nil {
+					errs = append(errs, fmt.Sprintf("WordPress: %v", err))
+				} else {
+					delivered++
+				}
+			}
+			nl := publisher.NewNewsletterPublisher()
+			if nl.IsConfigured() {
+				if err := nl.PublishNewsletter(title, body, []string{"ai", "automation"}); err != nil {
+					errs = append(errs, fmt.Sprintf("Newsletter: %v", err))
+				} else {
+					delivered++
+				}
+			}
+			if delivered == 0 {
+				if len(errs) > 0 {
+					return fmt.Errorf("distribute failed on all channels: %s", strings.Join(errs, "; "))
+				}
+				return fmt.Errorf("distribute: no channel configured (WordPress/Newsletter)")
+			}
+			if len(errs) > 0 {
+				fmt.Printf("[Publisher] Distribute partial failures (delivered %d): %s\n", delivered, strings.Join(errs, "; "))
+			}
+			orch.L1.Add(orchestrator.MemoryEntry{
+				ID:        fmt.Sprintf("dist-%d", time.Now().Unix()),
+				Content:   fmt.Sprintf("Distributed to %d channel(s): %s", delivered, title),
+				Timestamp: time.Now(),
+				Tags:      []string{"publisher", "distribute"},
+			})
+			return nil
 		case "shopify":
 			title := defVal(p.Get("title"), "AI Workflow Bundle")
 			body := defVal(p.Get("content"), "<p>Instant digital productivity bundle.</p>")

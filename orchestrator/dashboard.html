@@ -415,6 +415,7 @@ pre{background:#040914;border:1px solid #192846;border-radius:9px;padding:10px;f
         <button onclick="dispatchAction('hustle://publisher?action=wordpress&title='+enc('pubTitle')+'&content='+enc('pubBody')+'&status='+$('pubStatus').value)">WordPress Post</button>
         <button class="sec" onclick="dispatchAction('hustle://publisher?action=wordpress_markdown&path='+enc('pubBody'))">Publish .md File</button>
         <button class="sec" onclick="dispatchAction('hustle://publisher?action=newsletter&subject='+enc('pubTitle')+'&content='+enc('pubBody'))">Send Newsletter</button>
+        <button class="sec" onclick="dispatchAction('hustle://publisher?action=distribute&title='+enc('pubTitle')+'&content='+enc('pubBody')+'&status='+$('pubStatus').value)">Distribute (WP + Newsletter)</button>
         <button class="sec" onclick="dispatchAction('hustle://content?action=cms&theme=dark')">Build Static Site</button>
         <button class="sec" onclick="dispatchAction('hustle://publisher?action=status')">Check Config</button>
       </div>
