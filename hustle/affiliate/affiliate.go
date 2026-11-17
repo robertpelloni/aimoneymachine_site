@@ -56,7 +56,19 @@ func (m *AffiliateModule) Run(niche string) error {
 	provider := social.NewProvider(platform)
 	socialReview := social.FormatForPlatform(sanitizeSocialReview(review, topProduct.URL), platform)
 
-	if err := provider.Post(m.Orch, platform, socialReview); errors.Is(err, social.ErrDuplicatePost) {
+	if social.ContainsPlaceholder(socialReview) {
+		// Never auto-post fill-in template text publicly (a LinkedIn
+		// post shipped "[Insert your bio here]" via this class of
+		// output). The review is still saved below; only the post is
+		// skipped, and the skip is recorded like other post failures.
+		fmt.Printf("[Affiliate] Review contains placeholder text; skipping auto-post to %s\n", platform)
+		m.Orch.L1.Add(orchestrator.MemoryEntry{
+			ID:        fmt.Sprintf("affiliate-post-skipped-%s", topProduct.ID),
+			Content:   fmt.Sprintf("Affiliate post to %s skipped: placeholder text in generated review", platform),
+			Timestamp: time.Now(),
+			Tags:      []string{"affiliate", "social", "post-failed", platform},
+		})
+	} else if err := provider.Post(m.Orch, platform, socialReview); errors.Is(err, social.ErrDuplicatePost) {
 		fmt.Printf("[Affiliate] Review already posted to %s (duplicate suppressed)\n", platform)
 	} else if err != nil {
 		// Visible, not fatal: the review itself is the product; record

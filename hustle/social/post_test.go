@@ -195,6 +195,39 @@ func TestGenerateContentSanitizesEchoAndReasoning(t *testing.T) {
 	}
 }
 
+// Prod (2026-11-17): a discovered chain's LinkedIn post shipped raw
+// template placeholders ("[Insert your handle and profile picture
+// here]", "[insert relevant hashtag here]", "[Insert your bio here]").
+// Generated copy with bracketed fill-ins must trigger one corrective
+// regeneration, and if that still has placeholders, the canned fallback
+// — never the placeholder text itself.
+func TestGenerateContentRejectsPlaceholders(t *testing.T) {
+	placeholder := "Stealth wealth is built quietly over years. [Insert your handle here] Our [insert relevant hashtag here] community shares the playbook. [Insert your bio here] #wealth"
+	clean := "Stealth wealth is built quietly over years of boring, consistent moves. #wealth #investing"
+
+	orch := orchestrator.NewOrchestrator()
+	orch.LLM = &orchestrator.MockLLM{GenerateFunc: func(prompt string) (string, error) {
+		if strings.Contains(prompt, "placeholder") {
+			return clean, nil
+		}
+		return placeholder, nil
+	}}
+	if got := GenerateContent(orch, "stealth wealth"); got != clean {
+		t.Errorf("GenerateContent with corrective regen = %q, want %q", got, clean)
+	}
+
+	orch.LLM = &orchestrator.MockLLM{GenerateFunc: func(string) (string, error) {
+		return placeholder, nil
+	}}
+	got := GenerateContent(orch, "stealth wealth")
+	if strings.Contains(got, "[Insert") || strings.Contains(got, "[insert") {
+		t.Errorf("placeholder text survived: %q", got)
+	}
+	if !strings.Contains(got, "Revolutionary insights on stealth wealth!") {
+		t.Errorf("want canned fallback, got %q", got)
+	}
+}
+
 // LinkedIn tokens expire under a long-lived daemon; a 401 with refresh
 // material present must refresh once and retry with the new token.
 func TestLinkedInRefreshOn401ThenSucceeds(t *testing.T) {

@@ -144,7 +144,7 @@ type LinkedInProvider struct {
 	TokenURL     string
 	// TokenFile, when set, persists refreshed tokens (0600, atomic) so
 	// a daemon restart starts from the fresh token instead of paying
-	// a 401 → refresh cycle, and survives LinkedIn rotating the
+	// a 401 â†’ refresh cycle, and survives LinkedIn rotating the
 	// refresh token itself. Env: LINKEDIN_TOKEN_FILE (default
 	// .linkedin_token.json in the working directory).
 	TokenFile string
@@ -229,7 +229,7 @@ func (p *LinkedInProvider) Post(orch *orchestrator.Orchestrator, platform, conte
 
 // ErrDuplicatePost means LinkedIn rejected the post as a duplicate of
 // one already published (422 DUPLICATE_POST). The distribution goal is
-// already met, so callers treat this as success, not failure —
+// already met, so callers treat this as success, not failure â€”
 // identical generated text for a repeated topic otherwise kills chains
 // at their final step (observed live 2026-11-16).
 var ErrDuplicatePost = errors.New("linkedin: duplicate post (already published)")
@@ -275,7 +275,7 @@ func (p *LinkedInProvider) refreshAccessToken(client *http.Client) error {
 	// Token responses run ~700 bytes (two long tokens + expiry): the
 	// original 500-byte cap truncated the JSON mid-token and the parse
 	// then "failed" on a perfectly good refresh. Never echo this body
-	// into errors/logs — it IS credential material.
+	// into errors/logs â€” it IS credential material.
 	body, _ := io.ReadAll(io.LimitReader(resp.Body, 8192))
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("token endpoint status %d", resp.StatusCode)
@@ -453,15 +453,50 @@ func sanitizeSocialContent(content string) string {
 	return strings.Join(sentences, " ")
 }
 
+// placeholderMarkers match bracketed fill-in text ("[Insert your bio
+// here]") that template-style LLM output ships verbatim. A post went to
+// LinkedIn carrying three of these (2026-11-17); they are never valid
+// finished copy.
+var placeholderMarkers = []string{
+	"[insert", "[your", "[name]", "[handle]", "[bio]", "[link]",
+	"[placeholder", "[todo", "[company name", "[website",
+}
+
+// ContainsPlaceholder reports whether copy carries bracketed fill-in
+// text. Exported for the other public-posting pipelines (affiliate)
+// that do not pass through GenerateContent.
+func ContainsPlaceholder(content string) bool {
+	lower := strings.ToLower(content)
+	for _, m := range placeholderMarkers {
+		if strings.Contains(lower, m) {
+			return true
+		}
+	}
+	return false
+}
+
 func GenerateContent(orch *orchestrator.Orchestrator, topic string) string {
-	prompt := fmt.Sprintf("Create a short, revolutionary social media post about %s with hashtags.", topic)
+	prompt := fmt.Sprintf("Create a short, revolutionary social media post about %s with hashtags. Write finished copy only â€” never include bracketed placeholders such as [insert ...] or [your ...].", topic)
 	raw, err := orch.LLM.Generate(prompt)
 	content := sanitizeSocialContent(raw)
 
-	// Validate LLM output — reject junk: metadata, JSON, short garbage.
+	// Bracketed placeholders get ONE corrective regeneration; if the
+	// retry still has them, the validity check below falls back to the
+	// canned line instead of posting fill-in text publicly.
+	if err == nil && ContainsPlaceholder(content) {
+		fmt.Printf("[Social] Placeholder text in generated post; regenerating once\n")
+		raw2, err2 := orch.LLM.Generate(prompt + " The previous attempt contained bracketed placeholder text; write the complete final post with real words everywhere a placeholder appeared.")
+		if err2 == nil {
+			if c2 := sanitizeSocialContent(raw2); !ContainsPlaceholder(c2) {
+				content = c2
+			}
+		}
+	}
+
+	// Validate LLM output â€” reject junk: metadata, JSON, short garbage.
 	// (Prompt echo and reasoning are already stripped by the sanitizer;
 	// anything still matching these markers is unrecoverable.)
-	if err != nil || content == "" || len(content) < 20 ||
+	if err != nil || content == "" || len(content) < 20 || ContainsPlaceholder(content) ||
 		hasAnyPrefix(strings.ToLower(content), echoOpeners) ||
 		strings.Contains(content, "[Model:") ||
 		strings.Contains(content, "Generated content") ||
@@ -484,7 +519,7 @@ func GenerateContent(orch *orchestrator.Orchestrator, topic string) string {
 
 // ValidatePlatform rejects platform names with no provider. Discovered
 // chains invent platforms (observed live: platform=Pinterest), and the
-// handler's switch silently routed every unknown name to Twitter —
+// handler's switch silently routed every unknown name to Twitter â€”
 // where the post died on X's 402 instead of failing where it belonged.
 func ValidatePlatform(platform string) error {
 	switch strings.ToLower(platform) {
@@ -526,7 +561,7 @@ func NewProvider(platform string) Provider {
 
 func FormatForPlatform(content, platform string) string {
 	// Per-platform length caps. Bluesky rejects records over 300
-	// graphemes with XRPC InvalidRequest — the curation chain's
+	// graphemes with XRPC InvalidRequest â€” the curation chain's
 	// affiliate-injected posts exceeded it because only Twitter was
 	// truncated here.
 	limit := 0
@@ -579,7 +614,7 @@ func SchedulePost(orch *orchestrator.Orchestrator, provider Provider, platform, 
 			Tags:      []string{"social", platform, "duplicate"},
 		})
 	} else if err == nil {
-		fmt.Printf("[Social] ✅ Successfully posted to %s\n", platform)
+		fmt.Printf("[Social] âœ… Successfully posted to %s\n", platform)
 		orch.L1.Add(orchestrator.MemoryEntry{
 			ID:        fmt.Sprintf("social-%s-%d", platform, time.Now().Unix()),
 			Content:   fmt.Sprintf("Posted to %s: %s", platform, content),
@@ -594,6 +629,7 @@ func SchedulePost(orch *orchestrator.Orchestrator, provider Provider, platform, 
 			Note:   fmt.Sprintf("API post to %s", platform),
 		})
 	} else {
-		fmt.Printf("[Social] ❌ Failed to post to %s: %v\n", platform, err)
+		fmt.Printf("[Social] âŒ Failed to post to %s: %v\n", platform, err)
 	}
 }
+

@@ -1,5 +1,10 @@
 # Changelog
 
+## [2.0.18] - 2026-11-17
+
+### Fixed
+- A discovered chain's LinkedIn post shipped raw template placeholders ("[Insert your handle and profile picture here]", "[insert relevant hashtag here]", "[Insert your bio here]"). GenerateContent now detects bracketed fill-ins, regenerates once with a corrective instruction, and falls back to the canned line if they persist; the prompt itself now demands finished copy. The affiliate pipeline (which posts reviews without passing GenerateContent) skips auto-posting placeholder-bearing reviews and records the skip. Test: TestGenerateContentRejectsPlaceholders.
+
 ## [2.0.17] - 2026-11-17
 
 ### Fixed
