@@ -768,6 +768,36 @@ func main() {
 			n, err := contentCalendar.ProcessPending()
 			fmt.Printf("[Calendar] Processed %d due entries\n", n)
 			return err
+		case "fill":
+			// Generate content for due topic-only shells (schedule_week
+			// creates them content-less; ProcessPending skips those
+			// forever). Capped per call — each fill is an LLM generation,
+			// and the scheduler runs fill+process every 90 minutes.
+			limit := 2
+			if v := p.Get("limit"); v != "" {
+				if n, err := strconv.Atoi(v); err == nil && n > 0 {
+					limit = n
+				}
+			}
+			gen := func(e publisher.CalendarEntry) (string, string, error) {
+				ct := content.BlogPost
+				switch e.Type {
+				case "newsletter":
+					ct = content.Newsletter
+				case "thread":
+					ct = content.SocialThread
+				case "seo":
+					ct = content.SEOArticle
+				}
+				res, err := contentModule.Generate(content.ContentRequest{Topic: e.Topic, Type: ct})
+				if err != nil {
+					return "", "", err
+				}
+				return res.Title, res.Body, nil
+			}
+			n, err := contentCalendar.FillPending(limit, gen)
+			fmt.Printf("[Calendar] Filled %d content shells\n", n)
+			return err
 		case "add":
 			topic := p.Get("topic")
 			if topic == "" {
@@ -1229,7 +1259,7 @@ func main() {
 			return traderModule.SnapshotAll()
 		}
 		api.CalendarSnapshot = func() interface{} {
-			return contentCalendar.Entries
+			return contentCalendar.Snapshot()
 		}
 		api.SchedulerSnapshot = func() interface{} {
 			return scheduler.Snapshot()
@@ -1320,6 +1350,12 @@ func main() {
 			return protocol.HandleURI("hustle://content?topic=AI+automation+trends&type=blog")
 		})
 		scheduler.Register("CalendarProcess", 90*time.Minute, func(o *orchestrator.Orchestrator) error {
+			// Fill due content shells first (capped LLM generations),
+			// then publish everything due. Fill errors are logged but do
+			// not block publishing entries that are already ready.
+			if err := protocol.HandleURI("hustle://calendar?action=fill"); err != nil {
+				fmt.Printf("[Calendar] Fill step: %v\n", err)
+			}
 			return protocol.HandleURI("hustle://calendar?action=process")
 		})
 		scheduler.Register("SwarmSync", 4*time.Hour, func(o *orchestrator.Orchestrator) error {

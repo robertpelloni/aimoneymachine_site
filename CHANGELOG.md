@@ -1,5 +1,10 @@
 # Changelog
 
+## [2.0.12] - 2026-11-17
+
+### Fixed
+- Content calendar shells never published: schedule_week creates topic-only entries (status pending, no content) and ProcessPending skips content-less entries by design, so 56 shells sat permanently overdue on prod with no path to publication. New `calendar?action=fill` (FillPending) generates content for due shells via the content module, capped at 2 per call, marks duplicate topic+platform shells superseded instead of publishing the same post repeatedly, and leaves shells pending on generator errors. The 90-minute CalendarProcess scheduler job now runs fill then process. Calendar Entries gained a mutex (concurrent scheduler) and a Snapshot() copy accessor for the API. Tests: TestFillPendingFillsCapsAndSupersedes, TestFillPendingGeneratorErrorLeavesShellPending.
+
 ## [2.0.2] - 2026-11-16
 ### Fixed
 - Content calendar entry IDs used second-resolution timestamps, so batch adds (schedule_week) collided on the same ID (prod carried 5-7 duplicates of three IDs). Now UnixNano. Also dropped 15 content-less pending entries from the prod calendar (backup kept) that failed every CalendarProcess cycle with 'no content to publish'.

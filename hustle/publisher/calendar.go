@@ -5,17 +5,21 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"sync"
 	"time"
 )
 
-// ContentCalendar manages automated content scheduling and publishing
+// ContentCalendar manages automated content scheduling and publishing.
+// mu guards Entries: the concurrent scheduler can run the calendar job
+// while chain steps and the API snapshot read the same slice.
 type ContentCalendar struct {
-	Entries       []CalendarEntry
-	WordPress     *WordPressPublisher
-	Newsletter    *NewsletterPublisher
-	Affiliate     *AffiliateInserter
-	Twitter       *TwitterPoster
-	ScheduleFile  string
+	mu           sync.Mutex
+	Entries      []CalendarEntry
+	WordPress    *WordPressPublisher
+	Newsletter   *NewsletterPublisher
+	Affiliate    *AffiliateInserter
+	Twitter      *TwitterPoster
+	ScheduleFile string
 }
 
 // CalendarEntry represents a scheduled content piece
@@ -23,7 +27,7 @@ type CalendarEntry struct {
 	ID          string    `json:"id"`
 	Topic       string    `json:"topic"`
 	Type        string    `json:"type"` // blog, newsletter, thread, research
-	Status      string    `json:"status"` // pending, generating, ready, published
+	Status      string    `json:"status"` // pending, generating, ready, published, superseded
 	Platform    string    `json:"platform"` // wordpress, twitter, newsletter, all
 	ScheduledAt time.Time `json:"scheduled_at"`
 	Content     string    `json:"content,omitempty"`
@@ -69,6 +73,8 @@ func (c *ContentCalendar) SaveCalendar() error {
 
 // AddEntry adds a new entry to the calendar
 func (c *ContentCalendar) AddEntry(topic, contentType, platform string, scheduledAt time.Time) CalendarEntry {
+	c.mu.Lock()
+	defer c.mu.Unlock()
 	entry := CalendarEntry{
 		// UnixNano: second-resolution IDs collided when schedule_week
 		// added 7 entries in the same second (prod calendar carried
@@ -244,12 +250,90 @@ func truncate(s string, maxLen int) string {
 	return s[:maxLen] + "..."
 }
 
+// Snapshot returns a copy of the entries for read-only consumers (API).
+func (c *ContentCalendar) Snapshot() []CalendarEntry {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	out := make([]CalendarEntry, len(c.Entries))
+	copy(out, c.Entries)
+	return out
+}
+
+// FillPending generates content for due topic-only shells (status pending,
+// no content — what schedule_week creates). ProcessPending skips shells
+// forever, so without this step they accumulate as permanently overdue
+// pending entries (56 observed on prod, none publishable). gen is supplied
+// by the caller (the content module) so this package stays LLM-free and
+// testable. At most limit shells are generated per call — each fill is an
+// LLM call, and the scheduler runs this every 90 minutes. A shell whose
+// topic+platform already carries content (ready/published, or filled
+// earlier in this same pass) is marked superseded instead of generating a
+// duplicate post: schedule_week re-adds the same topics every run. A
+// generator error leaves the shell pending for the next cycle and is
+// returned. Returns the number of shells filled.
+func (c *ContentCalendar) FillPending(limit int, gen func(CalendarEntry) (title, body string, err error)) (int, error) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	now := time.Now()
+	covered := map[string]bool{}
+	for _, e := range c.Entries {
+		if strings.TrimSpace(e.Content) != "" || e.Status == "published" {
+			covered[e.Topic+"|"+e.Platform] = true
+		}
+	}
+	filled := 0
+	changed := false
+	var firstErr error
+	for i := range c.Entries {
+		e := &c.Entries[i]
+		if e.Status != "pending" || strings.TrimSpace(e.Content) != "" || e.ScheduledAt.After(now) {
+			continue
+		}
+		key := e.Topic + "|" + e.Platform
+		if covered[key] {
+			e.Status = "superseded"
+			changed = true
+			continue
+		}
+		if filled >= limit {
+			continue
+		}
+		title, body, err := gen(*e)
+		if err == nil && strings.TrimSpace(body) == "" {
+			err = fmt.Errorf("generator returned empty content for %q", e.Topic)
+		}
+		if err != nil {
+			if firstErr == nil {
+				firstErr = err
+			}
+			continue
+		}
+		if strings.TrimSpace(title) == "" {
+			title = e.Topic
+		}
+		e.Title = title
+		e.Content = body
+		e.Status = "ready"
+		covered[key] = true
+		filled++
+		changed = true
+	}
+	if changed {
+		if err := c.SaveCalendar(); err != nil && firstErr == nil {
+			firstErr = err
+		}
+	}
+	return filled, firstErr
+}
+
 // ProcessPending publishes every due entry (status pending or ready, scheduled
 // at or before now) in place, so PublishEntry's SaveCalendar persists the
 // published/failed status. GetPendingEntries returns copies, so looping over
 // it would silently discard status updates — hence this index-based loop.
 // Returns the number of entries attempted.
 func (c *ContentCalendar) ProcessPending() (int, error) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
 	now := time.Now()
 	attempted := 0
 	var firstErr error
@@ -274,6 +358,8 @@ func (c *ContentCalendar) ProcessPending() (int, error) {
 
 // PrintStatus prints the calendar status
 func (c *ContentCalendar) PrintStatus() {
+	c.mu.Lock()
+	defer c.mu.Unlock()
 	pending := 0
 	published := 0
 	failed := 0

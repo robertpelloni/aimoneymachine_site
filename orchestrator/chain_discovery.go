@@ -43,7 +43,7 @@ func ValidateChainSteps(steps []string, p *HustleProtocol) error {
 			var allowed []string
 			switch strings.ToLower(u.Host) {
 			case "calendar":
-				allowed = []string{"status", "process", "add", "schedule_week", "schedule"}
+				allowed = []string{"status", "process", "fill", "add", "schedule_week", "schedule"}
 			case "publisher":
 				allowed = []string{"status", "wordpress", "wordpress_markdown", "newsletter"}
 			case "affiliate":
